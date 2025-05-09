@@ -1,0 +1,54 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29806.167
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pawnshop.Core", "Pawnshop.Core\Pawnshop.Core.csproj", "{00CA90D9-B194-45D6-9D7D-9683E7ADEAE7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pawnshop.Data", "Pawnshop.Data\Pawnshop.Data.csproj", "{CE1AE7C4-EDDC-4A74-8CA3-ED735FDC2543}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pawnshop.Web", "Pawnshop.Web\Pawnshop.Web.csproj", "{5A6C776B-CF6B-45BD-9E3E-CADE716C3334}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pawnshop.Tests", "Pawnshop.Tests\Pawnshop.Tests.csproj", "{6F3F096F-428E-47A0-8B79-DD0422D767F8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pawnshop.AccountingCore", "Pawnshop.AccountingCore\Pawnshop.AccountingCore.csproj", "{07966F64-A29F-490B-9696-298E702F8741}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pawnshop.Services", "Pawnshop.Services\Pawnshop.Services.csproj", "{FEBDA382-22A4-4FCC-B0AC-C48D340A718B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{00CA90D9-B194-45D6-9D7D-9683E7ADEAE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00CA90D9-B194-45D6-9D7D-9683E7ADEAE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00CA90D9-B194-45D6-9D7D-9683E7ADEAE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00CA90D9-B194-45D6-9D7D-9683E7ADEAE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE1AE7C4-EDDC-4A74-8CA3-ED735FDC2543}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE1AE7C4-EDDC-4A74-8CA3-ED735FDC2543}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE1AE7C4-EDDC-4A74-8CA3-ED735FDC2543}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE1AE7C4-EDDC-4A74-8CA3-ED735FDC2543}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A6C776B-CF6B-45BD-9E3E-CADE716C3334}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A6C776B-CF6B-45BD-9E3E-CADE716C3334}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A6C776B-CF6B-45BD-9E3E-CADE716C3334}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A6C776B-CF6B-45BD-9E3E-CADE716C3334}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F3F096F-428E-47A0-8B79-DD0422D767F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F3F096F-428E-47A0-8B79-DD0422D767F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F3F096F-428E-47A0-8B79-DD0422D767F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F3F096F-428E-47A0-8B79-DD0422D767F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07966F64-A29F-490B-9696-298E702F8741}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07966F64-A29F-490B-9696-298E702F8741}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07966F64-A29F-490B-9696-298E702F8741}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07966F64-A29F-490B-9696-298E702F8741}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FEBDA382-22A4-4FCC-B0AC-C48D340A718B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEBDA382-22A4-4FCC-B0AC-C48D340A718B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEBDA382-22A4-4FCC-B0AC-C48D340A718B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEBDA382-22A4-4FCC-B0AC-C48D340A718B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D2D6431A-5071-4D4B-8174-01891E7F59D0}
+	EndGlobalSection
+EndGlobal
