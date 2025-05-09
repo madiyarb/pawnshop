@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "dgSpecHash": "6R2V1dd1W5E=",
+  "success": true,
+  "projectFilePath": "/Users/madiyar/Documents/projects/pawnshop/Pawnshop.AccountingCore/Pawnshop.AccountingCore.csproj",
+  "expectedPackageFiles": [
+    "/Users/madiyar/.nuget/packages/autofac/6.0.0/autofac.6.0.0.nupkg.sha512",
+    "/Users/madiyar/.nuget/packages/system.buffers/4.5.1/system.buffers.4.5.1.nupkg.sha512",
+    "/Users/madiyar/.nuget/packages/system.componentmodel.annotations/5.0.0/system.componentmodel.annotations.5.0.0.nupkg.sha512",
+    "/Users/madiyar/.nuget/packages/system.diagnostics.diagnosticsource/4.7.1/system.diagnostics.diagnosticsource.4.7.1.nupkg.sha512",
+    "/Users/madiyar/.nuget/packages/system.memory/4.5.4/system.memory.4.5.4.nupkg.sha512",
+    "/Users/madiyar/.nuget/packages/system.numerics.vectors/4.4.0/system.numerics.vectors.4.4.0.nupkg.sha512",
+    "/Users/madiyar/.nuget/packages/system.runtime.compilerservices.unsafe/4.5.3/system.runtime.compilerservices.unsafe.4.5.3.nupkg.sha512"
+  ],
+  "logs": []
+}

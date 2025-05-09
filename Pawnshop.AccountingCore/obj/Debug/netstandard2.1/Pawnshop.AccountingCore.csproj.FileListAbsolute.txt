@@ -1,0 +1,11 @@
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.AccountingCore/bin/Debug/netstandard2.1/Pawnshop.AccountingCore.deps.json
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.AccountingCore/bin/Debug/netstandard2.1/Pawnshop.AccountingCore.dll
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.AccountingCore/bin/Debug/netstandard2.1/Pawnshop.AccountingCore.pdb
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.AccountingCore/obj/Debug/netstandard2.1/Pawnshop.AccountingCore.csproj.AssemblyReference.cache
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.AccountingCore/obj/Debug/netstandard2.1/Pawnshop.AccountingCore.GeneratedMSBuildEditorConfig.editorconfig
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.AccountingCore/obj/Debug/netstandard2.1/Pawnshop.AccountingCore.AssemblyInfoInputs.cache
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.AccountingCore/obj/Debug/netstandard2.1/Pawnshop.AccountingCore.AssemblyInfo.cs
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.AccountingCore/obj/Debug/netstandard2.1/Pawnshop.AccountingCore.csproj.CoreCompileInputs.cache
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.AccountingCore/obj/Debug/netstandard2.1/Pawnshop.AccountingCore.sourcelink.json
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.AccountingCore/obj/Debug/netstandard2.1/Pawnshop.AccountingCore.dll
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.AccountingCore/obj/Debug/netstandard2.1/Pawnshop.AccountingCore.pdb
