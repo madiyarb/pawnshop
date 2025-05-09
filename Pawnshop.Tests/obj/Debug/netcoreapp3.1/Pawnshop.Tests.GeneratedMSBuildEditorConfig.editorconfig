@@ -1,0 +1,5 @@
+is_global = true
+build_property.RootNamespace = Pawnshop.Tests
+build_property.ProjectDir = /Users/madiyar/Documents/projects/pawnshop/Pawnshop.Tests/
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
