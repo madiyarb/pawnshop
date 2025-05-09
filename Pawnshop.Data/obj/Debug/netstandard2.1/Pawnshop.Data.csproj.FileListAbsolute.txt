@@ -1,0 +1,16 @@
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.Data/bin/Debug/netstandard2.1/Pawnshop.Data.deps.json
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.Data/bin/Debug/netstandard2.1/Pawnshop.Data.dll
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.Data/bin/Debug/netstandard2.1/Pawnshop.Data.pdb
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.Data/bin/Debug/netstandard2.1/Pawnshop.AccountingCore.dll
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.Data/bin/Debug/netstandard2.1/Pawnshop.Core.dll
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.Data/bin/Debug/netstandard2.1/Pawnshop.Core.pdb
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.Data/bin/Debug/netstandard2.1/Pawnshop.AccountingCore.pdb
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.Data/obj/Debug/netstandard2.1/Pawnshop.Data.csproj.AssemblyReference.cache
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.Data/obj/Debug/netstandard2.1/Pawnshop.Data.GeneratedMSBuildEditorConfig.editorconfig
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.Data/obj/Debug/netstandard2.1/Pawnshop.Data.AssemblyInfoInputs.cache
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.Data/obj/Debug/netstandard2.1/Pawnshop.Data.AssemblyInfo.cs
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.Data/obj/Debug/netstandard2.1/Pawnshop.Data.csproj.CoreCompileInputs.cache
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.Data/obj/Debug/netstandard2.1/Pawnshop.Data.sourcelink.json
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.Data/obj/Debug/netstandard2.1/Pawnshop.Data.dll
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.Data/obj/Debug/netstandard2.1/Pawnshop.Data.pdb
+/Users/madiyar/Documents/jobprojects/tascredit/Tascredit/tascredit/sources/Pawnshop.Data/obj/Debug/netstandard2.1/Pawnshop.Data.csproj.CopyComplete

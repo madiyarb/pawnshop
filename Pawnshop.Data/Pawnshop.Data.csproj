@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>Pawnshop.Data</AssemblyName>
+    <PackageId>Pawnshop.Data</PackageId>
+    <NetStandardImplicitPackageVersion>2.0</NetStandardImplicitPackageVersion>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Models\MobileApp\HardCollection\Interfaces\**" />
+    <Compile Remove="Services\Models\**" />
+    <EmbeddedResource Remove="Models\MobileApp\HardCollection\Interfaces\**" />
+    <EmbeddedResource Remove="Services\Models\**" />
+    <None Remove="Models\MobileApp\HardCollection\Interfaces\**" />
+    <None Remove="Services\Models\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Pawnshop.Core/Pawnshop.Core.csproj" />
+    <ProjectReference Include="..\Pawnshop.AccountingCore\Pawnshop.AccountingCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.15" />
+    <PackageReference Include="Dapper.Contrib" Version="2.0.35" />
+    <PackageReference Include="Dapper.SqlBuilder" Version="2.0.35" />
+    <PackageReference Include="Infobip.Api.Client.NetStandard" Version="1.0.1" />
+    <PackageReference Include="MediatR" Version="12.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="Autofac" Version="6.0.0" />
+  </ItemGroup>
+</Project>
