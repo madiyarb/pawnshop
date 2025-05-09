@@ -1,0 +1,960 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<StiSerializer version="1.02" type="Net" application="StiReport">
+  <CalculationMode>Interpretation</CalculationMode>
+  <Culture>ru-RU</Culture>
+  <Dictionary Ref="1" type="Dictionary" isKey="true">
+    <BusinessObjects isList="true" count="0" />
+    <Databases isList="true" count="1">
+      <ReportConnection Ref="2" type="Stimulsoft.Report.Dictionary.StiSqlDatabase" isKey="true">
+        <Alias>ReportConnection</Alias>
+        <ConnectionStringEncrypted>4xrbyUtM601pa90IZxhhI8Zw9aFLXZLta1u51GFsJWfEXvkoxVmjzWle7aVjdLVj1Hj7w01PMZ3xXKWY8AitbuBW2e9GS0H5a0SpgGF4IkLkepnC7117hfhbudxjPWRji3j1CWFWq7xqELWAxHDgZt9slc9NWfuZalu17OtM5EbZ8rWIzBRbzUJavdxqAGFe02LPK8ZxE819HP3cZxgiJ8JU9YhhUUuB4VzZmGTspGOLePvLT0zD3XFH5czwAHd7nsR5iUYFc6TsR/2AYQRlG8N4+0jGe/tZYQi5mGFMohvJ8ttgVkyr7W9G/URNPaAP1RrBwg==</ConnectionStringEncrypted>
+        <Name>ReportConnection</Name>
+      </ReportConnection>
+    </Databases>
+    <DataSources isList="true" count="1">
+      <ConsolidateSoftCollectionReport Ref="3" type="Stimulsoft.Report.Dictionary.StiSqlSource" isKey="true">
+        <Alias>ConsolidateSoftCollectionReport</Alias>
+        <Columns isList="true" count="10">
+          <value>BranchName,System.String</value>
+          <value>TotalSum,System.Decimal</value>
+          <value>SoftCountContracts,System.Int32</value>
+          <value>DelayDayCount,System.Int32</value>
+          <value>DebtCost,System.Int32</value>
+          <value>PercentCost,System.Int32</value>
+          <value>PenaltyCost,System.Int32</value>
+          <value>DebtLeftToHard,System.Decimal</value>
+          <value>HardCountContracts,System.Int32</value>
+          <value>PrepaymentCost,System.Int32</value>
+        </Columns>
+        <CommandTimeout>30</CommandTimeout>
+        <Dictionary isRef="1" />
+        <Key>8b770ca7690b44adab401020efd1e8e7</Key>
+        <Name>ConsolidateSoftCollectionReport</Name>
+        <NameInSource>ReportConnection</NameInSource>
+        <Parameters isList="true" count="0" />
+        <SqlCommand>DECLARE @result TABLE(
+Id INT,
+DebtLeft DECIMAL(10,2),
+GotDelayedInThisPeriod BIT,
+SoftDelayDateStartsAt DATE,
+DisplayStatus INT,
+DelayDayCount INT,
+DebtCost INT,
+PercentCost INT,
+PenaltyCost INT,
+HardDelayDateStartsAt DATE,
+DebtLeftToHard DECIMAL(10,2),
+PrepaymentCost INT
+)
+
+DECLARE @DelayPeriods TABLE(
+Id INT,
+ClientId INT,
+DelayStartsAt DATE,
+DelayEndsAt DATE,
+DelayDayCount INT
+)
+
+DECLARE @DelayPeriodsTEMP TABLE(
+Id INT,
+ClientId INT,
+DelayStartsAt DATE,
+DelayEndsAt DATE,
+DelayDayCount INT
+)
+
+DECLARE @DelayTEMP TABLE(
+Id INT,
+DelayDayCount INT
+)
+
+------АННУИТЕТ
+INSERT INTO @DelayPeriodsTEMP(Id, ClientId, DelayStartsAt, DelayEndsAt, DelayDayCount)
+SELECT 
+	ContractId,
+	ClientId,
+	[Date] DelayStartsAt,
+	IIF(ActualDate IS NULL, CAST(dbo.GETASTANADATE() AS DATE),ActualDate) DelayEndsAt,
+	DATEDIFF(Day,Date,IIF(ActualDate IS NULL, CAST(dbo.GETASTANADATE() AS DATE),ActualDate)) DelayDayCount
+FROM ContractPaymentSchedule cps
+JOIN Contracts c ON c.Id=cps.ContractId
+WHERE Date&lt;=@enddate
+AND (ActualDate IS NULL OR CAST(ActualDate AS DATE)&gt;=CAST(@begindate AS DATE))
+AND Canceled IS NULL
+AND cps.DeleteDate IS NULL
+AND c.DeleteDate IS NULL
+AND (@collateralType=0 OR c.collateralType=@collateralType)
+AND c.Status&gt;0
+AND DATEDIFF(Day,Date,IIF(ActualDate IS NULL, CAST(dbo.GETASTANADATE() AS DATE),ActualDate))&gt;0
+AND c.BranchId IN ({branchIds})
+
+INSERT INTO @DelayTEMP(Id, DelayDayCount)
+SELECT Id, MAX(DelayDayCount) FROM @DelayPeriodsTEMP GROUP BY Id
+
+INSERT INTO @DelayPeriods(Id, ClientId, DelayStartsAt, DelayEndsAt, DelayDayCount)
+SELECT a.* FROM @DelayPeriodsTEMP a
+LEFT JOIN @DelayTEMP z ON z.Id=a.Id
+WHERE a.DelayDayCount=z.DelayDayCount
+
+------ДИСКРЕТ
+INSERT INTO @DelayPeriods(Id, ClientId, DelayStartsAt, DelayEndsAt, DelayDayCount)
+SELECT 
+	Id,
+	ClientId,
+	DelayStartsAt,
+	DelayEndsAt,
+	DATEDIFF(DAY,DelayStartsAt,DelayEndsAt) AS DelayDayCount
+	FROM
+(SELECT
+	c.Id,
+	c.ClientId,
+	ca.Date,
+	DATEADD(DAY,IIF(ca.ActionType=50,IIF(Locked=0,LoanPeriod-1,LoanPeriod),JSON_VALUE(ca.Data,'$.ProlongPeriod')),IIF(ca.ActionType=50,CAST(c.ContractDate AS DATE),ca.Date)) AS DelayStartsAt,
+
+	ISNULL(LEAD(ca.[Date]) OVER (PARTITION BY ca.ContractId ORDER BY ca.[Date]),ISNULL(buyout.Date,dbo.GETASTANADATE())) as DelayEndsAt
+FROM Contracts c
+LEFT JOIN ContractActions ca on ca.ContractId=c.Id
+LEFT JOIN ContractActions buyout on buyout.ContractId=c.Id AND buyout.ActionType IN (20,30,40,90,100)
+WHERE PercentPaymentType = 20
+	AND c.Status&gt;0
+	AND ca.DeleteDate IS NULL
+	AND (@collateralType=0 OR c.collateralType=@collateralType)
+	AND ca.ActionType NOT IN (20,30,40,90,100)
+	AND c.ContractDate&lt;@enddate
+	AND c.BranchId IN ({branchIds})
+	)
+AS t
+WHERE DATEDIFF(DAY,DelayStartsAt,DelayEndsAt)&gt;0
+	AND DelayStartsAt&lt;=@enddate
+	AND DelayEndsAt &gt;=@begindate
+	
+
+INSERT INTO @result
+(Id, DebtLeft, GotDelayedInThisPeriod, SoftDelayDateStartsAt, DisplayStatus, DelayDayCount, 
+DebtCost, PercentCost, PenaltyCost, HardDelayDateStartsAt, PrepaymentCost)
+SELECT
+	d.Id,
+	c.LoanCost - ISNULL((SELECT SUM(car.Cost)
+		FROM ContractActions ca
+		LEFT JOIN ContractActionRows car ON car.ActionId=ca.Id
+		WHERE ActionType IN (10,20,30,40,80,90)
+		AND ca.DeleteDate IS NULL
+		AND car.PaymentType=10
+		AND ContractId=d.Id
+		AND [Date]&lt;=DelayStartsAt),0) as DebtLeft,
+	IIF(DelayStartsAt BETWEEN @begindate AND @enddate,1,0) AS GotDelayedInThisPeriod,
+	DelayStartsAt AS SoftDelayDateStartsAt,
+	ISNULL(t.ActionType,500) AS DisplayStatus,
+	DelayDayCount,
+	t.car10 AS DebtCost,
+	t.car20 AS PercentCost,
+	t.car30 AS PenaltyCost,
+	IIF(DelayDayCount&gt;=6,DATEADD(DAY,6,DelayStartsAt),null) as HardDelayDateStartsAt,
+(SELECT SUM(TotalCost) FROM ContractActions ca WHERE ca.ContractId = c.Id AND ActionType = 100 AND [Date] BETWEEN DelayStartsAt AND ISNULL(IIF(DelayDayCount&gt;=6,DATEADD(DAY,6,DelayStartsAt),null),DATEADD(DAY,DelayDayCount,DelayStartsAt)))
+FROM @DelayPeriods  d
+JOIN Contracts c ON c.Id = d.Id
+OUTER APPLY (SELECT TOP 1
+	ca.Id,
+	ca.ActionType,
+	ISNULL(SUM(car10.Cost),0) AS car10,
+	ISNULL(SUM(car20.Cost),0) AS car20,
+	ISNULL(SUM(car30.Cost),0) AS car30
+FROM ContractActions ca
+LEFT JOIN ContractActionRows car10 ON car10.ActionId=ca.Id AND car10.PaymentType=10
+LEFT JOIN ContractActionRows car20 ON car20.ActionId=ca.Id AND car20.PaymentType=20
+LEFT JOIN ContractActionRows car30 ON car30.ActionId=ca.Id AND car30.PaymentType=30
+WHERE ActionType IN (10,20,30,40,80,90)
+	AND ContractId=d.Id 
+	AND DeleteDate IS NULL
+	AND Date&gt;=DelayStartsAt
+	AND Date&lt;DATEADD(DAY,6,DelayStartsAt)
+Group by ca.Id,ca.ActionType) as t
+
+WHERE DelayStartsAt&lt;=@enddate
+AND DelayEndsAt &gt;=@begindate
+AND DATEDIFF(DAY,DelayStartsAt,@begindate)&lt;=6
+
+UPDATE @result SET DebtLeftToHard = IIF(HardDelayDateStartsAt IS NOT NULL, DebtLeft, NULL)
+
+
+SELECT br.DisplayName as BranchName,total.TotalSum,soft.*,hard.*
+FROM Groups br
+OUTER APPLY(
+SELECT 
+	SUM(DebtLeft) AS TotalSum
+
+	FROM @result r
+JOIN Contracts c ON c.Id=r.Id
+JOIN Groups g on g.Id=c.BranchId
+WHERE r.DelayDayCount&lt;6 and g.Id=br.Id
+GROUP BY g.DisplayName) as total
+OUTER APPLY(
+SELECT 
+	Count(*) AS SoftCountContracts,
+	r.DelayDayCount,
+	SUM(DebtCost) AS DebtCost,
+	SUM(PercentCost) AS PercentCost,
+	SUM(PenaltyCost) AS PenaltyCost,
+	SUM(PrepaymentCost) AS PrepaymentCost
+
+	FROM @result r
+JOIN Contracts c ON c.Id=r.Id
+JOIN Groups g on g.Id=c.BranchId
+WHERE r.DelayDayCount&lt;6 and g.Id=br.Id
+GROUP BY g.DisplayName,r.DelayDayCount) as soft
+OUTER APPLY(
+SELECT 
+	SUM(DebtLeftToHard) AS DebtLeftToHard,
+	Count(*) AS HardCountContracts
+
+	FROM @result r
+JOIN Contracts c ON c.Id=r.Id
+JOIN Groups g on g.Id=c.BranchId
+WHERE r.DelayDayCount&gt;=6 and g.Id=br.Id
+GROUP BY g.DisplayName) as hard
+WHERE Id IN ({branchIds})
+ORDER BY DisplayName</SqlCommand>
+      </ConsolidateSoftCollectionReport>
+    </DataSources>
+    <Relations isList="true" count="0" />
+    <Report isRef="0" />
+    <Resources isList="true" count="0" />
+    <Variables isList="true" count="5">
+      <value>,branchIds,branchIds,,Stimulsoft.Report.IntList,_x0031_12,False,False,False,False,,,True</value>
+      <value>,beginDate,beginDate,,System.DateTime,_x0036__x002F_1_x002F_2019_x0020_12:00:00_x0020_AM,False,False,False,False,,,True</value>
+      <value>,endDate,endDate,,System.DateTime,_x0036__x002F_30_x002F_2019_x0020_11:59:59_x0020_PM,False,False,False,False,,,True</value>
+      <value>,branchId,branchId,,System.Int32,_x0030_,False,False,False,False,,,True</value>
+      <value>,collateralType,collateralType,,System.Int32,_x0032_0,False,False,False,False,,,True</value>
+    </Variables>
+  </Dictionary>
+  <EngineVersion>EngineV2</EngineVersion>
+  <GlobalizationStrings isList="true" count="0" />
+  <Key>5f7cde33bc0942e1a1ced1bc58c7d409</Key>
+  <MetaTags isList="true" count="0" />
+  <Pages isList="true" count="1">
+    <Page2 Ref="4" type="Page" isKey="true">
+      <Border>None;Black;2;Solid;False;4;Black</Border>
+      <Brush>Transparent</Brush>
+      <Components isList="true" count="6">
+        <ReportTitleBand2 Ref="5" type="ReportTitleBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,0.2,8.82,0.4</ClientRectangle>
+          <Components isList="true" count="2">
+            <Text50 Ref="6" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0,8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,12,Bold</Font>
+              <Guid>6e5824b613924818bc9bb9ce6c016803</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text50</Name>
+              <Page isRef="4" />
+              <Parent isRef="5" />
+              <Text>Система мотивации SOFT</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text50>
+            <Text51 Ref="7" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0.2,8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,12,Bold</Font>
+              <Guid>30f662e3b6bf491eba714ae3759e584a</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text51</Name>
+              <Page isRef="4" />
+              <Parent isRef="5" />
+              <Text>За период {Format("{0:dd.MM.yyyy}", beginDate)} - {Format("{0:dd.MM.yyyy}", endDate)} года</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text51>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Guid>b3ec5d2e11f74eb5a6b3d0942cc1b62f</Guid>
+          <Name>ReportTitleBand2</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+        </ReportTitleBand2>
+        <HeaderBand2 Ref="8" type="HeaderBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,1,8.82,0.7</ClientRectangle>
+          <Components isList="true" count="12">
+            <Text58 Ref="9" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>3.2,0.2,0.8,0.5</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>172487e982174d06a0b4eda4a06629dd</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text58</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Просрочено дней</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text58>
+            <Text59 Ref="10" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>4,0.2,0.8,0.5</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>9181b20176974dbd83db2cdb325f65e4</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text59</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Сумма авансов</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text59>
+            <Text62 Ref="11" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>2.3,0.2,0.9,0.5</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>5f227e3b4a054112894a64564ced941b</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text62</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Кол-во клиентов</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text62>
+            <Text64 Ref="12" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>2.3,0,1.7,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>89b611496ec24ac5a508f2aa7457906c</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text64</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Результат работы SOFT</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text64>
+            <Text65 Ref="13" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>5.6,0.2,0.8,0.5</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>6bf894f69a19465ab2892b7374cf306a</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text65</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Сумма %</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text65>
+            <Text66 Ref="14" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>6.4,0.2,0.8,0.5</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>d9ba646539704643b8c27194e88f489f</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text66</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Сумма штрафа</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text66>
+            <Text67 Ref="15" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>4,0,2.4,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>3902de6cd53b40b0a3790fb2f78f51b5</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text67</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Возврат сумм</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text67>
+            <Text68 Ref="16" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>7.2,0,0.8,0.7</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>55e6e85e4e2c4f5181cd3eda40561f05</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text68</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Перешло в HARD клиентов</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text68>
+            <Text69 Ref="17" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>8,0,0.8,0.7</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>6f7ece8a97d44f17afc2de8e69ff4567</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text69</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Общая сумма</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text69>
+            <Text52 Ref="18" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>1.3,0,1,0.7</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>173d1986ac024195b7c44a75b817c87b</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text52</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Общая сумма</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text52>
+            <Text53 Ref="19" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0,1.3,0.7</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>8987bbef40664dd19e5ed605ae41a7e0</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text53</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Филиал</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text53>
+            <Text1 Ref="20" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>4.8,0.2,0.8,0.5</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>72497c50213c4075ae8ee9b60312c9c3</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text1</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Сумма ОД</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text1>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Guid>de16b8ed29de45b3ab00a7b25dc75799</Guid>
+          <Name>HeaderBand2</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+          <PrintIfEmpty>True</PrintIfEmpty>
+        </HeaderBand2>
+        <GroupHeaderBand2 Ref="21" type="GroupHeaderBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,2.1,8.82,0</ClientRectangle>
+          <Components isList="true" count="0" />
+          <Condition>{ConsolidateSoftCollectionReport.BranchName}</Condition>
+          <Conditions isList="true" count="0" />
+          <Guid>d32cf9fdf35d4b1a9695576ee790274c</Guid>
+          <Name>GroupHeaderBand2</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+        </GroupHeaderBand2>
+        <DataBand2 Ref="22" type="DataBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <BusinessObjectGuid isNull="true" />
+          <ClientRectangle>0,2.5,8.82,0.3</ClientRectangle>
+          <Components isList="true" count="10">
+            <Text71 Ref="23" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>8,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>7a414030ddf24e0d886e7b2da2ad5310</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text71</Name>
+              <Page isRef="4" />
+              <Parent isRef="22" />
+              <ProcessingDuplicates>Merge</ProcessingDuplicates>
+              <Text>{ConsolidateSoftCollectionReport.DebtLeftToHard}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text71>
+            <Text57 Ref="24" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>5.6,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>0c84c34af07643d39d0c3a1c93c65d91</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text57</Name>
+              <Page isRef="4" />
+              <Parent isRef="22" />
+              <Text>{ConsolidateSoftCollectionReport.PercentCost}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text57>
+            <Text60 Ref="25" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>6.4,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>22ac663b71d2405c9638154fc86578a1</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text60</Name>
+              <Page isRef="4" />
+              <Parent isRef="22" />
+              <Text>{ConsolidateSoftCollectionReport.PenaltyCost}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text60>
+            <Text61 Ref="26" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>7.2,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>0b15524fabea400b935171ba8fc9ad99</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text61</Name>
+              <Page isRef="4" />
+              <Parent isRef="22" />
+              <ProcessingDuplicates>Merge</ProcessingDuplicates>
+              <Text>{ConsolidateSoftCollectionReport.HardCountContracts}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text61>
+            <Text72 Ref="27" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanGrow>True</CanGrow>
+              <ClientRectangle>0,0,1.3,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10,Bold</Font>
+              <GrowToHeight>True</GrowToHeight>
+              <Guid>b10a6706216e4d718847d3208593b3a5</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text72</Name>
+              <Page isRef="4" />
+              <Parent isRef="22" />
+              <ProcessingDuplicates>GlobalMerge</ProcessingDuplicates>
+              <Text>{ConsolidateSoftCollectionReport.BranchName}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text72>
+            <Text54 Ref="28" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>4.8,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>46a13b247b1d4b7b966166d313987ef3</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text54</Name>
+              <Page isRef="4" />
+              <Parent isRef="22" />
+              <Text>{ConsolidateSoftCollectionReport.DebtCost}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text54>
+            <Text55 Ref="29" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>3.2,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>b11e46dea5fd4cd892c5d11e94fe9d15</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text55</Name>
+              <Page isRef="4" />
+              <Parent isRef="22" />
+              <Text>{ConsolidateSoftCollectionReport.DelayDayCount}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text55>
+            <Text56 Ref="30" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>2.3,0,0.9,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>c2a13e49e26841d2971122e83403befe</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text56</Name>
+              <Page isRef="4" />
+              <Parent isRef="22" />
+              <Text>{ConsolidateSoftCollectionReport.SoftCountContracts}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text56>
+            <Text74 Ref="31" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>1.3,0,1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>724183fca45c4668894bc9c814a640c7</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text74</Name>
+              <Page isRef="4" />
+              <Parent isRef="22" />
+              <ProcessingDuplicates>Merge</ProcessingDuplicates>
+              <Text>{ConsolidateSoftCollectionReport.TotalSum}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text74>
+            <Text2 Ref="32" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>4,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>28d280a7be664277a4730d20afecd78a</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text2</Name>
+              <Page isRef="4" />
+              <Parent isRef="22" />
+              <Text>{ConsolidateSoftCollectionReport.PrepaymentCost}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text2>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <DataRelationName isNull="true" />
+          <DataSourceName>ConsolidateSoftCollectionReport</DataSourceName>
+          <Filters isList="true" count="0" />
+          <Name>DataBand2</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+          <Sort isList="true" count="0" />
+        </DataBand2>
+        <GroupFooterBand2 Ref="33" type="GroupFooterBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,3.2,8.82,0.3</ClientRectangle>
+          <Components isList="true" count="9">
+            <Text73 Ref="34" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanGrow>True</CanGrow>
+              <ClientRectangle>0,0,1.3,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10,Bold</Font>
+              <GrowToHeight>True</GrowToHeight>
+              <Guid>e498d59f6f0c45e09c88618d83f40f62</Guid>
+              <HorAlignment>Right</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text73</Name>
+              <Page isRef="4" />
+              <Parent isRef="33" />
+              <Text>Итого:</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text73>
+            <Text75 Ref="35" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>2.3,0,0.9,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>ff1ab6d2fbac4c13b63cb2abaabcfbdf</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text75</Name>
+              <Page isRef="4" />
+              <Parent isRef="33" />
+              <Text>{Sum(GroupHeaderBand2,ConsolidateSoftCollectionReport.SoftCountContracts)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Totals</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text75>
+            <Text76 Ref="36" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>4.8,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>4a6f8a842467427384840418f1fafd69</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text76</Name>
+              <Page isRef="4" />
+              <Parent isRef="33" />
+              <Text>{Sum(GroupHeaderBand2,ConsolidateSoftCollectionReport.DebtCost)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Totals</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text76>
+            <Text77 Ref="37" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>5.6,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>586df0ba3e594609a6c2a2f6fccb79d1</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text77</Name>
+              <Page isRef="4" />
+              <Parent isRef="33" />
+              <Text>{Sum(GroupHeaderBand2,ConsolidateSoftCollectionReport.PercentCost)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Totals</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text77>
+            <Text78 Ref="38" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>6.4,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>189f0c0ee537422f9bca5ff4831ea665</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text78</Name>
+              <Page isRef="4" />
+              <Parent isRef="33" />
+              <Text>{Sum(GroupHeaderBand2,ConsolidateSoftCollectionReport.PenaltyCost)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Totals</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text78>
+            <Text79 Ref="39" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>3.2,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>2bc085aed7c64334b782ad5d6e5b609a</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text79</Name>
+              <Page isRef="4" />
+              <Parent isRef="33" />
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Totals</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text79>
+            <Text80 Ref="40" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>7.2,0,1.6,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>6aff23a68e4e4e74bbc1b88a78e90328</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text80</Name>
+              <Page isRef="4" />
+              <Parent isRef="33" />
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Totals</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text80>
+            <Text81 Ref="41" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanGrow>True</CanGrow>
+              <ClientRectangle>1.3,0,1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10,Bold</Font>
+              <GrowToHeight>True</GrowToHeight>
+              <Guid>0cadfdf44de8401ca97fd85ee4ef41c4</Guid>
+              <HorAlignment>Right</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text81</Name>
+              <Page isRef="4" />
+              <Parent isRef="33" />
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text81>
+            <Text3 Ref="42" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>4,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>dce3efcccee04809935f32ed68c27d7f</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text3</Name>
+              <Page isRef="4" />
+              <Parent isRef="33" />
+              <Text>{Sum(GroupHeaderBand2,ConsolidateSoftCollectionReport.PrepaymentCost)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Totals</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text3>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Guid>cb2de442b10f4baaa1b6171c240a228e</Guid>
+          <Name>GroupFooterBand2</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+        </GroupFooterBand2>
+        <FooterBand2 Ref="43" type="FooterBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,3.9,8.82,0.01</ClientRectangle>
+          <Components isList="true" count="0" />
+          <Conditions isList="true" count="0" />
+          <Guid>310bad901ac649c98c3783bbf482dde3</Guid>
+          <Name>FooterBand2</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+          <PrintIfEmpty>True</PrintIfEmpty>
+        </FooterBand2>
+      </Components>
+      <Conditions isList="true" count="0" />
+      <Guid>3b0ca051318d431fbc6bb477dc6466e4</Guid>
+      <Margins>0.39,0.39,0.39,0.39</Margins>
+      <Name>Page2</Name>
+      <PageHeight>12</PageHeight>
+      <PageWidth>9.6</PageWidth>
+      <Report isRef="0" />
+    </Page2>
+  </Pages>
+  <ReferencedAssemblies isList="true" count="8">
+    <value>System.Dll</value>
+    <value>System.Drawing.Dll</value>
+    <value>System.Windows.Forms.Dll</value>
+    <value>System.Data.Dll</value>
+    <value>System.Xml.Dll</value>
+    <value>Stimulsoft.Controls.Dll</value>
+    <value>Stimulsoft.Base.Dll</value>
+    <value>Stimulsoft.Report.Dll</value>
+  </ReferencedAssemblies>
+  <ReportAlias>Report</ReportAlias>
+  <ReportChanged>2/7/2020 11:33:56 AM</ReportChanged>
+  <ReportCreated>11/16/2018 4:12:06 PM</ReportCreated>
+  <ReportFile>C:\project\sources\Pawnshop.Web\Reports\ConsolidateSoftCollectionReport.mrt</ReportFile>
+  <ReportGuid>6e018f7c02ce43e4b4341b2d84099e6f</ReportGuid>
+  <ReportName>Report</ReportName>
+  <ReportUnit>Inches</ReportUnit>
+  <ReportVersion>2020.1.1.0</ReportVersion>
+  <Script>using System;
+using System.Drawing;
+using System.Windows.Forms;
+using System.Data;
+using Stimulsoft.Controls;
+using Stimulsoft.Base.Drawing;
+using Stimulsoft.Report;
+using Stimulsoft.Report.Dialogs;
+using Stimulsoft.Report.Components;
+
+namespace Reports
+{
+    public class Report : Stimulsoft.Report.StiReport
+    {
+        public Report()        {
+            this.InitializeComponent();
+        }
+
+        #region StiReport Designer generated code - do not modify
+		#endregion StiReport Designer generated code - do not modify
+    }
+}
+</Script>
+  <ScriptLanguage>CSharp</ScriptLanguage>
+  <Styles isList="true" count="0" />
+</StiSerializer>

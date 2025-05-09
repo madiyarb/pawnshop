@@ -1,0 +1,3766 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Pawnshop.Web</name>
+    </assembly>
+    <members>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineClientsController.GetClientPositions(System.String)">
+            <summary>
+            Метод возвращает активные залоговые объекты клиента и закрытые не более трех месяцев назад
+            </summary>
+            <param name="iin">ИИН клиента</param>
+            <returns>Список залоговых объектов</returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineContractsController.GetContracts(System.String,System.String)">
+            <summary>
+            Метод возвращает список займов и кредитных линий (контракт шины <b><u>mobile_get_contracts</u></b>)
+            </summary>
+            <param name="iin">ИИН субъекта</param>
+            <param name="phone">Номер телефона</param>
+            <returns>Список займов и кредитных линий</returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineContractsController.GetCreditLineParkingInscriptionStatusAsync(System.String)">
+            <summary>
+            Метод возвращает информацию о статусе залового автомобиля и историю ЧСИ траншей
+            </summary>
+            <param name="creditLineNumber">Номер кредитной линии</param>
+            <returns>Информация о статусе залового автомобиля и историю ЧСИ траншей</returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineContractsController.GetCreditLinesAsync(System.String,System.String)">
+            <summary>
+            Метод возвращает список кредитных линий (контракт шины <b><u>get_credit_lines</u></b>)
+            </summary>
+            <param name="iin">ИИН субъекта</param>
+            <param name="phone">Номер телефона</param>
+            <returns>Список кредитных линий</returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineContractsController.GetContractByContractNumber(System.String)">
+            <summary>
+            Метод шины mobile_contract_data
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineContractsController.GetContractsMobileMainScreenModel(System.String,System.String)">
+            <summary>
+            Метод шины mobile_main_screen
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.GetProducts">
+            <summary>
+            Метод шины get_product_list
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.GetCalculateSchedule(Pawnshop.Web.Models.AbsOnline.CalculateScheduleRequest)">
+            <summary>
+            Метод шины payment_shedule / get_pay_shedule_data 
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.GetVinData(System.String)">
+            <summary>
+            Метод шины crm_get_vin_data
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.GetUnsetFcbContracts(System.String)">
+            <summary>
+            Метод шины get_pkd_unsent_contracts
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.GetContracts(System.String,System.String)">
+            <summary>
+            Метод шины mobile_main_screen
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.GetContractsHistory(System.String)">
+            <summary>
+            Метод шины mobile_history
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.GetContractByContractNumber(System.String,System.Boolean)">
+            <summary>
+            Метод шины mobile_contract_data
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.GetContractInfoForCrmMenu(System.String)">
+            <summary>
+            Метод шины <b><u>crm_get_panel</u></b>
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.GetContractOverdue(System.String)">
+            <summary>
+            Метод шины <b><u>get_late_payments</u></b>
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.GetOverdueContractList">
+            <summary>
+            Метод шины <b><u>get_default_date_client</u></b>
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.GetClientArrears(System.String)">
+            <summary>
+            Метод шины <b><u>crm_payment_information</u></b>
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.ChangeClientPhone(Pawnshop.Web.Models.AbsOnline.ChangeClientPhoneRequest)">
+            <summary>
+            Метод шины <b><u>crm_update_tel</u></b>
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.ChangeClientIin(Pawnshop.Web.Models.AbsOnline.ChangeClientIinRequest)">
+            <summary>
+            Метод шины <b><u>crm_change_client_uin</u></b>
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.GetContractPdf(Pawnshop.Data.Access.ContractAdditionalInfoRepository,Pawnshop.Data.Access.ApplicationOnlineRepository,System.String,System.String)">
+            <summary>
+            Метод шины <b><u>get_contract_pdf</u></b>
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.GetApplication(System.String)">
+            <summary>
+            Метод шины <b><u>get_loan_req_data</u></b>
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.GetApplicationStatus(System.String)">
+            <summary>
+            Метод который возвращает статус online заявки
+            </summary>
+            <param name="contractnumber">Номер договора</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.CreateApplication(Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest)">
+            <summary>
+            Метод шины <b><u>mobile_application_1</u></b>
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.CreateTranche(Pawnshop.Web.Models.AbsOnline.CreateTrancheRequest)">
+            <summary>
+            Метод шины <b><u>mobile_tranche_application</u></b>
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.UpdateApplication(System.String,Pawnshop.Web.Models.AbsOnline.UpdateApplicationRequest)">
+            <summary>
+            Метод шины <b><u>crm_update_contractdata</u></b>
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.UpdateApplicationFields(System.String,Pawnshop.Web.Models.AbsOnline.UpdateApplicationFieldsRequest)">
+            <summary>
+            Метод шины <b><u>application_update_data</u></b>
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.SetApplicationPaymentDay(System.String,Pawnshop.Web.Models.AbsOnline.ApplicationPaymentDayRequest)">
+            <summary>
+            Метод шины <b><u>change_pay_date</u></b>
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.UpdateApplicationReceiverAccount(System.String,Pawnshop.Web.Models.AbsOnline.ApplicationReceiverAccountRequest)">
+            <summary>
+            Метод шины <b><u>mobile_payment_data</u></b>
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.SetApplicationVerificationResult(System.String,Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest)">
+            <summary>
+            Метод шины <b><u>crm_verification_result</u></b>
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.AbsOnlineController.SignApplication(Pawnshop.Web.Engine.Services.Interfaces.IContractActionSignService,Pawnshop.Data.Access.PayTypeRepository,System.String,Pawnshop.Web.Models.AbsOnline.SignApplicationRequest,Pawnshop.Data.Access.PayOperationRepository,Pawnshop.Services.AccountingCore.ICashOrderService,Pawnshop.Data.Access.ContractRepository,Pawnshop.Data.Access.PayOperationActionRepository,Pawnshop.Services.Refinance.IRefinanceBuyOutService)">
+            <summary>
+            Метод шины <b><u>check_contract_signature_sms</u></b>
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.BalanceSheetReportController.Generate(Pawnshop.Core.Queries.ReportGenerateQuery)">
+            <summary>Сформировать отчет "Оборотно-Сальдовая ведомость по счету"</summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientAdditionalContactController.GetList(System.Int32)">
+            <summary>
+            Получает список дополнительных контактов клиента
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientAdditionalContactController.Save(System.Int32,Pawnshop.Web.Models.Clients.Profiles.SaveClientAdditionalContactsRequest,MediatR.IMediator)">
+            <summary>
+            Сохраняет список дополнительных контактов клиента
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientAdditionalIncomeController.GetList(System.Int32)">
+            <summary>
+            Получает список дополнительных доходов клиента
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientAdditionalIncomeController.Save(System.Int32,Pawnshop.Services.Models.Clients.SaveClientAdditionalIncomesRequest)">
+            <summary>
+            Сохраняет список дополнительных доходов клиента
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientAssetController.GetList(System.Int32)">
+            <summary>
+            Получает список активов
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientAssetController.Save(System.Int32,Pawnshop.Web.Models.Clients.Profiles.SaveClientAssetsRequest)">
+            <summary>
+            Сохраняет список активов клиента
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientEmploymentController.GetList(System.Int32)">
+            <summary>
+            Получает список мест работ клиента
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientEmploymentController.Save(System.Int32,Pawnshop.Web.Models.Clients.Profiles.SaveClientEmploymentsRequest)">
+            <summary>
+            Сохраняет список мест работ клиента
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientExpenseController.Get(System.Int32,Pawnshop.Services.Clients.IClientIncomeService)">
+            <summary>
+            Получает затраты клиента
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientExpenseController.Save(System.Int32,Pawnshop.Services.Models.Clients.ClientExpenseDto)">
+            <summary>
+            Сохраняет затраты клиента
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientIncomeController.GetIncomeOfficialList(System.Int32)">
+            <summary>
+            Получает список официальных доходов клиента
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientIncomeController.IncomeOfficialSave(System.Int32,Pawnshop.Services.Models.Clients.SaveClientIncomesRequest)">
+            <summary>
+            Сохраняет официальные доходы клиента
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientIncomeController.GetIncomeAdditionalApprovedList(System.Int32)">
+            <summary>
+            Получает список прочих подтверждаемых доходов клиента
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientIncomeController.IncomeAdditionalApprovedSave(System.Int32,Pawnshop.Services.Models.Clients.SaveClientIncomesRequest)">
+            <summary>
+            Сохраняет прочие подтверждаемые доходы клиента
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientIncomeController.CalcIncomeAmount(System.Int32,Pawnshop.Services.Models.Clients.ClientIncomeDto)">
+            <summary>
+            Расчет суммы дохода от Вида дохода
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientOtherPaymentsInfoController.GetOtherPaymentsList(System.Int32)">
+            <summary>
+            Получает список платежей по кредитам заемщика и созаемщика
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientOtherPaymentsInfoController.GetOtherPaymentsModelList(System.Int32)">
+            <summary>
+            Получает список платежей по кредитам заемщика и созаемщика
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientProfileController.Get(System.Int32)">
+            <summary>
+            Получает профиль клиента
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ClientProfileController.Save(System.Int32,Pawnshop.Web.Models.Clients.Profiles.ClientProfileDto)">
+            <summary>
+            Сохраняет профиль клиента
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="F:Pawnshop.Web.Controllers.Api.ContractActionController._maxAPR">
+            <summary>
+            Максимальное значение APR/ГЭСВ
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.DomainController.GetDomains">
+            <summary>
+            Получает список всех доменов
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.DomainController.GetDomains(Pawnshop.Web.Models.Domains.GetDomainsRequest)">
+            <summary>
+            Получает список доменов
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.DomainController.GetDomain(System.String)">
+            <summary>
+            Получает домен
+            </summary>
+            <param name="code">Код домена</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.DomainValueController.List(System.String)">
+            <summary>
+            Получает список всех значений доменов
+            </summary>
+            <param name="domainCode">Код домена</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.DomainValueController.List(System.String,Pawnshop.Core.Queries.ListQuery)">
+            <summary>
+            Получает список значений доменов
+            </summary>
+            <param name="domainCode">Код домена</param>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.DomainValueController.Get(System.String,System.Int32)">
+            <summary>
+            Получает список значений доменов
+            </summary>
+            <param name="code">Код домена</param>
+            <param name="domainvaluecode">Код значения домена</param>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.DomainValueController.SaveDomainValue(System.String,Pawnshop.Web.Models.Domains.DomainValueDto)">
+            <summary>
+            Сохраняет значение домена
+            </summary>
+            <param name="domainCode">Код домена</param>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.DomainValueController.Delete(System.String,System.Int32)">
+            <summary>
+            Удаляет домен(soft delete)
+            </summary>
+            <param name="code">Код домена</param>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.OnlinePaymentsManageController.CheckActionsByProcessingId(Pawnshop.Data.Models.OnlinePayments.OnlinePaymentRevises.OnlinePaymentRevise,System.Collections.Generic.List{Pawnshop.Web.Models.Processing.OnlinePaymentsManageModel},Pawnshop.Data.Models.Contracts.Actions.ProcessingType)">
+            <summary>
+            Проверка платежей 
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.OnlinePaymentsManageController.EmailProcessingNotifications(Pawnshop.Web.Models.Processing.EmailProcessingNotificationType,Pawnshop.Data.Models.Contracts.Actions.ContractAction,Pawnshop.Web.Models.Processing.OnlinePaymentsManageModel)">
+            <summary>
+            Email уведомление об ошибке
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Controllers.Api.ProcessingController.Rps(System.String,System.String,System.String,System.String,System.DateTime,System.Decimal,System.Int64)">
+            <summary>
+            API для поставщика RPS Asia
+            </summary>
+            <param name="action">Вид действия (check, payment, status)</param>
+            <param name="number">ИИН или идентификатор платежа</param>
+            <param name="source">Источник оплаты(название банка)</param>
+            <param name="net">Вид сети</param>
+            <param name="date">Дата</param>
+            <param name="amount">Сумма</param>
+            <param name="receipt">Номер платежа</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Jobs.AccountantIntegrationJob.EmailProcessingNotifications(System.Int32,System.String,System.String)">
+            <summary>
+            Email уведомление об ошибке
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Jobs.MintosContractStatusCheckJob.Execute">
+            <summary>
+            Ставит все договора Mintos в очередь для проверки графиков и статуса оплаты
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Jobs.MintosContractStatusCheckJob.CheckStatuses">
+            <summary>
+            Акт сверки с Mintos
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Jobs.MintosContractUploadJob.Execute">
+            <summary>
+            Выгрузка договоров в Mintos
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Jobs.OnlinePaymentCheckStatusJob.EmailProcessingNotifications(System.Int32)">
+            <summary>
+            Email уведомление об ошибке
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Jobs.OnlinePaymentJob.EmailProcessingNotifications(System.Int32)">
+            <summary>
+            Email уведомление об ошибке
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Engine.Jobs.ReportDataJob">
+            <summary>
+            Генерация данных для PowerBI
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Jobs.UsePrepaymentForCreditLineForMonthlyPaymentJob.SmsNotifications(Pawnshop.Data.Models.Contracts.Contract,Pawnshop.Data.Models.Notifications.NotificationTemplates.NotificationPaymentType,System.Decimal,System.Decimal)">
+            <summary>
+            Смс уведомления для клиента
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Jobs.UsePrepaymentForEndPeriodContractsJob.Execute">
+            <summary>
+            Делает ежемесячное погашение по договору если хватает денег на авансе
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Jobs.UsePrepaymentForEndPeriodContractsJob.SmsNotifications(Pawnshop.Data.Models.Contracts.Contract,Pawnshop.Data.Models.Notifications.NotificationTemplates.NotificationPaymentType,System.Decimal,System.Decimal)">
+            <summary>
+            Смс уведомления для клиента
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Jobs.UsePrepaymentForEndPeriodContractsJob.EmailProcessingNotifications(Pawnshop.Data.Models.Contracts.Contract)">
+            <summary>
+            Email уведомление об ошибке
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Jobs.UsePrepaymentForMonthlyPaymentJob.Execute">
+            <summary>
+            Делает ежемесячное погашение по договору если хватает денег на авансе
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Jobs.UsePrepaymentForMonthlyPaymentJob.FailureInnerNotification(Pawnshop.Data.Models.Contracts.Contract)">
+            <summary>
+            Внутренние уведомления для филиала
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Jobs.UsePrepaymentForMonthlyPaymentJob.EmailProcessingNotifications(Pawnshop.Data.Models.Contracts.Contract)">
+            <summary>
+            Email уведомление об ошибке
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Jobs.UsePrepaymentForMonthlyPaymentJob.SmsNotifications(Pawnshop.Data.Models.Contracts.Contract,Pawnshop.Data.Models.Notifications.NotificationTemplates.NotificationPaymentType,System.Decimal,System.Decimal)">
+            <summary>
+            Смс уведомления для клиента
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.MintosApi.MintosApi.TryGetOneContract(System.String,System.String,System.Int32,System.Nullable{System.Int32})">
+            <summary>
+            Запрос GET по одному или по всем договорам
+            </summary>
+            <param name="requestUrl">Название раздела</param>
+            <param name="apiKey">Ключ доступа</param>
+            <param name="entityId">Идентификатор(если NULL - не подставит)</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.MintosApi.MintosApi.TryGetAll(System.String,System.String)">
+            <summary>
+            Запрос GET по одному или по всем договорам
+            </summary>
+            <param name="requestUrl">Название раздела</param>
+            <param name="apiKey">Ключ доступа</param>
+            <param name="entityId">Идентификатор(если NULL - не подставит)</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.MintosApi.MintosApi.TryPost(System.String,System.String,System.Object,Pawnshop.Data.Models.Audit.EventCode,Pawnshop.Core.EntityType,System.Nullable{System.Int32})">
+            <summary>
+            Запрос POST выгрузка договора 
+            </summary>
+            <param name="requestUrl"></param>
+            <param name="apiKey"></param>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Pawnshop.Web.Engine.Security.JwtIssuerOptions.Issuer">
+            <summary>
+            "iss" (Issuer) Claim
+            </summary>
+            <remarks>The "iss" (issuer) claim identifies the principal that issued the
+              JWT.  The processing of this claim is generally application specific.
+              The "iss" value is a case-sensitive string containing a StringOrURI
+              value.  Use of this claim is OPTIONAL.</remarks>
+        </member>
+        <member name="P:Pawnshop.Web.Engine.Security.JwtIssuerOptions.Subject">
+            <summary>
+            "sub" (Subject) Claim
+            </summary>
+            <remarks> The "sub" (subject) claim identifies the principal that is the
+              subject of the JWT.  The claims in a JWT are normally statements
+              about the subject.  The subject value MUST either be scoped to be
+              locally unique in the context of the issuer or be globally unique.
+              The processing of this claim is generally application specific.  The
+              "sub" value is a case-sensitive string containing a StringOrURI
+              value.  Use of this claim is OPTIONAL.</remarks>
+        </member>
+        <member name="P:Pawnshop.Web.Engine.Security.JwtIssuerOptions.Audience">
+            <summary>
+            "aud" (Audience) Claim
+            </summary>
+            <remarks>The "aud" (audience) claim identifies the recipients that the JWT is
+              intended for.  Each principal intended to process the JWT MUST
+              identify itself with a value in the audience claim.  If the principal
+              processing the claim does not identify itself with a value in the
+              "aud" claim when this claim is present, then the JWT MUST be
+              rejected.  In the general case, the "aud" value is an array of case-
+              sensitive strings, each containing a StringOrURI value.  In the
+              special case when the JWT has one audience, the "aud" value MAY be a
+              single case-sensitive string containing a StringOrURI value.  The
+              interpretation of audience values is generally application specific.
+              Use of this claim is OPTIONAL.</remarks>
+        </member>
+        <member name="P:Pawnshop.Web.Engine.Security.JwtIssuerOptions.NotBefore">
+            <summary>
+            "nbf" (Not Before) Claim (default is UTC NOW)
+            </summary>
+            <remarks>The "nbf" (not before) claim identifies the time before which the JWT
+              MUST NOT be accepted for processing.  The processing of the "nbf"
+              claim requires that the current date/time MUST be after or equal to
+              the not-before date/time listed in the "nbf" claim.  Implementers MAY
+              provide for some small leeway, usually no more than a few minutes, to
+              account for clock skew.  Its value MUST be a number containing a
+              NumericDate value.  Use of this claim is OPTIONAL.</remarks>
+        </member>
+        <member name="P:Pawnshop.Web.Engine.Security.JwtIssuerOptions.IssuedAt">
+            <summary>
+            "iat" (Issued At) Claim (default is UTC NOW)
+            </summary>
+            <remarks>The "iat" (issued at) claim identifies the time at which the JWT was
+              issued.  This claim can be used to determine the age of the JWT.  Its
+              value MUST be a number containing a NumericDate value.  Use of this
+              claim is OPTIONAL.</remarks>
+        </member>
+        <member name="P:Pawnshop.Web.Engine.Security.JwtIssuerOptions.ValidFor">
+            <summary>
+            Set the timespan the token will be valid for (default is 5 min/300 seconds)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Engine.Security.JwtIssuerOptions.Expiration">
+            <summary>
+            "exp" (Expiration Time) Claim (returns IssuedAt + ValidFor)
+            </summary>
+            <remarks>The "exp" (expiration time) claim identifies the expiration time on
+              or after which the JWT MUST NOT be accepted for processing.  The
+              processing of the "exp" claim requires that the current date/time
+              MUST be before the expiration date/time listed in the "exp" claim.
+              Implementers MAY provide for some small leeway, usually no more than
+              a few minutes, to account for clock skew.  Its value MUST be a number
+              containing a NumericDate value.  Use of this claim is OPTIONAL.</remarks>
+        </member>
+        <member name="P:Pawnshop.Web.Engine.Security.JwtIssuerOptions.JtiGenerator">
+            <summary>
+            "jti" (JWT ID) Claim (default ID is a GUID)
+            </summary>
+            <remarks>The "jti" (JWT ID) claim provides a unique identifier for the JWT.
+              The identifier value MUST be assigned in a manner that ensures that
+              there is a negligible probability that the same value will be
+              accidentally assigned to a different data object; if the application
+              uses multiple issuers, collisions MUST be prevented among values
+              produced by different issuers as well.  The "jti" claim can be used
+              to prevent the JWT from being replayed.  The "jti" value is a case-
+              sensitive string.  Use of this claim is OPTIONAL.</remarks>
+        </member>
+        <member name="P:Pawnshop.Web.Engine.Security.JwtIssuerOptions.SigningCredentials">
+            <summary>
+            The signing key to use when generating tokens.
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Security.SaltedHash.#ctor(System.Security.Cryptography.HashAlgorithm,System.Int32)">
+            <summary>
+            The constructor takes a HashAlgorithm as a parameter. 
+            </summary>
+            <param name="hashAlgorithm">
+            A <see cref="T:System.Security.Cryptography.HashAlgorithm"/> HashAlgorihm which is derived from HashAlgorithm. C# provides
+            the following classes: SHA1Managed,SHA256Managed, SHA384Managed, SHA512Managed and MD5CryptoServiceProvider
+            </param>
+            <param name="theSaltLength"></param>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Security.SaltedHash.#ctor">
+            <summary>
+            Default constructor which initialises the SaltedHash with the SHA256Managed algorithm
+            and a Salt of 4 bytes ( or 4*8 = 32 bits)
+            </summary>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Security.SaltedHash.ComputeHash(System.Byte[],System.Byte[])">
+            <summary>
+            The actual hash calculation is shared by both GetHashAndSalt and the VerifyHash functions
+            </summary>
+            <param name="data">A byte array of the Data to Hash</param>
+            <param name="salt">A byte array of the Salt to add to the Hash</param>
+            <returns>A byte array with the calculated hash</returns>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Security.SaltedHash.GetHashAndSalt(System.Byte[],System.Byte[]@,System.Byte[]@)">
+            <summary>
+            Given a data block this routine returns both a Hash and a Salt
+            </summary>
+            <param name="data">
+            A <see cref="T:System.Byte"/>byte array containing the data from which to derive the salt
+            </param>
+            <param name="hash">
+            A <see cref="T:System.Byte"/>byte array which will contain the hash calculated
+            </param>
+            <param name="salt">
+            A <see cref="T:System.Byte"/>byte array which will contain the salt generated
+            </param>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Security.SaltedHash.GetHashAndSaltString(System.String,System.String@,System.String@)">
+            <summary>
+            The routine provides a wrapper around the GetHashAndSalt function providing conversion
+            from the required byte arrays to strings. Both the Hash and Salt are returned as Base-64 encoded strings.
+            </summary>
+            <param name="data">
+            A <see cref="T:System.String"/> string containing the data to hash
+            </param>
+            <param name="hash">
+            A <see cref="T:System.String"/> base64 encoded string containing the generated hash
+            </param>
+            <param name="salt">
+            A <see cref="T:System.String"/> base64 encoded string containing the generated salt
+            </param>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Security.SaltedHash.VerifyHash(System.Byte[],System.Byte[],System.Byte[])">
+            <summary>
+            This routine verifies whether the data generates the same hash as we had stored previously
+            </summary>
+            <param name="data">The data to verify </param>
+            <param name="hash">The hash we had stored previously</param>
+            <param name="salt">The salt we had stored previously</param>
+            <returns>True on a succesfull match</returns>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Security.SaltedHash.VerifyHashString(System.String,System.String,System.String)">
+            <summary>
+            This routine provides a wrapper around VerifyHash converting the strings containing the
+            data, hash and salt into byte arrays before calling VerifyHash.
+            </summary>
+            <param name="data">A UTF-8 encoded string containing the data to verify</param>
+            <param name="hash">A base-64 encoded string containing the previously stored hash</param>
+            <param name="salt">A base-64 encoded string containing the previously stored salt</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Services.Interfaces.IContractSigningService.SignTrancheAndCreditLine(System.Int32,System.Int32,System.Int32,System.Nullable{System.Int32},System.Boolean,System.Nullable{System.Int32})">
+            <summary>
+            Sign tranche and linked credit line 
+            </summary>
+            <param name="contractId">Contract identifier</param>
+            <param name="authorId">User identifier</param>
+            <param name="requisiteId">Requisite identifier</param>
+            <exception cref="T:Pawnshop.Web.Engine.Services.Exceptions.ContractSigningService.ClientRequisiteNotFoundException">Client haven't requisite to cashout</exception>
+            <exception cref="T:Pawnshop.Web.Engine.Services.Exceptions.ContractSigningService.ContractClassWrongException">Contract is not tranche</exception>
+            <exception cref="T:Pawnshop.Web.Engine.Services.Exceptions.ContractSigningService.ContractNotFoundException">Contract not found</exception>
+            <exception cref="T:Pawnshop.Web.Engine.Services.Exceptions.ContractSigningService.CreditLineNotFoundException">Credit line not found</exception>
+            <exception cref="T:Pawnshop.Web.Engine.Services.Exceptions.ContractSigningService.ContractInWrongStatus">Contract not in draft status can't sign</exception>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Services.VerificationService.GetDefaultContact(System.Int32,System.Boolean)">
+            <summary>
+            Получить основной контакт
+            </summary>
+            <param name="clientId">Идентификатор клиента</param>
+            <param name="throwExceptionOnNotFound">Вызвать исключение при отсутствии основого контакта</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Engine.Services.VerificationService.GetClient(System.Int32)">
+            <summary>
+            Получает клиента, при отсутствии клиента в базе отдает исключение
+            </summary>
+            <param name="clientId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.NumberExtensions.ToWords(System.Decimal)">
+            <summary>
+            Разделение дробного числа на целую часть и дробную часть(2 числа после запятых)
+            Пример 10.1 должен вернуть - "десять", "десять", что является репрезентацией десять тенге и десять тиын
+            </summary>
+            <param name="decimalValue">Входное число</param>
+            <returns></returns>
+        </member>
+        <member name="M:Pawnshop.Web.Hubs.TasOnlineUsersHub.OnConnectedAsync">
+            <summary>
+            OnConnectedAsync
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationPaymentDayRequest.ContractNumber">
+            <summary>
+            Параметр шины <b><u>contract_id</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationPaymentDayRequest.CrmLoanReq">
+            <summary>
+            Параметр шины <b><u>crm_tas_loan_req</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationPaymentDayRequest.Error">
+            <summary>
+            Параметр шины <b><u>error</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationPaymentDayRequest.IIN">
+            <summary>
+            Параметр шины <b><u>uin</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationPaymentDayRequest.Message">
+            <summary>
+            Параметр шины <b><u>message</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationPaymentDayRequest.PayDay">
+            <summary>
+            Параметр шины <b><u>new_day_pay</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationReceiverAccountRequest.Bank">
+            <summary>
+            Параметр шины <b><u>bank</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationReceiverAccountRequest.CardDate">
+            <summary>
+            Параметр шины <b><u>card_date</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationReceiverAccountRequest.CardHolderName">
+            <summary>
+            Параметр шины <b><u>cardholder_name</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationReceiverAccountRequest.CardNumber">
+            <summary>
+            Параметр шины <b><u>card_number</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationReceiverAccountRequest.CardUrl">
+            <summary>
+            Параметр шины <b><u>card_url</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationReceiverAccountRequest.ClientName">
+            <summary>
+            Параметр шины <b><u>client_name</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationReceiverAccountRequest.ContractNumber">
+            <summary>
+            Параметр шины <b><u>application_id</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationReceiverAccountRequest.CVC">
+            <summary>
+            Параметр шины <b><u>cvc</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationReceiverAccountRequest.Email">
+            <summary>
+            Параметр шины <b><u>email</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationReceiverAccountRequest.Iban">
+            <summary>
+            Параметр шины <b><u>iban</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationReceiverAccountRequest.IIN">
+            <summary>
+            Параметр шины <b><u>uin</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationReceiverAccountRequest.MobilePhone">
+            <summary>
+            Параметр шины <b><u>tel</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationReceiverAccountRequest.PaymentType">
+            <summary>
+            Параметр шины <b><u>payment_type</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.AdditionalPhone">
+            <summary>
+            Параметр шины <b><u>tel2</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.Address">
+            <summary>
+            Параметр шины <b><u>address</u></b> или <b><u>contract_address</u></b> (непонятно)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.BankName">
+            <summary>
+            Параметр шины <b><u>bank</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.BirthDate">
+            <summary>
+            Параметр шины <b><u>birth_date</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.Car">
+            <summary>
+            Параметр шины <b><u>car_brand</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.CarColor">
+            <summary>
+            Параметр шины <b><u>car_color</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.CarCost">
+            <summary>
+            Параметр шины <b><u>car_cost</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.CarId">
+            <summary>
+            Параметр шины <b><u>car_id</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.CarVin">
+            <summary>
+            Параметр шины <b><u>car_vin</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.CarYear">
+            <summary>
+            Параметр шины <b><u>car_year</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.ClientAddress">
+            <summary>
+            Параметр шины <b><u>address</u></b> или <b><u>contract_address</u></b> (непонятно)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.ClientName">
+            <summary>
+            Параметр шины <b><u>client_name</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.ContractNumber">
+            <summary>
+            Параметр шины <b><u>application_id</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.Email">
+            <summary>
+            Параметр шины <b><u>email</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.Firstname">
+            <summary>
+            Параметр шины <b><u>firstname</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.Iban">
+            <summary>
+            Параметр шины <b><u>iban</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.IIN">
+            <summary>
+            Параметр шины <b><u>uin</u></b>
+            </summary>  
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.Lastname">
+            <summary>
+            Параметр шины <b><u>lastname</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.LoanCost">
+            <summary>
+            Параметр шины <b><u>application_value</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.MarketCost">
+            <summary>
+            Параметр шины <b><u>market_cost</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.Middlename">
+            <summary>
+            Параметр шины <b><u>middlename</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.MobilePhone">
+            <summary>
+            Параметр шины <b><u>tel</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.PartnerCode">
+            <summary>
+            Параметр шины <b><u>partner_id</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.PassportIssueDate">
+            <summary>
+            Параметр шины <b><u>passport_doc_at</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.PassportIssuer">
+            <summary>
+            Параметр шины <b><u>passport_issuing_org</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.PassportNumber">
+            <summary>
+            Параметр шины <b><u>passport_docnum</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.ProductId">
+            <summary>
+            Параметр шины <b><u>product_id</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.RefinanceList">
+            <summary>
+            Параметр шины <b><u>refinance_list</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.TechPassportIssueDate">
+            <summary>
+            Параметр шины <b><u>tech_passport_doc_at</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationResponse.TechPassportNumber">
+            <summary>
+            Параметр шины <b><u>tech_passport_docnum</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.AdditionalPhone">
+            <summary>
+            Параметр шины <b><u>tel2</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.ApprovedStage">
+            <summary>
+            Параметр шины <b><u>approved_stage</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.Bank">
+            <summary>
+            Параметр шины <b><u>bank</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.CarColor">
+            <summary>
+            Параметр шины <b><u>car_color</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.CardholderName">
+            <summary>
+            Параметр шины <b><u>cardholder_name</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.CarVin">
+            <summary>
+            Параметр шины <b><u>car_vin</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.ClientName">
+            <summary>
+            Параметр шины <b><u>client_name</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.ContractAddress">
+            <summary>
+            Параметр шины <b><u>contract_address</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.ContractNumber">
+            <summary>
+            Параметр шины <b><u>application_id</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.Email">
+            <summary>
+            Параметр шины <b><u>email</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.Gender">
+            <summary>
+            Параметр шины <b><u>gender</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.IIN">
+            <summary>
+            Параметр шины <b><u>uin</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.Insurance">
+            <summary>
+            Параметр шины <b><u>application_insurance</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.KatoAddress">
+            <summary>
+            Параметр шины <b><u>kato_address</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.LTV">
+            <summary>
+            Параметр шины <b><u>LTV</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.MarketCost">
+            <summary>
+            Параметр шины <b><u>market_cost</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.MobilePhone">
+            <summary>
+            Параметр шины <b><u>tel</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.PartnerCode">
+            <summary>
+            Параметр шины <b><u>partner_id</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.PassportIssueDate">
+            <summary>
+            Параметр шины <b><u>passport_doc_at</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.PassportIssuer">
+            <summary>
+            Параметр шины <b><u>passport_issuing_org</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.PassportNumber">
+            <summary>
+            Параметр шины <b><u>passport_docnum</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.PassportTitle">
+            <summary>
+            Параметр шины <b><u>passport_title</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.TechPassportIssueDate">
+            <summary>
+            Параметр шины <b><u>tech_passport_doc_at</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.TechPassportIssuer">
+            <summary>
+            Параметр шины <b><u>tech_passport_issuing_org</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.TechPassportNumber">
+            <summary>
+            Параметр шины <b><u>tech_passport_docnum</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.TechPassportTitle">
+            <summary>
+            Параметр шины <b><u>tech_passport_title</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.LoanCost">
+            <summary>
+            Параметр шины <b><u>application_value</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.VerificationResult">
+            <summary>
+            Параметр шины <b><u>verification_result</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ApplicationVerificationResultRequest.RefinanceList">
+            <summary>
+            Список рефинансируемых займов 
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.AbsOnline.CalculateScheduleRequest">
+            <summary>
+            Параметра запроса на расчет графика погашения платежей
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CalculateScheduleRequest.IIN">
+            <summary>
+            Параметр шины <b><u>uin</u></b> (ИИН субъекта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CalculateScheduleRequest.ProductId">
+            <summary>
+            Параметр шины <b><u>product_id</u></b> (идентификатор продукта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CalculateScheduleRequest.LoanCost">
+            <summary>
+            Параметр шины <b><u>summa</u></b> (сумма займа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CalculateScheduleRequest.Period">
+            <summary>
+            Параметр шины <b><u>pay_count</u></b> (срок займа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CalculateScheduleRequest.Tranche">
+            <summary>
+            Параметр шины <b><u>tranche</u></b> (признак транша)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CalculateScheduleRequest.BaseContractNumber">
+            <summary>
+            Параметр шины <b><u>contract_base</u></b> (номер кредитной линии)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CalculateScheduleRequest.Insurance">
+            <summary>
+            Параметр шины <b><u>application_insurance</u></b> (признак использования страховки)
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.AbsOnline.CalculateScheduleViewModel">
+            <summary>
+            Результат расчета графика погашения
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CalculateScheduleViewModel.InsuredAmount">
+            <summary>
+            Параметр шины <b><u>pay_insured_value</u></b> (сумма страховки)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CalculateScheduleViewModel.TotalAmount">
+            <summary>
+            Параметр шины <b><u>pay_total_value</u></b> (итоговая сумма)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CalculateScheduleViewModel.ClientAmount">
+            <summary>
+            Параметр шины <b><u>pay_client_value</u></b> (сумма на руки)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CalculateScheduleViewModel.Percent">
+            <summary>
+            Параметр шины <b><u>percent</u></b> (процентная ставка (месячная))
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CalculateScheduleViewModel.Insurance">
+            <summary>
+            Параметр шины <b><u>insurance_is</u></b> (признак наличия страховки)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CalculateScheduleViewModel.InsuranceEconomy">
+            <summary>
+            Параметр шины <b><u>insurance_economy</u></b> (экономия денежных денег при выборе страховки)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CalculateScheduleViewModel.ScheduleList">
+            <summary>
+            Параметр шины <b><u>shedule</u></b> (график погашения)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ChangeClientIinRequest.IIN">
+            <summary>
+            Параметр шины <b><u>uin</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ChangeClientIinRequest.NewIIN">
+            <summary>
+            Параметр шины <b><u>new_uin</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ChangeClientPhoneRequest.IIN">
+            <summary>
+            Параметр шины <b><u>uin</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ChangeClientPhoneRequest.OldPhone">
+            <summary>
+            Параметр шины <b><u>old_tel</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ChangeClientPhoneRequest.NewPhone">
+            <summary>
+            Параметр шины <b><u>tel</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ChangeResponse.Result">
+            <summary>
+            Параметр шины <b><u>result</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ChangeResponse.Message">
+            <summary>
+            Параметр шины <b><u>message</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ClientArrearsResponse.Code">
+            <summary>
+            Параметр шины <b><u>code</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ClientArrearsResponse.Message">
+            <summary>
+            Параметр шины <b><u>message</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ClientArrearsResponse.IdentityNumber">
+            <summary>
+            Параметр шины <b><u>identityNumber</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ClientArrearsResponse.Surname">
+            <summary>
+            Параметр шины <b><u>surname</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ClientArrearsResponse.Name">
+            <summary>
+            Параметр шины <b><u>name</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ClientArrearsResponse.Patronymic">
+            <summary>
+            Параметр шины <b><u>patronymic</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ClientArrearsResponse.Fullname">
+            <summary>
+            Параметр шины <b><u>fullname</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ClientArrearsResponse.IsMale">
+            <summary>
+            Параметр шины <b><u>isMale</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ClientArrearsResponse.BirthDay">
+            <summary>
+            Параметр шины <b><u>birthDay</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ClientArrearsResponse.MobilePhone">
+            <summary>
+            Параметр шины <b><u>mobilePhone</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ClientArrearsResponse.LegalForm">
+            <summary>
+            Параметр шины <b><u>legalForm</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ClientArrearsResponse.IsResident">
+            <summary>
+            Параметр шины <b><u>isResident</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ClientArrearsResponse.IsPEP">
+            <summary>
+            Параметр шины <b><u>isPEP</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ClientArrearsResponse.Citizenship">
+            <summary>
+            Параметр шины <b><u>citizenship</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ClientArrearsResponse.ClientId">
+            <summary>
+            Параметр шины <b><u>clientId</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ClientArrearsResponse.Contracts">
+            <summary>
+            Параметр шины <b><u>contracts</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractArrears.ContractNumber">
+            <summary>
+            Параметр шины <b><u>id</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractArrears.Number">
+            <summary>
+            Параметр шины <b><u>number</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractArrears.Amount">
+            <summary>
+            Параметр шины <b><u>amount</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractArrears.Totalamount">
+            <summary>
+            Параметр шины <b><u>totalamount</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractArrears.CurrentAmount">
+            <summary>
+            Параметр шины <b><u>currentAmount</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractArrears.DebtMain">
+            <summary>
+            Параметр шины <b><u>debt_main</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractArrears.DebtPercent">
+            <summary>
+            Параметр шины <b><u>debt_percent</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractArrears.Penalties">
+            <summary>
+            Параметр шины <b><u>penalties</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractArrears.PayDayExpired">
+            <summary>
+            Параметр шины <b><u>pay_day_expired</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.CallDate">
+            <summary>
+            Параметр шины DataProverkiZadolzhenosty
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.ContractNumber">
+            <summary>
+            Параметр шины ZaimNomer / NomerDogovora
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.ContractDate">
+            <summary>
+            ZaimData Параметр шины / DataDogovora
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.PrincipalDebt">
+            <summary>
+            Параметр шины SummOsnovnoyDolg
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.PrincipalDebtSchedule">
+            <summary>
+            Параметр шины SummOsnovnoyDolgPoGrafiku
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.Profit">
+            <summary>
+            Параметр шины SummProcenti
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.Commission">
+            <summary>
+            Параметр шины SummKomissii
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.MembershipFees">
+            <summary>
+            Параметр шины SummChlenskieVznosi
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.Fine">
+            <summary>
+            Параметр шины SummShtraf
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.Penalty">
+            <summary>
+            Параметр шины SummPeni
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.StateDuty">
+            <summary>
+            Параметр шины SummGosposhlina
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.FirstPaymentExpiredDate">
+            <summary>
+            Параметр шины DataPervoyProSrochky
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.PaymentExpiredDays">
+            <summary>
+            Параметр шины DneyProsrochki
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.PaymentExpiredCount">
+            <summary>
+            Параметр шины KolichestvoProsrochenihPlatezhey
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.OverduePrincipalDebt">
+            <summary>
+            Параметр шины SummProsrochkiOsnovnoyDolg
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.OverdueProfit">
+            <summary>
+            Параметр шины SummProsrochkiProcenti
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.OverdueCommission">
+            <summary>
+            Параметр шины SummProsrochkiKomissii
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.OverdueMembershipFees">
+            <summary>
+            Параметр шины SummProsrochkiChlenskieVznosi
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.OverduePenalty">
+            <summary>
+            Параметр шины SummProsrochkiPeni
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.OverdueFine">
+            <summary>
+            Параметр шины SummProsrochkiShtraf
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.OverdueOtherIncome">
+            <summary>
+            Параметр шины SummProsrochkiProchieDohodi
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.UrgentPrincipalDebt">
+            <summary>
+            Параметр шины SummSrochnayaOsnovnoyDolg
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.UrgentProfit">
+            <summary>
+            Параметр шины SummSrochnayaProcenti
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.UrgenCommission">
+            <summary>
+            Параметр шины SummSrochnayaKomissii
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.UrgenMembershipFees">
+            <summary>
+            Параметр шины SummSrochnayaChlenskieVznosi
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.UrgenPenalty">
+            <summary>
+            Параметр шины SummSrochnayaPeni
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.UrgenFine">
+            <summary>
+            Параметр шины SummSrochnayaShtrafi
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.UrgenOtherIncome">
+            <summary>
+            Параметр шины SummSrochnayaProchieDohodi
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.NextPaymentDate">
+            <summary>
+            Параметр шины DataBlizhayshegoPlatezha
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.NextPaymentDays">
+            <summary>
+            Параметр шины DneyDoPlatezha
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.NextPaymentPrincipalDebt">
+            <summary>
+            Параметр шины BlizhayshiyPlatezh_OsnovnoyDolg
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.NextPaymentProfit">
+            <summary>
+            Параметр шины BlizhayshiyPlatezh_Procenti
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.NextPaymentCommission">
+            <summary>
+            Параметр шины BlizhayshiyPlatezh_Komissii
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.NextPaymentMembershipFees">
+            <summary>
+            Параметр шины BlizhayshiyPlatezh_Vznosi
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.PaymentScheduleDate">
+            <summary>
+            Параметр шины DataActualnogoRascheta
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.Period">
+            <summary>
+            Параметр шины Period
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.ContractViewName">
+            <summary>
+            Параметр шины TekuschiyDogovorPredstavlenie
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.SignDate">
+            <summary>
+            Параметр шины DataNachalaDogovora
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.MaturityDate">
+            <summary>
+            Параметр шины DataOkonchaniyaDogovora
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.ActualContractNumber">
+            <summary>
+            Параметр шины ActualniiZaimNomerDogovora
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.ActualContractDate">
+            <summary>
+            Параметр шины ActualniiZaimDataDogovora
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.ActualContractRunDate">
+            <summary>
+            Параметр шины ActualniiZaimDeystvuet ???
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.YearPercent">
+            <summary>
+            Параметр шины ProcentnayaStavkaZnachenie
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.LastPaymentDate">
+            <summary>
+            Параметр шины PosledniyPlatezh_Data
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.LastPaymentPrincipalDebt">
+            <summary>
+            Параметр шины PosledniyPlatezh_OsnovnoyDolg
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.LastPaymentProfit">
+            <summary>
+            Параметр шины PosledniyPlatezh_Procent
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.LastPaymentCommission">
+            <summary>
+            Параметр шины PosledniyPlatezh_Komissii
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.LastPaymentMembershipFees">
+            <summary>
+            Параметр шины PosledniyPlatezh_ChlenskieVznosi
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.LasyPaymentPenalty">
+            <summary>
+            Параметр шины PosledniyPlatezh_Peni
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.LasyPaymentFine">
+            <summary>
+            Параметр шины PosledniyPlatezh_Shtrafi
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.PaidPrincipalDebt">
+            <summary>
+            Параметр шины VsegoViplacheno_OsnovnoyDolg
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.PaidProfit">
+            <summary>
+            Параметр шины VsegoViplacheno_Procent
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.PaidCommission">
+            <summary>
+            Параметр шины VsegoViplacheno_Komissii
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.PaidMembershipFees">
+            <summary>
+            Параметр шины VsegoViplacheno_ChlenskieVznosi
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.PaidPenalty">
+            <summary>
+            Параметр шины VsegoViplacheno_Peni
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.PaidFine">
+            <summary>
+            Параметр шины VsegoViplacheno_Shtrafi
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.ProductName">
+            <summary>
+            Параметр шины FinansoviyProduct
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.RemnantContract">
+            <summary>
+            Параметр шины OstatokPoDogovoruZaima
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.RemnantCommonContract">
+            <summary>
+            Параметр шины OstatokPoObschemuDogovoru
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.ContractCloseDate">
+            <summary>
+            Параметр шины DataZakritiaZaima
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.IsClosed">
+            <summary>
+            Параметр шины Zacrit
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.RemainingPaymentsCount">
+            <summary>
+            Параметр шины KokichestvoOstavshihsyaPlatezhey
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.ProblemStatusDate">
+            <summary>
+            Параметр шины DataStatusaProblemnogoZaima
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.ProblemContractNumber">
+            <summary>
+            Параметр шины ProblemniyZaimNomer
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.ProblemContractDate">
+            <summary>
+            Параметр шины ProblemniyZaimData
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.ProblemContractStatusMessage">
+            <summary>
+            Параметр шины ProblemniyZaimSostoysniyaText
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractInfoForCrmMenuResponse.CourtDecisionNumber">
+            <summary>
+            Параметр шины NomerResheniaSuda
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.AbsOnline.ContractViewModel">
+            <summary>
+            Детали контракта
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.ContractNumber">
+            <summary>
+            Параметр шины <b><u>contract_id</u></b> (номер займа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.DateOpen">
+            <summary>
+            Параметр шины <b><u>date_open</u></b> (дата открытия)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.DateClose">
+            <summary>
+            Параметр шины <b><u>date_close</u></b> (дата закрытия)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.LoanCost">
+            <summary>
+            Параметр шины <b><u>value</u></b> (сумма контракта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.Car">
+            <summary>
+            Параметр шины <b><u>car</u></b> (наименование автомобиля залога)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.CarNumber">
+            <summary>
+            Параметр шины <b><u>car_number</u></b> (номерной знак (гос.номер))
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.Percent">
+            <summary>
+            Параметр шины <b><u>percent</u></b> (процентная ставка (месячная))
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.HasPartialPayment">
+            <summary>
+            Параметр шины <b><u>have_cdp</u></b> (имеет ЧДП)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.ContractType">
+            <summary>
+            Параметр шины <b><u>contract_type</u></b> (тип займа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.PrincipalDebt">
+            <summary>
+            Параметр шины <b><u>debt_main</u></b> (основной долг)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.Profit">
+            <summary>
+            Параметр шины <b><u>debt_percent</u></b> (проценты)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.Penalty">
+            <summary>
+            Параметр шины <b><u>penalties</u></b> (пени)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.RepaymentAmount">
+            <summary>
+            Параметр шины <b><u>pay_all_value</u></b> (сумма для погашения текущей задолженности)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.OverdueDebt">
+            <summary>
+            Параметр шины <b><u>pay_small_value</u></b> (сумма просроченной задолженности и пени)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.PaymentExpiredDays">
+            <summary>
+            Параметр шины <b><u>pay_day_expired</u></b> (количество дней просрочки)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.DebtCurrent">
+            <summary>
+            Параметр шины <b><u>debt_current</u></b> (текущая задолженность)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.NextPaymentDate">
+            <summary>
+            Параметр шины <b><u>pay_date</u></b> (дата следующего платежа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.NextPaymentAmount">
+            <summary>
+            Параметр шины <b><u>pay_value</u></b> (сумма следующего платежа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.AccountBalance">
+            <summary>
+            Параметр шины <b><u>account_balance</u></b> (сумма переплаты)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.Balance">
+            <summary>
+            Параметр шины <b><u>balance</u></b> (сумма переплаты)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.PaidPaymentsCount">
+            <summary>
+            Параметр шины <b><u>pay_count</u></b> (количество оплаченных платежей)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.ExpiredPaymentsCount">
+            <summary>
+            Параметр шины <b><u>pay_count_expired</u></b> (количество пропущенных платежей)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.PaymentsCount">
+            <summary>
+            Параметр шины <b><u>pay_count_all</u></b> (количество планируемых платежей)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.ProductCode">
+            <summary>
+            Параметр шины <b><u>product_code</u></b> (код продукта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.ProductName">
+            <summary>
+            Параметр шины <b><u>product_name</u></b> (наименование продукта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.OverdueAndUpcomingPayments">
+            <summary>
+            Параметр шины <b><u>payment_schedule</u></b> (просроченные и предстоящие платежи)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ContractViewModel.RepaidPayments">
+            <summary>
+            Параметр шины <b><u>past_payments</u></b> (оплаченные платежи)
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest">
+            <summary>
+            Параметры создания заявки
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.ContractNumber">
+            <summary>
+            Параметр шины <b><u>application_id</u></b> (номер заявки)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.IIN">
+            <summary>
+            Параметр шины <b><u>uin</u></b> (ИИН субъекта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.ProductId">
+            <summary>
+            Параметр шины <b><u>product_id</u></b> (идентификатор продукта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.Insurance">
+            <summary>
+            Параметр шины <b><u>insurance</u></b> (признак использования страховки)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.Lastname">
+            <summary>
+            Параметр шины <b><u>lastname</u></b> (фамилия субъекта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.Firstname">
+            <summary>
+            Параметр шины <b><u>firstname</u></b> (имя субъекта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.Middlename">
+            <summary>
+            Параметр шины <b><u>middlename</u></b> (отчество субъекта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.BirthDate">
+            <summary>
+            Параметр шины <b><u>birth_date</u></b> (дата рождения клиента)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.MobilePhone">
+            <summary>
+            Параметр шины <b><u>tel</u></b> (номер мобильного телефона)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.Address">
+            <summary>
+            Параметр шины <b><u>address</u></b> (адрес субъекта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.CarMark">
+            <summary>
+            Параметр шины <b><u>car_brand</u></b> (марка автомобиля)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.CarModel">
+            <summary>
+            Параметр шины <b><u>car_model</u></b> (модель автомобиля)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.CarId">
+            <summary>
+            Параметр шины <b><u>car_id</u></b> (гос номер автомобиля)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.CarYear">
+            <summary>
+            Параметр шины <b><u>car_year</u></b> (год выпуска автомобиля)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.Period">
+            <summary>
+            Параметр шины <b><u>application_period</u></b> (срок заявки)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.LoanCost">
+            <summary>
+            Параметр шины <b><u>application_value</u></b> (сумма заявки)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.ApplicationSource">
+            <summary>
+            Параметр шины <b><u>application_source</u></b> (Система инициинирования заявки)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.UtmTags">
+            <summary>
+            Параметр шины <b><u>ref</u></b> (UTM метки)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.ApplicationInsurance">
+            <summary>
+            Параметр шины <b><u>application_insurance</u></b> дублирует insurance (признак использования страховки)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.CarMarkId">
+            <summary>
+            Параметр шины <b><u>car_brand_id</u></b> (идентификатор CRM марки автомобиля)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.CarModelId">
+            <summary>
+            Параметр шины <b><u>car_brand_id</u></b> (идентификатор CRM модели автомобиля)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.CarNumber">
+            <summary>
+            Параметр шины <b><u>car_number</u></b> (гос номер автомобиля)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.Email">
+            <summary>
+            Параметр шины <b><u>email</u></b> (электронная почта субъекта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.ExpenseCredit">
+            <summary>
+            Параметр шины <b><u>expense_credit</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.ExpenseLife">
+            <summary>
+            Параметр шины <b><u>expense_life</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.PartnerCode">
+            <summary>
+            Параметр шины <b><u>partner_code</u></b> (код партнера)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.SumExpense">
+            <summary>
+            Параметр шины <b><u>summ_expense</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.SumRevenue">
+            <summary>
+            Параметр шины <b><u>summ_revenue</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateApplicationRequest.AdditionalPhone">
+            <summary>
+            Параметр шины <b><u>tel2</u></b> (дополнительный номер телефона)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateTrancheRequest.BaseContractNumber">
+            <summary>
+            Параметр шины <b><u>contract_base</u></b> (номер родительского займа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreateTrancheRequest.MaturityDate">
+            <summary>
+            Параметр шины <b><u>date_end</u></b> (дата окончания)
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.AbsOnline.CreditLineViewModel">
+            <summary>
+            Детали кредитной линии
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreditLineViewModel.ContractNumber">
+            <summary>
+            Параметр шины <b><u>credit_line</u></b> (номер контракта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreditLineViewModel.RemainingAmount">
+            <summary>
+            Параметр шины <b><u>rest</u></b> (остаток суммы)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreditLineViewModel.EndDate">
+            <summary>
+            Параметр шины <b><u>end_date</u></b> (дата окончания)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreditLineViewModel.CarNumber">
+            <summary>
+            Параметр шины <b><u>car_number</u></b> (номерной знак (гос.номер))
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CreditLineViewModel.CarVin">
+            <summary>
+            Параметр шины <b><u>car_vin</u></b> (VIN)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CrmStateViewModel.ContractNumber">
+            <summary>
+            Параметр шины <b><u>application_id</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CrmStateViewModel.Services">
+            <summary>
+            Параметр шины <b><u>services</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.CrmStateViewModel.From">
+            <summary>
+            Параметр шины <b><u>from</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.FiledsViewModel.Data">
+            <summary>
+            параметр шины <b><u>data</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.FiledsViewModel.Name">
+            <summary>
+            параметр шины <b><u>name</u></b>
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.AbsOnline.LoanPercentSettingViewModel">
+            <summary>
+            Детали продукта для онлайна
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.LoanPercentSettingViewModel.Name">
+            <summary>
+            Параметр шины <b><u>name</u></b> (наименование продукта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.LoanPercentSettingViewModel.NameKz">
+            <summary>
+            Параметр шины <b><u>name_kz</u></b> (наименование продукта на казахском)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.LoanPercentSettingViewModel.Description">
+            <summary>
+            Параметр шины <b><u>description</u></b> (описание продукта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.LoanPercentSettingViewModel.DescriptionKz">
+            <summary>
+            Параметр шины <b><u>description_kz</u></b> (описание продукта на казахском)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.LoanPercentSettingViewModel.ProductId">
+            <summary>
+            Параметр шины <b><u>product_id</u></b> (идентификатор продукта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.LoanPercentSettingViewModel.InsuranceType">
+            <summary>
+            Параметр шины <b><u>insurance</u></b> (тип наличия страховки (0 - нету, 1 - страховка обязательна, 2 - страховка опциональна))
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.LoanPercentSettingViewModel.Percent">
+            <summary>
+            Параметр шины <b><u>percent</u></b> (процентная ставка)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.LoanPercentSettingViewModel.MinPercent">
+            <summary>
+            Параметр шины <b><u>min_value</u></b> (минимальная процентная ставка)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.LoanPercentSettingViewModel.MaxPercent">
+            <summary>
+            Параметр шины <b><u>max_percent</u></b> (максимальная процентная ставка)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.LoanPercentSettingViewModel.IsActive">
+            <summary>
+            Параметр шины <b><u>is_active</u></b> (признак активности/актуальности)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.LoanPercentSettingViewModel.MinValue">
+            <summary>
+            Параметр шины <b><u>percent</u></b> (минимальная сумма займа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.LoanPercentSettingViewModel.MaxValue">
+            <summary>
+            Параметр шины <b><u>max_value</u></b> (максимальная сумма займа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.LoanPercentSettingViewModel.MinMonth">
+            <summary>
+            Параметр шины <b><u>min_month</u></b> (минимальный период займа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.LoanPercentSettingViewModel.MaxMonth">
+            <summary>
+            Параметр шины <b><u>max_month</u></b> (максимальный период займа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.LoanPercentSettingViewModel.MinAge">
+            <summary>
+            Параметр шины <b><u>min_age</u></b> (минимальный возраст клиента)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.LoanPercentSettingViewModel.MaxAge">
+            <summary>
+            Параметр шины <b><u>max_age</u></b> (максимальный возраст клиента)
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.AbsOnline.PaymentScheduleViewModel">
+            <summary>
+            Детали графика платежей
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.PaymentScheduleViewModel.Date">
+            <summary>
+            Параметр шины <b><u>date</u></b> (дата платежа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.PaymentScheduleViewModel.Number">
+            <summary>
+            Параметр шины <b><u>number</u></b> (номер платежа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.PaymentScheduleViewModel.Amount">
+            <summary>
+            Параметр шины <b><u>pay_value</u></b> или <b><u>value</u></b>(сумма платежа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.PaymentScheduleViewModel.PrincipalDebtLeft">
+            <summary>
+            Параметр шины <b><u>od_balance</u></b> (остаток основного долга)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.PaymentScheduleViewModel.PrincipalDebt">
+            <summary>
+            Параметр шины <b><u>od_value</u></b> или <b><u>od</u></b>(сумма платежа основного долга)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.PaymentScheduleViewModel.Percent">
+            <summary>
+            Параметр шины <b><u>percent</u></b> (процентная ставка)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.PaymentScheduleViewModel.ProfitAmount">
+            <summary>
+            Параметр шины <b><u>percent_value</u></b> (сумма процентов)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.PaymentScheduleViewModel.Status">
+            <summary>
+            Параметр шины <b><u>status</u></b> (статус)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.PaymentScheduleViewModel.FineAmount">
+            <summary>
+            Параметр шины <b><u>fine</u></b> (сумма штрафа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.PaymentScheduleViewModel.PenaltyAmount">
+            <summary>
+            Параметр шины <b><u>penalties</u></b> (сумма пени)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.PaymentScheduleViewModel.Balance">
+            <summary>
+            Параметр шины <b><u>balance</u></b> (???)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ServiceViewModel.Name">
+            <summary>
+            Параметр шины <b><u>name</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ServiceViewModel.PayServiceValue">
+            <summary>
+            Параметр шины <b><u>pay_service_value</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ServiceViewModel.PayTotalValue">
+            <summary>
+            Параметр шины <b><u>pay_total_value</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ServiceViewModel.LoanCost">
+            <summary>
+            Параметр шины <b><u>application_value</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ServiceViewModel.Insurance">
+            <summary>
+            Параметр шины <b><u>insurance</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.ServiceViewModel.Percent">
+            <summary>
+            Параметр шины <b><u>percent</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.SignApplicationRequest.ContractNumber">
+            <summary>
+            Параметр шины <b><u>contract_id</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.SignApplicationRequest.IIN">
+            <summary>
+            Параметр шины <b><u>uin</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.SignApplicationRequest.MobilePhone">
+            <summary>
+            Параметр шины <b><u>tel</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.SignApplicationRequest.SmsCode">
+            <summary>
+            Параметр шины <b><u>sms</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.SuggestPayDayViewModel.ContractNumber">
+            <summary>
+            Параметр шины <b><u>application_id</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.SuggestPayDayViewModel.Day">
+            <summary>
+            Параметр шины <b><u>day</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UnsetFcbContractsResponse.IIN">
+            <summary>
+            Параметр шины <b><u>iin</u></b> (ИИН)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UnsetFcbContractsResponse.Error">
+            <summary>
+            Параметр шины <b><u>error</u></b> (код ошибки: 0 - ок, 1 - ошибка)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UnsetFcbContractsResponse.Message">
+            <summary>
+            Параметр шины <b><u>message</u></b> (текст сообщения)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UnsetFcbContractsResponse.Contracts">
+            <summary>
+            Параметр шины <b><u>contracts</u></b> (Список займов не отправленных в ПКБ)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UnsetFcbContractViewModel.ContractNumber">
+            <summary>
+            Параметр шины <b><u>application_id</u></b> (номер займа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UnsetFcbContractViewModel.Date">
+            <summary>
+            Параметр шины <b><u>date</u></b> (дата открытия)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UnsetFcbContractViewModel.LoanCost">
+            <summary>
+            Параметр шины <b><u>value</u></b> (сумма займа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationFieldsRequest.ContractNumber">
+            <summary>
+            параметр шины <b><u>application_id</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationFieldsRequest.Fields">
+            <summary>
+            параметр шины <b><u>fields</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationFieldsRequest.InstanceId">
+            <summary>
+            параметр шины <b><u>instance_id</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationFieldsRequest.LoanTo">
+            <summary>
+            параметр шины <b><u>loan_to</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationFieldsResponse.ContractNumber">
+            <summary>
+            параметр шины <b><u>application_id</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationFieldsResponse.InstanceId">
+            <summary>
+            параметр шины <b><u>instance_id</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationFieldsResponse.Error">
+            <summary>
+            параметр шины <b><u>error</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationFieldsResponse.Message">
+            <summary>
+            параметр шины <b><u>message</u></b>
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationRequest.BirthDate">
+            <summary>
+            Параметр шины <b><u>date_birth</u></b> (дата рождения клиента)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationRequest.CarMarkId">
+            <summary>
+            Параметр шины <b><u>car_brand_id</u></b> (идентификатор CRM марки автомобиля )
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationRequest.CarModelId">
+            <summary>
+            Параметр шины <b><u>car_model_id</u></b> (идентификатор CRM модели автомобиля )
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationRequest.CarNumber">
+            <summary>
+            Параметр шины <b><u>car_id</u></b> (гос номер автомобиля)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationRequest.CarYear">
+            <summary>
+            Параметр шины <b><u>car_year</u></b> (год выпуска автомобиля)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationRequest.ContractNumber">
+            <summary>
+            Параметр шины <b><u>application_id</u></b> (номер заявки)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationRequest.Firstname">
+            <summary>
+            Параметр шины <b><u>firstname</u></b> (имя субъекта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationRequest.Lastname">
+            <summary>
+            Параметр шины <b><u>lastname</u></b> (фамилия субъекта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationRequest.Middlename">
+            <summary>
+            Параметр шины <b><u>middlename</u></b> (отчество субъекта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationRequest.PassportIssueDate">
+            <summary>
+            Параметр шины <b><u>passport_date</u></b> (дата выдачи документа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationRequest.PassportNumber">
+            <summary>
+            Параметр шины <b><u>passport_num</u></b> (номер документа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationRequest.PaymentType">
+            <summary>
+            Параметр шины <b><u>payment_type</u></b> (тип платежа)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationRequest.Period">
+            <summary>
+            Параметр шины <b><u>application_period</u></b> (срок заявки)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationRequest.ProductId">
+            <summary>
+            Параметр шины <b><u>product_id</u></b> (идентификатор продукта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationRequest.TechPassportIssueDate">
+            <summary>
+            Параметр шины <b><u>vehicle_passport_date</u></b> (дата выдачи тех паспорта)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.UpdateApplicationRequest.TechPassportNumber">
+            <summary>
+            Параметр шины <b><u>vehicle_passport_num</u></b> (номер тех паспорта)
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.AbsOnline.VinDataViewModel">
+            <summary>
+            Данные по VIN
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.VinDataViewModel.Vin">
+            <summary>
+            Параметр шины <b><u>vin</u></b> (VIN автомобиля)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.VinDataViewModel.PrincipalDebt">
+            <summary>
+            Параметр шины <b><u>od</u></b> (Основной долг)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.VinDataViewModel.Percent">
+            <summary>
+            Параметр шины <b><u>percent</u></b> (Проценты)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnline.VinDataViewModel.Penalty">
+            <summary>
+            Параметр шины <b><u>fine</u></b> (Пени/штраф)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnlineCardCashOut.CardCashoutTransactionView.Id">
+            <summary>
+            Идентификатор записи
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnlineCardCashOut.CardCashoutTransactionView.ClientId">
+            <summary>
+            Идентификатор клиента
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnlineCardCashOut.CardCashoutTransactionView.ContractId">
+            <summary>
+            Идентификатор клиента
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnlineCardCashOut.CardCashoutTransactionView.CardNumber">
+            <summary>
+            Номер карты клиента на которую производится вывод денег
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnlineCardCashOut.CardCashoutTransactionView.CardHolderName">
+            <summary>
+            Имя владельца карты
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnlineCardCashOut.CardCashoutTransactionView.Amount">
+            <summary>
+            Сумма вывода в Тиынах
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnlineCardCashOut.CardCashoutTransactionView.CustomerReference">
+            <summary>
+            Уникальный идентификатор для идентификации выполнения транзакции в процессинге
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnlineCardCashOut.CardCashoutTransactionView.Url">
+            <summary>
+            Url в процессинге по которому должен проходить вввод данных карты клиента
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnlineCardCashOut.CardCashoutTransactionView.TranGUID">
+            <summary>
+            Guid используется для ввода данных карты с бека  
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnlineCardCashOut.CardCashoutTransactionView.Status">
+            <summary>
+            Текущий статус транзакции
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnlineCardCashOut.CardCashoutTransactionView.CreateDate">
+            <summary>
+            Время создания записи
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnlineCardCashOut.CardCashoutTransactionView.DeleteDate">
+            <summary>
+            Время удаления записи
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnlineCardCashOut.PageBinding.Offset">
+            <summary>
+            Offset for pagination. Optional. 0 by default.
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.AbsOnlineCardCashOut.PageBinding.Limit">
+            <summary>
+            Number of items per page. Optional. 20 by default.
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreateBinding.ApplicationId">
+            <summary>
+            Идентификатор заявки
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreateBinding.ClientId">
+            <summary>
+            Идентификатор клиента
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreateBinding.LoanCost">
+            <summary>
+            Сумма займа
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreateBinding.ProductId">
+            <summary>
+            Идентификатор продукта(дискрет, ануитет итд)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreateBinding.Period">
+            <summary>
+            Срок займа в месяцах
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreateBinding.Insurance">
+            <summary>
+            Страховка
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreateBinding.FirstPaymentDate">
+            <summary>
+            Дата первого платежа
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreateBinding.IncomeAmount">
+            <summary>
+            Сумма доходов указанная клиентом
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreateBinding.ExpenseAmount">
+            <summary>
+            Сумма расходов указанная клиентом
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreateBinding.CarId">
+            <summary>
+            Идентификатор машины в случае если это добор 
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreateBinding.ListId">
+            <summary>
+            Идентификатор списка файлов в хранилище ДРПП
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreateBinding.CreditLineId">
+            <summary>
+            Идентификатор кредитной линии
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreateBinding.Car">
+            <summary>
+            Авто
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreateBinding.Contacts">
+            <summary>
+            Контакты
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreateBinding.Files">
+            <summary>
+            Файлы
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreateBinding.PartnerCode">
+            <summary>
+            Код партнёра 
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreditLineInfo.Id">
+            <summary>
+            Идентификатор КЛ
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreditLineInfo.ContractNumber">
+            <summary>
+            Номер договора КЛ
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreditLineInfo.CreateDate">
+            <summary>
+            Дата создания КЛ
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreditLineInfo.MaturityDate">
+            <summary>
+            Дата завершения КЛ
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreditLineInfo.DebtLeft">
+            <summary>
+            Остаток ОД по КЛ
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreditLineInfo.CreditLineLimit">
+            <summary>
+            Остаток доступного лимита
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreditLineInfo.CurrentDebt">
+            <summary>
+            Сумма выкупа
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreditLineInfo.LoanCost">
+            <summary>
+            Общий лимит КЛ
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreditLineInfo.PaymentExpiredDays">
+            <summary>
+            Макс текущая просрочка
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreditLineInfo.ParkingStatus">
+            <summary>
+            Статус стоянки
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreditLineInfo.InscriptionStatus">
+            <summary>
+            Статус ЧСИ
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineCreditLineInfo.HasInscription">
+            <summary>
+            Признак наличия ЧСИ
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineFinanceInfo.IncomeAmount">
+            <summary>
+            Среднемесячный доход за 6 мес со слов клиента
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineFinanceInfo.CorrectedIncomeAmount">
+            <summary>
+            Среднемесячный доход за 6 мес со слов клиента скорректированный менеджером
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineFinanceInfo.ExpenseAmount">
+            <summary>
+            Расходы по прочим платежам со слов клиента
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnline.ApplicationOnlineFinanceInfo.CorrectedExpenseAmount">
+            <summary>
+            Расходы по прочим платежам со слов клиента скорректированный менеджером
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineCar.ApplicationOnlineCarBinding.TechPassportModel">
+            <summary>
+            Модель указаная в тех пасспорте 
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineCar.ApplicationOnlineCarBinding.Category">
+            <summary>
+            Категория автомобиля
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineCar.ApplicationOnlineCarBinding.TechCategory">
+            <summary>
+            Техническая Категория
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineCar.ApplicationOnlineCarBinding.ReleaseYear">
+            <summary>
+            Год выпуска
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineCar.ApplicationOnlineCarBinding.TransportNumber">
+            <summary>
+            Номер авто
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineCar.ApplicationOnlineCarBinding.MotorNumber">
+            <summary>
+            Номер двигателя
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineCar.ApplicationOnlineCarBinding.BodyNumber">
+            <summary>
+            Номер кузова
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineCar.ApplicationOnlineCarBinding.TechPassportNumber">
+            <summary>
+            Номер тех пасспорта
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineCar.ApplicationOnlineCarBinding.TechPassportDate">
+            <summary>
+            Дата тех паспорта
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineCar.ApplicationOnlineCarBinding.Color">
+            <summary>
+            Цвет автомобиля
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineCar.ApplicationOnlineCarBinding.VehicleMarkId">
+            <summary>
+            Идентификатор Марки авто
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineCar.ApplicationOnlineCarBinding.VehicleModelId">
+            <summary>
+            Идентификатор модели Авто
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineCar.ApplicationOnlineCarBinding.OwnerRegionName">
+            <summary>
+            Регион Регистрации 
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineCar.ApplicationOnlineCarBinding.OwnerRegionNameEn">
+            <summary>
+            Регион регистрации англ
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineCar.ApplicationOnlineCarBinding.Notes">
+            <summary>
+            Заметки
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineKdn.ApplicationOnlineKdnLogView.Id">
+            <summary>
+            Идентификатор записи
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineKdn.ApplicationOnlineKdnLogView.CreateDate">
+            <summary>
+            Дата создания
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineKdn.ApplicationOnlineKdnLogView.AuthorId">
+            <summary>
+            Идентификатор автора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineKdn.ApplicationOnlineKdnLogView.CreateByName">
+            <summary>
+            ФИО автора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineKdn.ApplicationOnlineKdnLogView.ClientId">
+            <summary>
+            Идентификатор клиента
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineKdn.ApplicationOnlineKdnLogView.ApplicationOnlineId">
+            <summary>
+            Идентификатор заявки
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineKdn.ApplicationOnlineKdnLogView.ApplicationOnlineStatus">
+            <summary>
+            Статус заявки
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineKdn.ApplicationOnlineKdnLogView.ApplicationAmount">
+            <summary>
+            Сумма заявки
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineKdn.ApplicationOnlineKdnLogView.ApplicationTerm">
+            <summary>
+            Срок заявки
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineKdn.ApplicationOnlineKdnLogView.ApplicationSettingId">
+            <summary>
+            Идентификатор продукта заявки
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineKdn.ApplicationOnlineKdnLogView.TotalIncome">
+            <summary>
+            Итоговая сумма доходов
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineKdn.ApplicationOnlineKdnLogView.OtherPaymentsAmount">
+            <summary>
+            Прочие ежемесячные платежи в других ФИ
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineKdn.ApplicationOnlineKdnLogView.AverageMonthlyPayment">
+            <summary>
+            Среднемесячный платеж по заявке
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineKdn.ApplicationOnlineKdnLogView.IncomeConfirmed">
+            <summary>
+            Признак подтверждения дохода
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineKdn.ApplicationOnlineKdnLogView.Kdn">
+            <summary>
+            КДН
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineKdn.ApplicationOnlineKdnLogView.Success">
+            <summary>
+            Признак успешного прохождения расчета КДН
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.ApplicationOnlineKdn.ApplicationOnlineKdnLogView.ResultText">
+            <summary>
+            Текст результата
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.BranchesPartnerCodes.BranchPartnerCodeCreationBinding.Id">
+            <summary>
+            Идентификатор
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.BranchesPartnerCodes.BranchPartnerCodeCreationBinding.BranchId">
+            <summary>
+            Идентификатор филиала
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.BranchesPartnerCodes.BranchPartnerCodeCreationBinding.PartnerCode">
+            <summary>
+            Код партнёра
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.BranchesPartnerCodes.BranchPartnerCodeUpdateBinding.BranchId">
+            <summary>
+            Идентификатор группы
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.BranchesPartnerCodes.BranchPartnerCodeUpdateBinding.PartnerCode">
+            <summary>
+            Код партнёра
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.BranchesPartnerCodes.BranchPartnerCodeUpdateBinding.DeleteDate">
+            <summary>
+            Дата удаления
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.BranchesPartnerCodes.BranchPartnerCodeUpdateBinding.Enabled">
+            <summary>
+            Включен/выключен
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.Clients.ClientContactDto">
+            <summary>
+            Контакт
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Clients.ClientContactDto.Id">
+            <summary>
+            Идентификатор
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Clients.ClientContactDto.Address">
+            <summary>
+            Адрес
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Clients.ClientContactDto.VerificationExpireDate">
+            <summary>
+            Верификатация годна до
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Clients.ClientContactDto.IsDefault">
+            <summary>
+            Флаг основного контакта
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Clients.ClientContactDto.SendUkassaCheck">
+            <summary>
+            Отправка чека УКассы на этот контакт
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Clients.ClientContactDto.ContactCategoryId">
+            <summary>
+            Идентификатор категории контакта
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Clients.ClientContactDto.ContactCategoryCode">
+            <summary>
+            Код категории контакта
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Clients.ClientContactDto.IsActual">
+            <summary>
+            Флаг актульного контакта 
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Clients.ClientContactDto.SourceId">
+            <summary>
+            Источник
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Clients.ClientContactDto.Note">
+            <summary>
+            Комментарий
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.Clients.ClientMerchantContactDto">
+            <summary>
+            Клиент для мерчанта
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Clients.ClientMerchantContactDto.Client">
+            <summary>
+            Идентификатор
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Clients.SaveClientContactsRequest.Contacts">
+            <summary>
+            Контакты
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Clients.SaveClientContactsRequest.OTP">
+            <summary>
+            Одноразовый пароль
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.Contract.ContractOuterForCheckModel">
+            <summary>
+            Внешняя информация о договоре
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractOuterForCheckModel.ContractNumber">
+            <summary>
+            Номер договора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractOuterForCheckModel.ContractDate">
+            <summary>
+            Дата договора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractOuterForCheckModel.MaturityDate">
+            <summary>
+            Дата ближайшего платежа
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractOuterForCheckModel.LoanCost">
+            <summary>
+            Основной долг
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractOuterForCheckModel.Amount">
+            <summary>
+            Суммы для действий
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractOuterForCheckModel.MonthlyPayment">
+            <summary>
+            Ежемесячный платеж
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractOuterForCheckModel.DelayedMonthlyPayments">
+            <summary>
+            Просроченные платежи 
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractOuterForCheckModel.FutureMonthlyPayments">
+            <summary>
+            Предстоящие платежи
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractOuterForCheckModel.Status">
+            <summary>
+            Статус договора
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.Contract.ContractOuterModel">
+            <summary>
+            Внешняя информация о договоре
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractOuterModel.ContractNumber">
+            <summary>
+            Номер договора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractOuterModel.ContractDate">
+            <summary>
+            Дата договора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractOuterModel.MaturityDate">
+            <summary>
+            Дата ближайшего платежа
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractOuterModel.LoanCost">
+            <summary>
+            Основной долг
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractOuterModel.BalanceCost">
+            <summary>
+            Остаток
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.Contract.ContractOuterQueryModel">
+            <summary>
+            Критерии поиска внешней информации о договоре
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractOuterQueryModel.ContractNumber">
+            <summary>
+            Номер договора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractOuterQueryModel.IdentityNumber">
+            <summary>
+            ИИН
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractQueryModel.PositionId">
+            <summary>
+            Позиция
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractQueryModel.CollateralType">
+            <summary>
+            Вид залога
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractQueryModel.Status">
+            <summary>
+            Статус договора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractTemplateNumberQuery.TemplateId">
+            <summary>
+            Шаблон печатной формы
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.ContractTemplateNumberQuery.ContractId">
+            <summary>
+            Договор
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.OnlinePartialPaymentAvailableView.CanBeProcessed">
+            <summary>
+            Признак возможности ЧДП
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.OnlinePartialPaymentAvailableView.Description">
+            <summary>
+            Описание результата
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.OnlinePartialPaymentAvailableView.MaxAmount">
+            <summary>
+            Максимальная сумма ЧДП
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.OnlinePartialPaymentAvailableView.MinAmount">
+            <summary>
+            Минимальная сумма ЧДП
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.OnlinePartialPaymentAvailableView.TechnicalIssues">
+            <summary>
+            Признак технической проблемы
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.OnlinePartialPaymentBalanceView.Depo">
+            <summary>
+            Сумма на авансе
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.OnlinePartialPaymentBalanceView.MainDebtAfterCDP">
+            <summary>
+            Сумма ОД после ЧДП
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.OnlinePartialPaymentBalanceView.Percent">
+            <summary>
+            Сумма процентов
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.OnlinePartialPaymentBalanceView.MainDebt">
+            <summary>
+            Сумма ОД
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.OnlinePartialPaymentBalanceView.NeedToPrepayment">
+            <summary>
+            Сумма пополнения аванса
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.Refinance.ContractRefinanceCheck.Date">
+            <summary>
+            Дата рефинанса
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.Refinance.ContractRefinanceCheck.ContractId">
+            <summary>
+            Идентификатор договора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.Refinance.ContractRefinanceCheck.PercentPaymentType">
+            <summary>
+            Вид начисления процентов в новом договоре
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.Refinance.ContractRefinanceCheck.FirstPaymentDate">
+            <summary>
+            Дата первой оплаты
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Contract.Refinance.ContractRefinanceCheck.PaymentQuantity">
+            <summary>
+            Количество платежей
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.StatusCheckResult">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.StatusCheckResult.Body">
+            <remarks/>
+        </member>
+        <member name="T:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.EnvelopeBody">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.EnvelopeBody.GetBatchStatus3Response">
+            <remarks/>
+        </member>
+        <member name="T:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.GetBatchStatus3Response">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.GetBatchStatus3Response.GetBatchStatus3Result">
+            <remarks/>
+        </member>
+        <member name="T:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.GetBatchStatus3ResponseGetBatchStatus3Result">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.GetBatchStatus3ResponseGetBatchStatus3Result.CigResult">
+            <remarks/>
+        </member>
+        <member name="T:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResult">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResult.DateTime">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResult.ReferenceId">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResult.ServiceName">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResult.ResultCulture">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResult.ResultCode">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResult.ResultDescription">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResult.Result">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResult.Version">
+            <remarks/>
+        </member>
+        <member name="T:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResultResult">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResultResult.Batch">
+            <remarks/>
+        </member>
+        <member name="T:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResultResultBatch">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResultResultBatch.Message">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResultResultBatch.Id">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResultResultBatch.Inserted">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResultResultBatch.SchemaId">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResultResultBatch.StatusId">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResultResultBatch.StatusName">
+            <remarks/>
+        </member>
+        <member name="T:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResultResultBatchMessage">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResultResultBatchMessage.Description">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResultResultBatchMessage.Values">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResultResultBatchMessage.GroupId">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResultResultBatchMessage.GroupName">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResultResultBatchMessage.TypeId">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.StatusCheckResult.CigResultResultBatchMessage.TypeName">
+            <remarks/>
+        </member>
+        <member name="T:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.UploadResultFCB">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.UploadResultFCB.Body">
+            <remarks/>
+        </member>
+        <member name="T:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.EnvelopeBody">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.EnvelopeBody.UploadZippedData2Response">
+            <remarks/>
+        </member>
+        <member name="T:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.UploadZippedData2Response">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.UploadZippedData2Response.UploadZippedData2Result">
+            <remarks/>
+        </member>
+        <member name="T:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.UploadZippedData2ResponseUploadZippedData2Result">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.UploadZippedData2ResponseUploadZippedData2Result.CigResult">
+            <remarks/>
+        </member>
+        <member name="T:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.CigResult">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.CigResult.DateTime">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.CigResult.ReferenceId">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.CigResult.ServiceName">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.CigResult.ResultCulture">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.CigResult.ResultCode">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.CigResult.ResultDescription">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.CigResult.Result">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.CigResult.Version">
+            <remarks/>
+        </member>
+        <member name="T:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.CigResultResult">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.CigResultResult.Batch">
+            <remarks/>
+        </member>
+        <member name="T:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.CigResultResultBatch">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.CigResultResultBatch.Id">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.CigResultResultBatch.Inserted">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.CigResultResultBatch.SchemaId">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.CigResultResultBatch.StatusId">
+            <remarks/>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditBureau.UploadResultFCB.CigResultResultBatch.StatusName">
+            <remarks/>
+        </member>
+        <member name="T:Pawnshop.Web.Models.CreditBureau.UploadResultSCB.UploadResultSCB">
+            <summary>
+            обработка батча по BatchPackageId для ГКБ
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.ContractActionRowViewModel.Id">
+            <summary>
+            Идентификатор ContractAction
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.ContractActionRowViewModel.ContractNumber">
+            <summary>
+            Номер контракта 
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.ContractActionRowViewModel.ActionId">
+            <summary>
+            Ссылка на действие
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.ContractActionRowViewModel.LoanSubjectId">
+            <summary>
+            Субъект договора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.ContractActionRowViewModel.PaymentType">
+            <summary>
+            Тип погашения
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.ContractActionRowViewModel.Period">
+            <summary>
+            Период, дн
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.ContractActionRowViewModel.OriginalPercent">
+            <summary>
+            Процент оригинальный
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.ContractActionRowViewModel.Percent">
+            <summary>
+            Процент
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.ContractActionRowViewModel.Cost">
+            <summary>
+            Сумма погашения
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.ContractActionRowViewModel.DebitAccountId">
+            <summary>
+            Ссылка на дебет
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.ContractActionRowViewModel.CreditAccountId">
+            <summary>
+            Ссылка на кредит
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.ContractActionRowViewModel.OrderId">
+            <summary>
+            Ссылка на ПКО
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.ContractActionRowViewModel.BusinessOperationSettingId">
+            <summary>
+            Ссылка на настройку бизнес-операции
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.ContractActionRowViewModel.BusinessOperationSetting">
+            <summary>
+            Настройка бизнес-операции
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.CreditLineBalanceViewModel.ContractId">
+            <summary>
+            Идентификатор договора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.CreditLineBalanceViewModel.SummaryCurrentDebt">
+            <summary>
+            Текущая задолженность
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.CreditLineBalanceViewModel.SummaryExpenseAmount">
+            <summary>
+            Расходы по договору
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.CreditLineBalanceViewModel.SummaryPrepaymentBalance">
+            <summary>
+            Аванс
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.CreditLineBalanceViewModel.ContractBalances">
+            <summary>
+            Балансы договора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.CreditLine.CreditLineBalanceViewModel.Transfers">
+            <summary>
+            Список сумм перевода ДС для договоров 
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Domains.AdditionalData.ContactTypeAdditionalData.Regex">
+            <summary>
+            Регулярное значение для проверки контакта
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Domains.AdditionalData.ContactTypeAdditionalData.ErrorMessageTemplate">
+            <summary>
+            Шаблон ошибки
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.Domains.DomainDto">
+            <summary>
+            Домен
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Domains.DomainDto.Code">
+            <summary>
+            Код
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Domains.DomainDto.Name">
+            <summary>
+            Название
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Domains.DomainDto.NameAlt">
+            <summary>
+            Альтернативное название
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.Domains.DomainValueDto">
+            <summary>
+            Значение домена
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Domains.DomainValueDto.Id">
+            <summary>
+            Идентификатор
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Domains.DomainValueDto.Name">
+            <summary>
+            Название
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Domains.DomainValueDto.NameAlt">
+            <summary>
+            Альтернативное название домена
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Domains.DomainValueDto.Code">
+            <summary>
+            Код
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Domains.DomainValueDto.AdditionalData">
+            <summary>
+            Дополнительная информация
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Domains.DomainValueDto.IsActive">
+            <summary>
+            Флаг активности домена
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Estimates.EvaluationResultRequest.EvaluatedAmount">
+            <summary>
+            Сумма оценки
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Estimates.EvaluationResultRequest.IssuedAmount">
+            <summary>
+            Максимально возможная сумма кредитования
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Inscription.InscriptionModel.ContractId">
+            <summary>
+            Идентификатор договора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Inscription.InscriptionModel.TotalCost">
+            <summary>
+            Общая сумма
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Inscription.InscriptionModel.Date">
+            <summary>
+            Дата
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Inscription.InscriptionModel.Status">
+            <summary>
+            Статус
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Inscription.InscriptionModel.CreateDate">
+            <summary>
+            Дата создания
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Inscription.InscriptionModel.DeleteDate">
+            <summary>
+            Дата удаления
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Inscription.InscriptionModel.AuthorId">
+            <summary>
+            Автор
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Inscription.InscriptionModel.Author">
+            <summary>
+            Автор
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.NationalBankExchangeRates.CurrencyItem">
+            <summary>
+            Дата обменных курсов
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.NationalBankExchangeRates.CurrencyItem.Fullname">
+            <summary>
+            Полное наименование валюты
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.NationalBankExchangeRates.CurrencyItem.Title">
+            <summary>
+            Сокращенное наименование валюты
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.NationalBankExchangeRates.CurrencyItem.ExchangeRate">
+            <summary>
+            Обменный курс
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.NationalBankExchangeRates.CurrencyItem.Quantity">
+            <summary>
+            Количество единиц валюты за обменный курс
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.NationalBankExchangeRates.CurrencyItem.Index">
+            <summary>
+            Показатель изменения(выше/ниже/без изменения) по сравнению с предыдущим днем
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.NationalBankExchangeRates.CurrencyItem.Change">
+            <summary>
+            Изменение курса по сравнению с предыдущим днем
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.NationalBankExchangeRates.Rate">
+            <summary>
+            Обменные курсы нацбанка
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.NationalBankExchangeRates.Rate.DateString">
+            <summary>
+            Дата обменных курсов
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.NationalBankExchangeRates.Rate.Currencies">
+            <summary>
+            Список валют обменных курсов
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Notification.NotificationOverdueQueryModel.CollateralType">
+            <summary>
+            Вид залога
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Notification.NotificationPeriodQueryModel.CollateralType">
+            <summary>
+            Вид залога
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Notification.NotificationPeriodQueryModel.Period">
+            <summary>
+            Период
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.PageBinding.Offset">
+            <summary>
+            Offset for pagination. Optional. 0 by default.
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.PageBinding.Limit">
+            <summary>
+            Number of items per page. Optional. 20 by default.
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.Processing.OnlinePaymentOuterModel">
+            <summary>
+            Внешняя информация для платежных систем
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.OnlinePaymentOuterModel.Code">
+            <summary>
+            Код ответа
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.OnlinePaymentOuterModel.Message">
+            <summary>
+            Сообщение
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.OnlinePaymentOuterModel.Date">
+            <summary>
+            Дата и время операции
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.OnlinePaymentOuterModel.Authcode">
+            <summary>
+            Номер операции (транзакции)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.OnlinePaymentOuterModel.invoice">
+            <summary>
+            Вывод дополнительной информации
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.Processing.OnlinePaymentsManageModel">
+            <summary>
+            Входная информация от платежной системы для сверки
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.OnlinePaymentsManageModel.Date">
+            <summary>
+            Дата и время операции
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.OnlinePaymentsManageModel.Receipt">
+            <summary>
+            Идентификатор онлайн оплаты
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.OnlinePaymentsManageModel.ContractId">
+            <summary>
+            Идентификатор договора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.OnlinePaymentsManageModel.IdentityNumber">
+            <summary>
+            ИИН клиента
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.OnlinePaymentsManageModel.Amount">
+            <summary>
+            Сумма
+            </summary>
+        </member>
+        <member name="T:Pawnshop.Web.Models.Processing.QiwiOuterModel">
+            <summary>
+            Внешняя информация для Qiwi
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.QiwiOuterModel.Osmp_txn_id">
+            <summary>
+            Номер транзакции в системе Qiwi
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.QiwiOuterModel.Result">
+            <summary>
+            Код результата 
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.QiwiOuterModel.Orders">
+            <summary>
+            Сведения по договору
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.QiwiOuterModel.Comment">
+            <summary>
+            Комментарий
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.QiwiOuterModel.Fields">
+            <summary>
+            Расширенные сведения по договору
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.QiwiOuterModel.Prv_txn">
+            <summary>
+            Номер транзакции в системе (ActionId)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.QiwiOuterModel.Sum">
+            <summary>
+            Оплаченная сумма
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.Orders.OrderId">
+            <summary>
+            Идентификатор договора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.Orders.Text">
+            <summary>
+            Номер договора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.Orders.Amount">
+            <summary>
+            Сумма к оплате
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.Fields.ContractNumber">
+            <summary>
+            Номер договора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.Fields.ClientFullName">
+            <summary>
+            ФИО клиента
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.Fields.AmountForPay">
+            <summary>
+            Сумма к оплате
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.Fields.ContractDate">
+            <summary>
+            Дата начала договора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.Fields.ContractId">
+            <summary>
+            Идентификатор договора
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Processing.Fields.PositionInfo">
+            <summary>
+            Информация о позиции 
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Verification.GetVerificationRequest.ClientId">
+            <summary>
+            Идентификатор клиента
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Verification.GetVerificationRequest.PhoneNumber">
+            <summary>
+            Телефонный номер(опционален, при первой инициализации верификации)
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Verification.GetVerificationResponse.VerificationId">
+            <summary>
+            Идентификатор
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Verification.GetVerificationResponse.ExpireDate">
+            <summary>
+            Дата истечения
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Verification.RegisterVerificationNumberRequest.ClientId">
+            <summary>
+            Идентификатор клиента
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Verification.RegisterVerificationNumberRequest.PhoneNumber">
+            <summary>
+            Номер телефона 
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Verification.RegisterVerificationNumberResponse.VerificationId">
+            <summary>
+            Идентификатор
+            </summary>
+        </member>
+        <member name="P:Pawnshop.Web.Models.Verification.RegisterVerificationNumberResponse.ExpireDate">
+            <summary>
+            Дата истечения
+            </summary>
+        </member>
+    </members>
+</doc>

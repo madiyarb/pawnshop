@@ -1,0 +1,34 @@
+﻿@section header
+{
+    <link rel="stylesheet" type="text/css" href="/assets/stimulsoft.viewer.office2013.whiteblue.css">
+    <link rel="stylesheet" type="text/css" href="/assets/app.css" />
+}
+
+<div id="appContainer"></div>
+
+@section footer
+{
+    <script type="text/javascript" src="/assets/stimulsoft.reports.js"></script>
+    <script type="text/javascript" src="/assets/stimulsoft.viewer.js"></script>
+    <script type="text/javascript">
+        window.Stimulsoft.Base.Localization.StiLocalization.setLocalizationFile("/assets/stimulsoft.ru.xml");
+    </script>
+    <script type="text/javascript">
+        var date = new Date();
+
+        var day = date.getDate();
+        var month = date.getMonth() + 1;
+        var year = date.getFullYear();
+        var version =  day+"-"+month+"-"+year;
+        function createScript(src) {
+            var scriptBundle = document.createElement("script");
+            scriptBundle.type = "text/javascript";
+            scriptBundle.src = src + version;
+            scriptBundle.defer = true;
+            return scriptBundle;
+        }
+        var bodyElement = document.body;
+        bodyElement.appendChild(createScript("/assets/vendor.bundle.js?v="));
+        bodyElement.appendChild(createScript("/assets/app.bundle.js?v="));
+    </script>
+}

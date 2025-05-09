@@ -1,0 +1,603 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<StiSerializer version="1.02" type="Net" application="StiReport">
+  <CalculationMode>Interpretation</CalculationMode>
+  <Culture>ru-RU</Culture>
+  <Dictionary Ref="1" type="Dictionary" isKey="true">
+    <BusinessObjects isList="true" count="0" />
+    <Databases isList="true" count="1">
+      <ReportConnection Ref="2" type="Stimulsoft.Report.Dictionary.StiSqlDatabase" isKey="true">
+        <Alias>ReportConnection</Alias>
+        <ConnectionStringEncrypted>9GD3C0Zd87zsTf2ATVwlKtFSuyvFV3uZaRyc2OsA9hvRes+DVFpxRcNN2VBmJemfnnCVwmZdsoXjRs18w6zgRvVw2+thcXpt7VDt5PBsZD/WVtHCxUzDzcsVTYTFGSU/i3jXK0hcMfVqXKiYagThZ99q0YjJfKmB4nyEfGAEpHvlbmkLS07D4fNBvZhiRCI/4lplAlZMa8jsXKX0ToTkP/Fen+vmUVGBaU3lnGNM4X/R8tkLyEJz7WxM2fzpcOATxWDZScVB+plqe6WV5QWiD9nIwYjJffPVek25FOVsr7PEGmXvQ2tLzeFYvaViTCQ/xFTN</ConnectionStringEncrypted>
+        <Name>ReportConnection</Name>
+      </ReportConnection>
+    </Databases>
+    <DataSources isList="true" count="1">
+      <Analys Ref="3" type="Stimulsoft.Report.Dictionary.StiSqlSource" isKey="true">
+        <Alias>Analys</Alias>
+        <Columns isList="true" count="5">
+          <value>ContractDate,System.DateTime</value>
+          <value>MonthAndYear,System.DateTime</value>
+          <value>Total,System.Int64</value>
+          <value>number,System.Int64</value>
+          <value>amount,System.Int64</value>
+        </Columns>
+        <CommandTimeout>3000</CommandTimeout>
+        <Dictionary isRef="1" />
+        <Key>741f271fcaf14ae6950cd67a3f56728f</Key>
+        <Name>Analys</Name>
+        <NameInSource>ReportConnection</NameInSource>
+        <Parameters isList="true" count="0" />
+        <SqlCommand>DECLARE 
+@Start AS DATE,
+@currentDate AS DATE,
+@number AS BIGINT,
+@amount AS BIGINT
+
+DECLARE @temp TABLE (
+	ContractDate DATE,
+	MonthAndYear DATE,
+	Total BIGINT,
+	number BIGINT,
+	amount BIGINT
+)
+
+WHILE @contractStartDate &lt;= @contractEndDate
+  BEGIN
+SET @Start = @beginDate
+
+SET @number = (	SELECT COUNT(*)
+	FROM Contracts con
+					WHERE	con.ContractDate BETWEEN @contractStartDate AND EOMONTH(@contractStartDate) --Контракты в выбранном диапазоне 
+					AND con.Status &gt;= 30 --Статус &gt; 30
+					AND con.CollateralType = @collateralType --Залог
+					AND con.Locked = 0 --Не добор
+					AND con.PartialPaymentParentId IS NULL -- Не ЧДП 
+					AND con.BranchId IN ({ branchIds }) 
+				  )
+
+SET @amount = (	SELECT SUM(con.LoanCost)
+	FROM Contracts con
+					WHERE	con.ContractDate BETWEEN @contractStartDate AND EOMONTH(@contractStartDate) --Контракты в выбранном диапазоне 
+					AND con.Status &gt;= 30 --Статус &gt; 30
+					AND con.CollateralType = @collateralType --Залог
+					AND con.Locked = 0 --Не добор
+					AND con.PartialPaymentParentId IS NULL -- Не ЧДП 
+					AND con.BranchId IN ({ branchIds }) 
+				  )
+
+
+		WHILE @Start &lt;= @endDate
+			BEGIN
+			
+SET @currentDate = EOMONTH(@Start)
+
+INSERT INTO @temp --Дискреты 
+SELECT 
+	@contractStartDate,
+					@currentDate,
+					SUM(IIF(cps.DebtLeft = 0, cps.DebtCost, cps.DebtLeft)) AS DebtLeft,
+					@number,
+					@amount
+				FROM Contracts con
+				LEFT JOIN ContractPaymentSchedule cps ON cps.ContractId = con.Id
+				WHERE	con.ContractDate BETWEEN @contractStartDate AND EOMONTH(@contractStartDate) --Контракты в выбранном диапазоне 
+					AND con.Status &gt;= 30 --Статус &gt; 30
+					AND cps.Canceled IS NULL AND cps.DeleteDate IS NULL --Актуальность записи
+					AND con.CollateralType = @collateralType --Залог
+					AND con.LoanPeriod = 30 --Дискреты
+					AND con.Locked = 0 --Не добор
+					AND con.PartialPaymentParentId IS NULL -- Не ЧДП 
+					AND cps.Period &gt; 30 --Условие выхода на просрочку
+					AND @currentDate BETWEEN cps.Date AND DATEADD(DAY, cps.Period - 30, cps.Date) --Условие то что запись была просрена на дату
+					AND DATEDIFF(DAY, cps.Date, @currentDate) BETWEEN @beginDelayCount AND @endDelayCount --Кол-во дней просрочки в нужном диапазоне
+					AND con.BranchId IN ({ branchIds })
+
+INSERT INTO @temp --Дискреты ЧДП и доборы
+SELECT 
+	@contractStartDate,
+					@currentDate,
+					SUM(IIF(cps.DebtLeft = 0, cps.DebtCost, cps.DebtLeft)) AS DebtLeft,
+					@number,
+					@amount
+				FROM Contracts con
+				LEFT JOIN ContractPaymentSchedule cps ON cps.ContractId = con.Id
+				WHERE	con.Status &gt;= 30 --Статус &gt; 30
+					AND cps.Canceled IS NULL AND cps.DeleteDate IS NULL --Актуальность записи
+					AND con.CollateralType = @collateralType --Залог
+					AND con.LoanPeriod = 30 --Дискреты
+					AND (con.Locked = 1 OR con.PartialPaymentParentId IS NOT NULL) -- Дискрет или добор
+AND (SELECT c2.ContractDate FROM Contracts c2 WHERE c2.Id = con.ParentId) BETWEEN @contractStartDate AND EOMONTH(@contractStartDate) --Основные договора в выбранном диапазоне 
+					AND cps.Period &gt; 30 --Условие выхода на просрочку
+					AND @currentDate BETWEEN cps.Date AND DATEADD(DAY, cps.Period - 30, cps.Date) --Условие то что запись была просрена на дату
+					AND DATEDIFF(DAY, cps.Date, @currentDate) BETWEEN @beginDelayCount AND @endDelayCount --Кол-во дней просрочки в нужном диапазоне
+					AND con.BranchId IN ({ branchIds })
+
+
+
+INSERT INTO @temp --Аннуитеты
+SELECT 
+	@contractStartDate,
+					@currentDate,
+					SUM(t.DebtLeft) AS DebtLeft,
+					@number,
+					@amount
+				FROM 
+					(
+SELECT 
+	MAX(DATEDIFF(DAY, cps.Date, @currentDate)) AS DelayCount,
+							MAX(cps.DebtLeft + cps.DebtCost) DebtLeft,
+							cps.contractId
+						FROM Contracts con
+						LEFT JOIN ContractPaymentSchedule cps ON cps.ContractId = con.Id
+						WHERE 
+							con.ContractDate BETWEEN @contractStartDate AND EOMONTH(@contractStartDate) --Контракты в выбранном диапазоне 
+							AND con.Status &gt;= 30 --Статус &gt; 30
+							AND cps.Canceled IS NULL AND cps.DeleteDate IS NULL --Актуальность записи
+							AND con.CollateralType = @collateralType --Залог
+							AND con.LoanPeriod &lt;&gt; 30 --Аннуитеты
+							AND con.Locked = 0 --Не добор
+							AND con.PartialPaymentParentId IS NULL -- Не ЧДП 
+							AND (cps.ActualDate IS NULL OR @currentDate BETWEEN cps.Date AND cps.ActualDate)
+							AND DATEDIFF(DAY, cps.Date, @currentDate) BETWEEN @beginDelayCount AND @endDelayCount
+							AND con.BranchId IN ({ branchIds })
+						GROUP BY cps.ContractId
+					)t
+
+INSERT INTO @temp --Аннуитеты ЧДП и доборы
+SELECT 
+	@contractStartDate,
+					@currentDate,
+					SUM(t.DebtLeft) AS DebtLeft,
+					@number,
+					@amount
+				FROM 
+					(
+SELECT 
+	MAX(DATEDIFF(DAY, cps.Date, @currentDate)) AS DelayCount,
+							MAX(cps.DebtLeft + cps.DebtCost) DebtLeft,
+							cps.contractId
+						FROM Contracts con
+						LEFT JOIN ContractPaymentSchedule cps ON cps.ContractId = con.Id
+						WHERE 
+							con.Status &gt;= 30 --Статус &gt; 30
+							AND cps.Canceled IS NULL AND cps.DeleteDate IS NULL --Актуальность записи
+							AND con.CollateralType = @collateralType --Залог
+							AND con.LoanPeriod &lt;&gt; 30 --Аннуитеты
+							AND (con.Locked = 1 OR con.PartialPaymentParentId IS NOT NULL) -- Дискрет или добор
+AND (SELECT c2.ContractDate FROM Contracts c2 WHERE c2.Id = con.ParentId) BETWEEN @contractStartDate AND EOMONTH(@contractStartDate) --Основные договора в выбранном диапазоне 
+							AND (cps.ActualDate IS NULL OR @currentDate BETWEEN cps.Date AND cps.ActualDate)
+							AND DATEDIFF(DAY, cps.Date, @currentDate) BETWEEN @beginDelayCount AND @endDelayCount
+							AND con.BranchId IN ({ branchIds })
+						GROUP BY cps.ContractId
+					)t
+
+
+SET @Start = DATEADD(MONTH,1,@Start)
+			END
+
+SET @contractStartDate = DATEADD(MONTH,1,@contractStartDate)
+  END
+
+SELECT
+	t.ContractDate,
+	t.MonthAndYear,
+	ISNULL(SUM(t.Total), 0) Total,
+	t.number,
+	t.amount
+FROM @temp t
+GROUP BY t.ContractDate, t.MonthAndYear, t.number, t.amount
+ORDER BY t.ContractDate, t.MonthAndYear ASC</SqlCommand>
+      </Analys>
+    </DataSources>
+    <Relations isList="true" count="0" />
+    <Report isRef="0" />
+    <Resources isList="true" count="0" />
+    <Variables isList="true" count="8">
+      <value>,branchIds,branchIds,,Stimulsoft.Report.IntList,_x0031_12,False,False,True,False,,,True</value>
+      <value>,beginDelayCount,beginDelayCount,,System.Int32,_x0031_,False,False,False,False,_x003C__x003F_xml_x0020_version_x003D__x0022_1.0_x0022__x0020_encoding_x003D__x0022_utf-16_x0022__x0020_standalone_x003D__x0022_yes_x0022__x003F__x003E__x003C_StiSerializer_x0020_version_x003D__x0022_1.02_x0022__x0020_type_x003D__x0022_Net_x0022__x0020_application_x003D__x0022_State_x0022__x003E__x003C_DateTimeType_x003E_DateAndTime_x003C__x002F_DateTimeType_x003E__x003C_BindingVariable_x0020_isNull_x003D__x0022_true_x0022__x0020__x002F__x003E__x003C_Keys_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_Values_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_ValuesBinding_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C__x002F_StiSerializer_x003E_,,True</value>
+      <value>,endDelayCount,endDelayCount,,System.Int32,_x0032_00,False,False,False,False,_x003C__x003F_xml_x0020_version_x003D__x0022_1.0_x0022__x0020_encoding_x003D__x0022_utf-16_x0022__x0020_standalone_x003D__x0022_yes_x0022__x003F__x003E__x003C_StiSerializer_x0020_version_x003D__x0022_1.02_x0022__x0020_type_x003D__x0022_Net_x0022__x0020_application_x003D__x0022_State_x0022__x003E__x003C_DateTimeType_x003E_DateAndTime_x003C__x002F_DateTimeType_x003E__x003C_BindingVariable_x0020_isNull_x003D__x0022_true_x0022__x0020__x002F__x003E__x003C_Keys_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_Values_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_ValuesBinding_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C__x002F_StiSerializer_x003E_,,True</value>
+      <value>,collateralType,collateralType,,System.Int32,_x0032_0,False,False,False,False,_x003C__x003F_xml_x0020_version_x003D__x0022_1.0_x0022__x0020_encoding_x003D__x0022_utf-16_x0022__x0020_standalone_x003D__x0022_yes_x0022__x003F__x003E__x003C_StiSerializer_x0020_version_x003D__x0022_1.02_x0022__x0020_type_x003D__x0022_Net_x0022__x0020_application_x003D__x0022_State_x0022__x003E__x003C_DateTimeType_x003E_DateAndTime_x003C__x002F_DateTimeType_x003E__x003C_BindingVariable_x0020_isNull_x003D__x0022_true_x0022__x0020__x002F__x003E__x003C_Keys_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_Values_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_ValuesBinding_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C__x002F_StiSerializer_x003E_,,True</value>
+      <value>,beginDate,beginDate,,System.DateTime,_x0031__x002F_1_x002F_2019_x0020_9:15:21_x0020_AM,False,False,False,False,,,True</value>
+      <value>,endDate,endDate,,System.DateTime,_x0031__x002F_1_x002F_2023_x0020_9:16:17_x0020_AM,False,False,False,False,,,True</value>
+      <value>,contractStartDate,contractStartDate,,System.DateTime,_x0031__x002F_1_x002F_2019_x0020_9:17:35_x0020_AM,False,False,False,False,,,True</value>
+      <value>,contractEndDate,contractEndDate,,System.DateTime,_x0032__x002F_1_x002F_2019_x0020_9:17:54_x0020_AM,False,False,False,False,,,True</value>
+    </Variables>
+  </Dictionary>
+  <EngineVersion>EngineV2</EngineVersion>
+  <GlobalizationStrings isList="true" count="0" />
+  <Key>c9e191c5ddd0439f88f7ebc98c02b610</Key>
+  <MetaTags isList="true" count="0" />
+  <Pages isList="true" count="1">
+    <Page1 Ref="4" type="Page" isKey="true">
+      <Border>None;Black;2;Solid;False;4;Black</Border>
+      <Brush>Transparent</Brush>
+      <Components isList="true" count="1">
+        <ReportTitleBand1 Ref="5" type="ReportTitleBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,0.2,30.22,0.8</ClientRectangle>
+          <Components isList="true" count="4">
+            <Text1 Ref="6" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0,26.2,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,12,Bold</Font>
+              <Guid>96c8e69e307541f8accb4adff6e726fe</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text1</Name>
+              <Page isRef="4" />
+              <Parent isRef="5" />
+              <Text>Винтажный анализ с {beginDate.ToString("yyyy-MM")} по {endDate.ToString("yyyy-MM")}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text1>
+            <Text2 Ref="7" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0.4,26.2,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,12</Font>
+              <Guid>1b00893ee7c4470bb5330db6cf430662</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text2</Name>
+              <Page isRef="4" />
+              <Parent isRef="5" />
+              <Text>Дней просрочки с {beginDelayCount} по {endDelayCount}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text2>
+            <Text4 Ref="8" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0.2,26.2,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,12</Font>
+              <Guid>158de661faff48d48c2141541db98bcf</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text4</Name>
+              <Page isRef="4" />
+              <Parent isRef="5" />
+              <Text>Договора с {contractStartDate.ToString("yyyy-MM")} по {contractEndDate.ToString("yyyy-MM")}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text4>
+            <CrossTab1 Ref="9" type="Stimulsoft.Report.CrossTab.StiCrossTab" isKey="true">
+              <Brush>Transparent</Brush>
+              <CanBreak>True</CanBreak>
+              <ClientRectangle>0,0.6,9.6,4.3</ClientRectangle>
+              <Components isList="true" count="14">
+                <CrossTab1_Row1_Title Ref="10" type="CrossTitle" isKey="true">
+                  <Border>All;[155:155:155];1;Solid;False;4;Black</Border>
+                  <Brush>White</Brush>
+                  <ClientRectangle>0,0.22,0.9,0.2</ClientRectangle>
+                  <Font>Arial,8</Font>
+                  <Guid>11b99280d6564512bdf6e2ab3fb98d72</Guid>
+                  <Margins>0,0,0,0</Margins>
+                  <Name>CrossTab1_Row1_Title</Name>
+                  <Page isRef="4" />
+                  <Parent isRef="9" />
+                  <Restrictions>AllowMove, AllowResize, AllowSelect, AllowChange</Restrictions>
+                  <Text>Дата контракта</Text>
+                  <TextBrush>[105:105:105]</TextBrush>
+                  <Type>Expression</Type>
+                  <TypeOfComponent>Row:CrossTab1_Row1</TypeOfComponent>
+                </CrossTab1_Row1_Title>
+                <CrossTab1_LeftTitle Ref="11" type="CrossTitle" isKey="true">
+                  <Border>All;[155:155:155];1;Solid;False;4;Black</Border>
+                  <Brush>White</Brush>
+                  <ClientRectangle>0,0,1.9,0.2</ClientRectangle>
+                  <Font>Arial,8</Font>
+                  <Guid>38775f15382341ddbd2cdc9b0dbea917</Guid>
+                  <Margins>0,0,0,0</Margins>
+                  <Name>CrossTab1_LeftTitle</Name>
+                  <Page isRef="4" />
+                  <Parent isRef="9" />
+                  <Restrictions>AllowMove, AllowResize, AllowSelect, AllowChange</Restrictions>
+                  <TextBrush>[105:105:105]</TextBrush>
+                  <Type>Expression</Type>
+                  <TypeOfComponent>LeftTitle</TypeOfComponent>
+                </CrossTab1_LeftTitle>
+                <CrossTab1_RowTotal1 Ref="12" type="CrossRowTotal" isKey="true">
+                  <Border>All;[155:155:155];1;Solid;False;4;Black</Border>
+                  <Brush>[255:255:255]</Brush>
+                  <ClientRectangle>0,1.04,1.9,0.2</ClientRectangle>
+                  <Conditions isList="true" count="0" />
+                  <Enabled>False</Enabled>
+                  <Font>Arial,8</Font>
+                  <Guid>470a86e388bf4652a116a112c13e3d5c</Guid>
+                  <Margins>0,0,0,0</Margins>
+                  <Name>CrossTab1_RowTotal1</Name>
+                  <Page isRef="4" />
+                  <Parent isRef="9" />
+                  <Restrictions>AllowMove, AllowResize, AllowSelect, AllowChange</Restrictions>
+                  <Text>Total</Text>
+                  <TextBrush>Black</TextBrush>
+                </CrossTab1_RowTotal1>
+                <CrossTab1_ColTotal1 Ref="13" type="CrossColumnTotal" isKey="true">
+                  <Border>All;[155:155:155];1;Solid;False;4;Black</Border>
+                  <Brush>[255:255:255]</Brush>
+                  <ClientRectangle>2.72,0.22,0.3,0.2</ClientRectangle>
+                  <Conditions isList="true" count="0" />
+                  <Enabled>False</Enabled>
+                  <Font>Arial,8</Font>
+                  <Guid>6f4785f225044176bdfbf7afa260a8bd</Guid>
+                  <Margins>0,0,0,0</Margins>
+                  <Name>CrossTab1_ColTotal1</Name>
+                  <Page isRef="4" />
+                  <Parent isRef="9" />
+                  <Restrictions>AllowMove, AllowResize, AllowSelect, AllowChange</Restrictions>
+                  <Text>Total</Text>
+                  <TextBrush>Black</TextBrush>
+                </CrossTab1_ColTotal1>
+                <CrossTab1_RowTotal2 Ref="14" type="CrossRowTotal" isKey="true">
+                  <Border>All;[155:155:155];1;Solid;False;4;Black</Border>
+                  <Brush>[255:255:255]</Brush>
+                  <ClientRectangle>0.9,0.84,1,0.2</ClientRectangle>
+                  <Conditions isList="true" count="0" />
+                  <Enabled>False</Enabled>
+                  <Font>Arial,8</Font>
+                  <Guid>021e99bab57c42d5b41f0456d22aa279</Guid>
+                  <Margins>0,0,0,0</Margins>
+                  <Name>CrossTab1_RowTotal2</Name>
+                  <Page isRef="4" />
+                  <Parent isRef="9" />
+                  <Restrictions>AllowMove, AllowResize, AllowSelect, AllowChange</Restrictions>
+                  <Text>Total</Text>
+                  <TextBrush>Black</TextBrush>
+                </CrossTab1_RowTotal2>
+                <CrossTab1_Row2_Title Ref="15" type="CrossTitle" isKey="true">
+                  <Border>All;[155:155:155];1;Solid;False;4;Black</Border>
+                  <Brush>White</Brush>
+                  <ClientRectangle>0.9,0.22,0.5,0.2</ClientRectangle>
+                  <Font>Arial,8</Font>
+                  <Guid>6868e274062b4fc59cc0a0f1dad1054b</Guid>
+                  <Margins>0,0,0,0</Margins>
+                  <Name>CrossTab1_Row2_Title</Name>
+                  <Page isRef="4" />
+                  <Parent isRef="9" />
+                  <Restrictions>AllowMove, AllowResize, AllowSelect, AllowChange</Restrictions>
+                  <Text>Кол-во</Text>
+                  <TextBrush>[105:105:105]</TextBrush>
+                  <Type>Expression</Type>
+                  <TypeOfComponent>Row:CrossTab1_Row2</TypeOfComponent>
+                </CrossTab1_Row2_Title>
+                <CrossTab1_RowTotal3 Ref="16" type="CrossRowTotal" isKey="true">
+                  <Border>All;[155:155:155];1;Solid;False;4;Black</Border>
+                  <Brush>[255:255:255]</Brush>
+                  <ClientRectangle>1.4,0.64,0.5,0.2</ClientRectangle>
+                  <Conditions isList="true" count="0" />
+                  <Enabled>False</Enabled>
+                  <Font>Arial,8</Font>
+                  <Guid>06973838f8b647dc84d6b74d9718ac78</Guid>
+                  <Margins>0,0,0,0</Margins>
+                  <Name>CrossTab1_RowTotal3</Name>
+                  <Page isRef="4" />
+                  <Parent isRef="9" />
+                  <Restrictions>AllowMove, AllowResize, AllowSelect, AllowChange</Restrictions>
+                  <Text>Total</Text>
+                  <TextBrush>Black</TextBrush>
+                </CrossTab1_RowTotal3>
+                <CrossTab1_Row3_Title Ref="17" type="CrossTitle" isKey="true">
+                  <Border>All;[155:155:155];1;Solid;False;4;Black</Border>
+                  <Brush>White</Brush>
+                  <ClientRectangle>1.4,0.22,0.5,0.2</ClientRectangle>
+                  <Font>Arial,8</Font>
+                  <Guid>b44e7899843f430b917c50caab58e78b</Guid>
+                  <Margins>0,0,0,0</Margins>
+                  <Name>CrossTab1_Row3_Title</Name>
+                  <Page isRef="4" />
+                  <Parent isRef="9" />
+                  <Restrictions>AllowMove, AllowResize, AllowSelect, AllowChange</Restrictions>
+                  <Text>Сумма</Text>
+                  <TextBrush>[105:105:105]</TextBrush>
+                  <Type>Expression</Type>
+                  <TypeOfComponent>Row:CrossTab1_Row3</TypeOfComponent>
+                </CrossTab1_Row3_Title>
+                <CrossTab1_RightTitle Ref="18" type="CrossTitle" isKey="true">
+                  <Border>All;[155:155:155];1;Solid;False;4;Black</Border>
+                  <Brush>White</Brush>
+                  <ClientRectangle>1.92,0,1.1,0.2</ClientRectangle>
+                  <Font>Arial,8</Font>
+                  <Guid>df6182a7d1e74a50811667f387dc283a</Guid>
+                  <Margins>0,0,0,0</Margins>
+                  <Name>CrossTab1_RightTitle</Name>
+                  <Page isRef="4" />
+                  <Parent isRef="9" />
+                  <Restrictions>AllowMove, AllowResize, AllowSelect, AllowChange</Restrictions>
+                  <Text>Дата</Text>
+                  <TextBrush>[105:105:105]</TextBrush>
+                  <Type>Expression</Type>
+                  <TypeOfComponent>RightTitle</TypeOfComponent>
+                </CrossTab1_RightTitle>
+                <CrossTab1_Row1 Ref="19" type="CrossRow" isKey="true">
+                  <Alias>ContractDate</Alias>
+                  <Border>All;[155:155:155];1;Solid;False;4;Black</Border>
+                  <Brush>White</Brush>
+                  <ClientRectangle>0,0.44,0.9,0.6</ClientRectangle>
+                  <Conditions isList="true" count="0" />
+                  <DisplayValue>{Analys.ContractDate.ToString("yyyy-MM")}</DisplayValue>
+                  <Font>Arial,8</Font>
+                  <Guid>b98de24ab03f4573bc9dcfcda1248450</Guid>
+                  <Margins>0,0,0,0</Margins>
+                  <Name>CrossTab1_Row1</Name>
+                  <Page isRef="4" />
+                  <Parent isRef="9" />
+                  <Restrictions>AllowMove, AllowResize, AllowSelect, AllowChange</Restrictions>
+                  <Text>ContractDate</Text>
+                  <TextBrush>[105:105:105]</TextBrush>
+                  <TotalGuid>470a86e388bf4652a116a112c13e3d5c</TotalGuid>
+                  <Value>{Analys.ContractDate}</Value>
+                </CrossTab1_Row1>
+                <CrossTab1_Row2 Ref="20" type="CrossRow" isKey="true">
+                  <Alias>number</Alias>
+                  <Border>All;[155:155:155];1;Solid;False;4;Black</Border>
+                  <Brush>White</Brush>
+                  <ClientRectangle>0.9,0.44,0.5,0.4</ClientRectangle>
+                  <Conditions isList="true" count="0" />
+                  <DisplayValue>{Analys.number}</DisplayValue>
+                  <Font>Arial,8</Font>
+                  <Guid>d236b59300684844835b651f839e7c5d</Guid>
+                  <Margins>0,0,0,0</Margins>
+                  <Name>CrossTab1_Row2</Name>
+                  <Page isRef="4" />
+                  <Parent isRef="9" />
+                  <Restrictions>AllowMove, AllowResize, AllowSelect, AllowChange</Restrictions>
+                  <Text>number</Text>
+                  <TextBrush>[105:105:105]</TextBrush>
+                  <TextFormat Ref="21" type="NumberFormat" isKey="true">
+                    <DecimalDigits>0</DecimalDigits>
+                    <GroupSeparator>.</GroupSeparator>
+                    <NegativePattern>1</NegativePattern>
+                    <State>DecimalDigits, GroupSize</State>
+                  </TextFormat>
+                  <TotalGuid>021e99bab57c42d5b41f0456d22aa279</TotalGuid>
+                  <Type>Expression</Type>
+                  <Value>{Analys.number}</Value>
+                </CrossTab1_Row2>
+                <CrossTab1_Row3 Ref="22" type="CrossRow" isKey="true">
+                  <Alias>amount</Alias>
+                  <Border>All;[155:155:155];1;Solid;False;4;Black</Border>
+                  <Brush>White</Brush>
+                  <ClientRectangle>1.4,0.44,0.5,0.2</ClientRectangle>
+                  <Conditions isList="true" count="0" />
+                  <DisplayValue>{Analys.amount}</DisplayValue>
+                  <Font>Arial,8</Font>
+                  <Guid>f61cbd79bbc94fb89100ea44301e9087</Guid>
+                  <Margins>0,0,0,0</Margins>
+                  <Name>CrossTab1_Row3</Name>
+                  <Page isRef="4" />
+                  <Parent isRef="9" />
+                  <Restrictions>AllowMove, AllowResize, AllowSelect, AllowChange</Restrictions>
+                  <Text>amount</Text>
+                  <TextBrush>[105:105:105]</TextBrush>
+                  <TextFormat Ref="23" type="NumberFormat" isKey="true">
+                    <DecimalDigits>0</DecimalDigits>
+                    <DecimalSeparator>,</DecimalSeparator>
+                    <GroupSeparator>.</GroupSeparator>
+                    <NegativePattern>1</NegativePattern>
+                    <State>DecimalDigits, GroupSize</State>
+                  </TextFormat>
+                  <TotalGuid>06973838f8b647dc84d6b74d9718ac78</TotalGuid>
+                  <Type>Expression</Type>
+                  <Value>{Analys.amount}</Value>
+                </CrossTab1_Row3>
+                <CrossTab1_Column1 Ref="24" type="CrossColumn" isKey="true">
+                  <Alias>MonthAndYear</Alias>
+                  <Border>All;[155:155:155];1;Solid;False;4;Black</Border>
+                  <Brush>White</Brush>
+                  <ClientRectangle>1.92,0.22,0.8,0.2</ClientRectangle>
+                  <Conditions isList="true" count="0" />
+                  <DisplayValue>{Analys.MonthAndYear.ToString("yyyy-MM")}</DisplayValue>
+                  <Font>Arial,8</Font>
+                  <Guid>296446e6d18b4f219f275310590b1224</Guid>
+                  <Margins>0,0,0,0</Margins>
+                  <Name>CrossTab1_Column1</Name>
+                  <Page isRef="4" />
+                  <Parent isRef="9" />
+                  <Restrictions>AllowMove, AllowResize, AllowSelect, AllowChange</Restrictions>
+                  <Text>MonthAndYear</Text>
+                  <TextBrush>[105:105:105]</TextBrush>
+                  <TotalGuid>6f4785f225044176bdfbf7afa260a8bd</TotalGuid>
+                  <Value>{Analys.MonthAndYear}</Value>
+                </CrossTab1_Column1>
+                <CrossTab1_Sum1 Ref="25" type="CrossSummary" isKey="true">
+                  <Alias>Total</Alias>
+                  <Border>All;[155:155:155];1;Solid;False;4;Black</Border>
+                  <Brush>[255:255:255]</Brush>
+                  <ClientRectangle>1.92,0.44,0.8,0.2</ClientRectangle>
+                  <Conditions isList="true" count="0" />
+                  <Font>Arial,8</Font>
+                  <Guid>f4f5b87bb3da4ab8900dfed3923416ec</Guid>
+                  <Margins>0,0,0,0</Margins>
+                  <Name>CrossTab1_Sum1</Name>
+                  <Page isRef="4" />
+                  <Parent isRef="9" />
+                  <Restrictions>AllowMove, AllowResize, AllowSelect, AllowChange</Restrictions>
+                  <Text>0</Text>
+                  <TextBrush>Black</TextBrush>
+                  <TextFormat Ref="26" type="NumberFormat" isKey="true">
+                    <DecimalDigits>0</DecimalDigits>
+                    <DecimalSeparator>,</DecimalSeparator>
+                    <GroupSeparator>.</GroupSeparator>
+                    <NegativePattern>1</NegativePattern>
+                    <State>DecimalDigits, GroupSize</State>
+                  </TextFormat>
+                  <Value>{Analys.Total}</Value>
+                </CrossTab1_Sum1>
+              </Components>
+              <Conditions isList="true" count="0" />
+              <DataRelationName />
+              <DataSourceName>Analys</DataSourceName>
+              <EmptyValue />
+              <Filters isList="true" count="0" />
+              <KeepCrossTabTogether>True</KeepCrossTabTogether>
+              <Name>CrossTab1</Name>
+              <Page isRef="4" />
+              <Parent isRef="5" />
+              <Sort isList="true" count="0" />
+            </CrossTab1>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Name>ReportTitleBand1</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+        </ReportTitleBand1>
+      </Components>
+      <Conditions isList="true" count="0" />
+      <Guid>b547bf67359d4ae4bd35a1662019b760</Guid>
+      <Margins>0.39,0.39,0.39,0.39</Margins>
+      <Name>Page1</Name>
+      <Orientation>Landscape</Orientation>
+      <PageHeight>8.5</PageHeight>
+      <PageWidth>31</PageWidth>
+      <PaperSize>Letter</PaperSize>
+      <Report isRef="0" />
+    </Page1>
+  </Pages>
+  <ReferencedAssemblies isList="true" count="8">
+    <value>System.Dll</value>
+    <value>System.Drawing.Dll</value>
+    <value>System.Windows.Forms.Dll</value>
+    <value>System.Data.Dll</value>
+    <value>System.Xml.Dll</value>
+    <value>Stimulsoft.Controls.Dll</value>
+    <value>Stimulsoft.Base.Dll</value>
+    <value>Stimulsoft.Report.Dll</value>
+  </ReferencedAssemblies>
+  <ReportAlias>Report</ReportAlias>
+  <ReportChanged>5/25/2023 11:53:47 AM</ReportChanged>
+  <ReportCreated>11/15/2018 4:32:13 PM</ReportCreated>
+  <ReportFile>C:\Programming\tascredit\tascredit\sources\Pawnshop.Web\Reports\VintageAnalysis.mrt</ReportFile>
+  <ReportGuid>6ee56b8e227941c7aaad04c3d323bfc0</ReportGuid>
+  <ReportName>Report</ReportName>
+  <ReportUnit>Inches</ReportUnit>
+  <ReportVersion>2020.2.1.0</ReportVersion>
+  <Script>using System;
+using System.Drawing;
+using System.Windows.Forms;
+using System.Data;
+using Stimulsoft.Controls;
+using Stimulsoft.Base.Drawing;
+using Stimulsoft.Report;
+using Stimulsoft.Report.Dialogs;
+using Stimulsoft.Report.Components;
+
+namespace Reports
+{
+    public class Report : Stimulsoft.Report.StiReport
+    {
+        public Report()        {
+            this.InitializeComponent();
+        }
+
+        #region StiReport Designer generated code - do not modify
+		#endregion StiReport Designer generated code - do not modify
+    }
+}
+</Script>
+  <ScriptLanguage>CSharp</ScriptLanguage>
+  <Styles isList="true" count="0" />
+</StiSerializer>

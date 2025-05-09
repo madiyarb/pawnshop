@@ -1,0 +1,2555 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<StiSerializer version="1.02" type="Net" application="StiReport">
+  <CalculationMode>Interpretation</CalculationMode>
+  <Culture>ru-RU</Culture>
+  <Dictionary Ref="1" type="Dictionary" isKey="true">
+    <BusinessObjects isList="true" count="0" />
+    <Databases isList="true" count="1">
+      <ReportConnection Ref="2" type="Stimulsoft.Report.Dictionary.StiSqlDatabase" isKey="true">
+        <Alias>ReportConnection</Alias>
+        <ConnectionStringEncrypted>42CJYMVU0/lqRt1YalAoesZaaQLoTfOtQRvQhOoY6g+BWtXDSwOTWWpe/cTIdHf74z7fT8YYMc3saejc6iz1L8LIU8tbUcOJ8U29hHpcYnbCbJXCTUsB3eFavYTq/OMX1SBxy01dMd16ew3c6SXkD/lW9YJiVqvt4km5heGAaRvE8pnoxUwx1WtNrL1qBCVLiGr7y9UDct3tS6hQ5GT2P8la9wnEXDEZaVy1KOlcog/V0n1IxwNa7ctducRKACI/3HD3a0VM881sBPkIcQ3kD4vS</ConnectionStringEncrypted>
+        <Key>d195e884cf2a49478f43aba124dac912</Key>
+        <Name>ReportConnection</Name>
+      </ReportConnection>
+    </Databases>
+    <DataSources isList="true" count="2">
+      <CashReport Ref="3" type="Stimulsoft.Report.Dictionary.StiSqlSource" isKey="true">
+        <Alias>CashReport</Alias>
+        <Columns isList="true" count="28">
+          <value>ORIGINAL,CurrentDate,CurrentDate,CurrentDate,System.DateTime,_x0036_b59796df2b9482dba06f5f3d9ab5825</value>
+          <value>ORIGINAL,CashBeginPeriod,CashBeginPeriod,CashBeginPeriod,System.Int64,d4c2819deb45445580d03773efb9548d</value>
+          <value>ORIGINAL,GoldSign,GoldSign,GoldSign,System.Int64,_x0039_82e9e5d86fa4ca687217099cdda6c15</value>
+          <value>ORIGINAL,GoldBuyout,GoldBuyout,GoldBuyout,System.Int64,a777dab4d7c44b5c897bae2293ff74d3</value>
+          <value>ORIGINAL,GoldBalance,GoldBalance,GoldBalance,System.Int64,cbd156f11c754741b708324475b52221</value>
+          <value>ORIGINAL,AutoSign,AutoSign,AutoSign,System.Int64,aa432fa7bf73409f9292bc035ef470be</value>
+          <value>ORIGINAL,AutoBuyout,AutoBuyout,AutoBuyout,System.Int64,a29fb4dcd12742faa39752b3bbcc9ebc</value>
+          <value>ORIGINAL,AutoBalance,AutoBalance,AutoBalance,System.Int64,_x0030_1d767bbc6c74e02865c39327b9488ad</value>
+          <value>ORIGINAL,GoodsSign,GoodsSign,GoodsSign,System.Int64,_x0034_13cb97e4e5348029a85d1cffde8a696</value>
+          <value>ORIGINAL,GoodsBuyout,GoodsBuyout,GoodsBuyout,System.Int64,_x0036_3279c5dac344d6690592d7907e35b5b</value>
+          <value>ORIGINAL,GoodsBalance,GoodsBalance,GoodsBalance,System.Int64,_x0034_fcd6fe2945b46418fe309c899cd9ae7</value>
+          <value>ORIGINAL,MachinerySign,MachinerySign,MachinerySign,System.Int64,f6c1cf9f0fd84ca09d57bf3e66fc8072</value>
+          <value>ORIGINAL,MachineryBuyout,MachineryBuyout,MachineryBuyout,System.Int64,_x0036_3faa5d856ca4ec7961e7ec64fe51712</value>
+          <value>ORIGINAL,MachineryBalance,MachineryBalance,MachineryBalance,System.Int64,eb8f8b7cbf0b40d1a9d0b9220241677c</value>
+          <value>ORIGINAL,CashInOther,CashInOther,CashInOther,System.Int64,_x0030_481ff1792804c208e06810d08af922a</value>
+          <value>ORIGINAL,CashOutOther,CashOutOther,CashOutOther,System.Int64,_x0031_e843f5635404b3f8c7221ba4a648ae3</value>
+          <value>ORIGINAL,GoldProfit,GoldProfit,GoldProfit,System.Int64,cdc7968d62c54dd0b641b7b6a0ca1e1b</value>
+          <value>ORIGINAL,AutoProfit,AutoProfit,AutoProfit,System.Int64,_x0035_b449212a067419195d31ed56905e7e0</value>
+          <value>ORIGINAL,GoodsProfit,GoodsProfit,GoodsProfit,System.Int64,_x0037_e1bcd34d17642f1b5fba279aef8a690</value>
+          <value>ORIGINAL,MachineryProfit,MachineryProfit,MachineryProfit,System.Int64,_x0037_e704c94c0bd4622b9ebb362ca3cec05</value>
+          <value>ORIGINAL,PrepaymentProfit,PrepaymentProfit,PrepaymentProfit,System.Int64,_x0035_e402ac7ff004687acfa8a6c2dce3d20</value>
+          <value>ORIGINAL,CashInTotal,CashInTotal,CashInTotal,System.Int64,_x0031_77f46646acd435684b46ef41b277997</value>
+          <value>ORIGINAL,CashOutTotal,CashOutTotal,CashOutTotal,System.Int64,_x0033_087c377819243349b45ff0098b39ca9</value>
+          <value>ORIGINAL,CashEndPeriod,CashEndPeriod,CashEndPeriod,System.Int64,_x0039_1e48acb14504bd29a9c03b38c61d3ec</value>
+          <value>ORIGINAL,UnsecuredSign,UnsecuredSign,UnsecuredSign,System.Int64,ecdd1bbe9fb549c1a8a96d41f29d02a8</value>
+          <value>ORIGINAL,UnsecuredBuyout,UnsecuredBuyout,UnsecuredBuyout,System.Int64,_x0030_ff3cc491fde45a2a1ba49e68a3a40af</value>
+          <value>ORIGINAL,UnsecuredBalance,UnsecuredBalance,UnsecuredBalance,System.Int64,e776d5054f394cbc93ef944e9ef110f5</value>
+          <value>ORIGINAL,UnsecuredProfit,UnsecuredProfit,UnsecuredProfit,System.Int64,_x0030_2ee527c628c4b3ea43060641f05c180</value>
+        </Columns>
+        <CommandTimeout>3000</CommandTimeout>
+        <Dictionary isRef="1" />
+        <Key>4104c461031a4749bb0750acc1c66e1c</Key>
+        <Name>CashReport</Name>
+        <NameInSource>ReportConnection</NameInSource>
+        <Parameters isList="true" count="0" />
+        <SqlCommand>
+			DECLARE @accountCode NVARCHAR(100) = 'ACCOUNT';
+			DECLARE @transferPartialCode NVARCHAR(100) = 'TRANSFER_TO_CHILD_PARTIALBUYOUT';
+			DECLARE @transferAdditionalCode NVARCHAR(100) = 'TRANSFER_TO_CHILD_ADDITIONAL';
+
+			declare @cashInOrderType INT = 10, @cashOutOrderType INT = 20;
+			DECLARE @cashAccounts TABLE(AccountId INT);
+
+			INSERT INTO @cashAccounts(AccountId)
+			SELECT AccountId
+			FROM AccountPlanSettings aps
+			JOIN AccountSettings acs ON aps.AccountSettingId = acs.Id
+			WHERE acs.Code LIKE 'CASH%'
+			AND acs.DeleteDate IS NULL
+			AND aps.BranchId = @branchId
+			AND aps.AccountId IS NOT NULL;
+
+			if object_id('tempdb..#dates') is not null
+			drop table #dates;
+			;with c as (select * from (values(0), (1), (2), (3), (4), (5), (6), (7), (8), (9))t(n))
+			, cc as (select c1.n*10 + c2.n + c3.n*100 as n from c c1, c c2, c c3)
+			select dateadd(day, n, cast(@beginDate as date)) as [date]
+			into #dates
+			from cc
+			where dateadd(day, n, cast(@beginDate as date)) &lt;= @endDate;
+
+			if object_id('tempdb..#Balance') is not null
+			drop table #Balance;
+			;with preSum
+			as
+			(
+			select c.CollateralType
+			,	SUM(IIF(acd.Code IN (@accountCode, @transferPartialCode), CAST(IIF(co.StornoId IS NULL, co.OrderCost, - co.OrderCost) AS BIGINT), 0))
+			-	SUM(IIF(acc.Code IN (@accountCode, @transferAdditionalCode), CAST(IIF(co.StornoId IS NULL, co.OrderCost, - co.OrderCost) AS BIGINT), 0)) as Balance
+			FROM CashOrders co
+			INNER JOIN
+			Accounts ac
+			ON ac.Id = co.CreditAccountId
+			INNER JOIN
+			Accounts ad
+			ON ad.Id = co.DebitAccountId
+			LEFT JOIN
+			AccountSettings acc
+			ON acc.Id = ac.AccountSettingId
+			LEFT JOIN
+			AccountSettings acd
+			ON acd.Id = ad.AccountSettingId
+			INNER JOIN
+			Contracts c
+			ON c.Id = co.ContractId
+			WHERE co.DeleteDate IS NULL
+			AND co.ApproveStatus = 10
+			AND OrderType IN (10, 20)
+			AND co.OrderDate &lt; @beginDate
+			AND co.BranchId = @branchId
+			AND (acd.Code IN (@accountCode, @transferPartialCode) OR acc.Code IN (@accountCode, @transferAdditionalCode))
+			AND c.CollateralType in (10, 20, 30, 40, 50)
+			group by c.CollateralType
+			)
+			select [10] as GoldBalance, [20] as AutoBalance, [30] as GoodsBalance, [40] as MachineryBalance, [50] as UnsecuredBalance, cast(@beginDate as date) as dd
+			into #Balance
+			from
+			(
+			select
+			t.CollateralType
+			,	isnull(s.Balance, 0) as bal
+			from (values(10), (20), (30), (40), (50)) t(CollateralType)
+			left join
+			preSum s
+			on s.CollateralType = t.CollateralType
+			) as s
+			pivot (sum(s.bal) for s.CollateralType in ([10], [20], [30], [40], [50])) as p;
+
+
+			if object_id('tempdb..#co') is not null
+			drop table #co;
+			SELECT
+			co.Id
+			,	co.OrderType
+			,	co.UserId
+			,	CAST(IIF(co.StornoId IS NULL, co.OrderCost, -co.OrderCost) AS BIGINT) as OrderCost
+			,	co.OwnerId
+			,	co.BranchId
+			,	co.OrderDate
+			,	cast(co.OrderDate as date) as OrderDay
+			,	co.DebitAccountId
+			,	co.CreditAccountId
+			,	co.ContractId
+			into #co
+			FROM CashOrders co
+			WHERE co.DeleteDate IS NULL
+			AND co.ApproveStatus = 10
+			AND co.OrderDate between @beginDate and @endDate
+			AND (co.OwnerId = @branchId or co.BranchId = @branchId);
+
+			if object_id('tempdb..#sumCO') is not null
+			drop table #sumCO;
+			SELECT
+			co.OrderDay
+			,	SUM(IIF(co.OrderType = @cashInOrderType AND co.UserId IS NOT NULL, co.OrderCost, 0)) as CashInOther
+			,	SUM(IIF(co.OrderType = @cashOutOrderType AND co.UserId IS NOT NULL, co.OrderCost, 0)) as CashOutOther
+			,	SUM(IIF(co.OrderType = @cashInOrderType, co.OrderCost, 0)) as CashInTotal
+			,	SUM(IIF(co.OrderType = @cashOutOrderType, co.OrderCost, 0)) as CashOutTotal
+			into #sumCO
+			FROM #co co
+			WHERE (co.DebitAccountId IN (SELECT AccountId FROM @cashAccounts) OR co.CreditAccountId IN (SELECT AccountId FROM @cashAccounts))
+			AND co.OwnerId = @branchId
+			GROUP BY co.OrderDay;
+
+			if object_id('tempdb..#tmp') is not null
+			drop table #tmp;
+			select
+			d.[date] as CurrentDate
+			,	isnull(t.GoldSign, 0) as GoldSign
+			,	isnull(t.GoldBuyout, 0) as GoldBuyout
+			,	isnull(t.AutoSign, 0) as AutoSign
+			,	isnull(t.AutoBuyout, 0) as AutoBuyout
+			,	isnull(t.GoodsSign, 0) as GoodsSign
+			,	isnull(t.GoodsBuyout, 0) as GoodsBuyout
+			,	isnull(t.MachinerySign, 0) as MachinerySign
+			,	isnull(t.MachineryBuyout, 0) as MachineryBuyout
+			,	isnull(t.UnsecuredSign, 0) as UnsecuredSign
+			,	isnull(t.UnsecuredBuyout, 0) as UnsecuredBuyout
+			,	isnull(t.GoldProfit, 0) as GoldProfit
+			,	isnull(t.AutoProfit, 0) as AutoProfit
+			,	isnull(t.GoodsProfit, 0) as GoodsProfit
+			,	isnull(t.MachineryProfit, 0) as MachineryProfit
+			,	isnull(t.UnsecuredProfit, 0) as UnsecuredProfit
+			,	isnull(t.PrepaymentProfit, 0) as PrepaymentProfit
+			,	isnull(b.GoldBalance, 0) as GoldBalance
+			,	isnull(b.AutoBalance, 0) as AutoBalance
+			,	isnull(b.GoodsBalance, 0) as GoodsBalance
+			,	isnull(b.MachineryBalance, 0) as MachineryBalance
+			,	isnull(b.UnsecuredBalance, 0) as UnsecuredBalance
+			into #tmp
+			from #dates d
+			left join
+			(
+			SELECT
+			CAST(co.OrderDate AS DATE) AS CurrentDate
+			,	SUM(IIF(co.OrderType = 20 AND c.CollateralType = 10 AND ca.ActionType = 50 AND car.PaymentType = 10, cast(co.OrderCost as bigint), 0)) AS GoldSign
+			,	SUM(IIF(co.OrderType IN (10, 30) AND c.CollateralType = 10 AND ca.ActionType IN (20, 30, 40, 80, 90, 130) AND car.PaymentType IN (10, 15), cast(co.OrderCost as bigint), 0)) AS GoldBuyout
+			,	SUM(IIF(co.OrderType = 20 AND c.CollateralType = 20 AND ca.ActionType = 50 AND car.PaymentType = 10, cast(co.OrderCost as bigint), 0)) AS AutoSign
+			,	SUM(IIF(co.OrderType = 10 AND c.CollateralType = 20 AND ca.ActionType IN (20, 30, 40, 80, 90, 130) AND car.PaymentType IN (10, 15), cast(co.OrderCost as bigint), 0)) AS AutoBuyout
+			,	SUM(IIF(co.OrderType = 20 AND c.CollateralType = 30 AND ca.ActionType = 50 AND car.PaymentType = 10, cast(co.OrderCost as bigint), 0)) AS GoodsSign
+			,	SUM(IIF(co.OrderType = 10 AND c.CollateralType = 30 AND ca.ActionType IN (20, 30, 40, 80, 90, 130) AND car.PaymentType IN (10, 15), cast(co.OrderCost as bigint), 0)) AS GoodsBuyout
+			,	SUM(IIF(co.OrderType = 20 AND c.CollateralType = 40 AND ca.ActionType = 50 AND car.PaymentType = 10, cast(co.OrderCost as bigint), 0)) AS MachinerySign
+			,	SUM(IIF(co.OrderType = 10 AND c.CollateralType = 40 AND ca.ActionType IN (20, 30, 40, 80, 90, 130) AND car.PaymentType IN (10, 15), cast(co.OrderCost as bigint), 0)) AS MachineryBuyout
+			,	SUM(IIF(co.OrderType = 20 AND c.CollateralType = 50 AND ca.ActionType = 50 AND car.PaymentType = 10, cast(co.OrderCost as bigint), 0)) AS UnsecuredSign
+			,	SUM(IIF(co.OrderType = 10 AND c.CollateralType = 50 AND ca.ActionType IN (20, 30, 40, 80, 90, 130) AND car.PaymentType IN (10, 15), cast(co.OrderCost as bigint), 0)) AS UnsecuredBuyout
+			,	SUM(IIF(co.OrderType = 10 AND c.CollateralType = 10 AND ca.ActionType IN (10, 20, 30, 40, 80, 130) AND car.PaymentType IN (20, 25, 30, 31, 32), cast(co.OrderCost as bigint), 0)) AS GoldProfit
+			,	SUM(IIF(co.OrderType = 10 AND c.CollateralType = 20 AND ca.ActionType IN (10, 20, 30, 40, 80, 130, 90) AND car.PaymentType IN (20, 25, 30, 31, 32), cast(co.OrderCost as bigint), 0)) AS AutoProfit
+			,	SUM(IIF(co.OrderType = 10 AND c.CollateralType = 30 AND ca.ActionType IN (10, 20, 30, 40, 80, 130) AND car.PaymentType IN (20, 25, 30, 31, 32),	cast(co.OrderCost as bigint), 0)) AS GoodsProfit
+			,	SUM(IIF(co.OrderType = 10 AND c.CollateralType = 40 AND ca.ActionType IN (10, 20, 30, 40, 80, 130) AND car.PaymentType IN (20, 25, 30, 31, 32), cast(co.OrderCost as bigint), 0)) AS MachineryProfit
+			,	SUM(IIF(co.OrderType = 10 AND c.CollateralType = 50 AND ca.ActionType IN (10, 20, 30, 40, 80, 130) AND car.PaymentType IN (20, 25, 30, 31, 32), cast(co.OrderCost as bigint), 0)) AS UnsecuredProfit
+			,	SUM(IIF(co.OrderType = 10 AND ca.ActionType = 100, co.OrderCost, 0)) AS PrepaymentProfit
+			from #co co
+			LEFT JOIN
+			ContractActionRows car
+			ON co.Id = car.OrderId
+			LEFT JOIN
+			ContractActions ca
+			ON car.ActionId = ca.Id
+			AND ca.DeleteDate IS NULL
+			LEFT JOIN
+			Contracts c
+			ON ca.ContractId = c.Id
+			AND c.DeleteDate IS NULL
+			WHERE co.BranchId = @branchId
+			GROUP BY CAST(co.OrderDate AS DATE)
+			) t
+			on t.CurrentDate = d.[date]
+			left join
+			#Balance b
+			on b.dd = d.[date];
+
+			if object_id('tempdb..#currSum') is not null
+			drop table #currSum;
+			;with currSumm
+			as
+			(
+			select
+			cast(co.OrderDate + 1 as date) as OrderDay
+			,	c.CollateralType
+			,	SUM(IIF(acd.Code IN (@accountCode, @transferPartialCode), cast(co.OrderCost as bigint), 0)) over (partition by c.CollateralType order by co.OrderDay)
+			-	SUM(IIF(acc.Code IN (@accountCode, @transferAdditionalCode), cast(co.OrderCost as bigint), 0)) over (partition by c.CollateralType order by co.OrderDay) as Balance
+			,	row_number() over (partition by c.CollateralType, co.OrderDay order by co.OrderDate desc) as rn
+			FROM #co co
+			INNER JOIN
+			Accounts ac
+			ON ac.Id = co.CreditAccountId
+			INNER JOIN
+			Accounts ad
+			ON ad.Id = co.DebitAccountId
+			LEFT JOIN
+			AccountSettings acc
+			ON acc.Id = ac.AccountSettingId
+			LEFT JOIN
+			AccountSettings acd
+			ON acd.Id = ad.AccountSettingId
+			INNER JOIN
+			Contracts c
+			ON c.Id = co.ContractId
+			WHERE co.OrderType IN (10, 20)
+			AND co.BranchId = @branchId
+			AND (acd.Code IN (@accountCode, @transferPartialCode) OR acc.Code IN (@accountCode, @transferAdditionalCode))
+			AND c.CollateralType in (10, 20, 30, 40, 50)
+			)
+			, ss
+			as
+			(
+			select
+			cs.OrderDay
+			,	sum(case when cs.CollateralType = 10 then cs.Balance else 0 end) as GoldBalance
+			,	sum(case when cs.CollateralType = 20 then cs.Balance else 0 end) as AutoBalance
+			,	sum(case when cs.CollateralType = 30 then cs.Balance else 0 end) as GoodsBalance
+			,	sum(case when cs.CollateralType = 40 then cs.Balance else 0 end) as MachineryBalance
+			,	sum(case when cs.CollateralType = 50 then cs.Balance else 0 end) as UnsecuredBalance
+			from currSumm cs
+			where cs.rn = 1
+			group by cs.OrderDay
+			)
+			select
+			d.[date] as OrderDay
+			,	coalesce(cs.GoldBalance, h.hGoldBalance, 0) as GoldBalance
+			,	coalesce(cs.AutoBalance, h.hAutoBalance, 0) as AutoBalance
+			,	coalesce(cs.GoodsBalance, h.hGoodsBalance, 0) as GoodsBalance
+			,	coalesce(cs.MachineryBalance, h.hMachineryBalance, 0) as MachineryBalance
+			,	coalesce(cs.UnsecuredBalance, h.hUnsecuredBalance, 0) as UnsecuredBalance
+			into #currSum
+			from #dates  d
+			left join
+			ss cs
+			on cs.OrderDay = d.[date]
+			outer apply
+			(
+			select top(1)
+			holes.GoldBalance as hGoldBalance
+			,	holes.AutoBalance as hAutoBalance
+			,	holes.GoodsBalance as hGoodsBalance
+			,	holes.MachineryBalance as hMachineryBalance
+			,	holes.UnsecuredBalance as hUnsecuredBalance
+			from ss holes
+			where holes.OrderDay &lt; d.[date]
+			order by holes.OrderDay desc
+			) h
+			order by d.[date];
+
+			if object_id('tempdb..#acc') is not null
+			drop table #acc;
+			SELECT
+			dd.[date]
+			,	cast(sum(abs(isnull(pBegin.OutgoingBalance, 0))) as bigint) as CashBeginPeriod
+			,	cast(sum(abs(isnull(pEnd.OutgoingBalance, 0))) as bigint) as CashEndPeriod
+			into #acc
+			FROM Accounts a
+			cross join #dates dd
+			outer apply
+			(
+			SELECT TOP(1) ar.OutgoingBalance
+			FROM AccountRecords ar
+			WHERE ar.AccountId = a.Id
+			AND ar.DeleteDate IS NULL
+			AND ar.Date &lt; dd.[date]
+			ORDER BY ar.Date DESC, ar.Id DESC
+			) pBegin
+			outer apply
+			(
+			SELECT TOP(1) ar.OutgoingBalance
+			FROM AccountRecords ar
+			WHERE ar.AccountId = a.Id
+			AND ar.DeleteDate IS NULL
+			AND ar.Date &lt; DATEADD(DAY, 1, dd.[date])
+			ORDER BY ar.Date DESC, ar.Id DESC
+			) pEnd
+			WHERE a.Id IN (SELECT ca.AccountId FROM @cashAccounts ca)
+			group by dd.[date];
+
+			select
+			t.CurrentDate
+			,	a.CashBeginPeriod
+			,	t.GoldSign
+			,	t.GoldBuyout
+			--------,	sum(t.GoldBalance + isnull(curSum.GoldBalance, 0))  over(order by t.CurrentDate) as GoldBalance
+			,	sum(t.GoldBalance) over(order by t.CurrentDate) + cs.GoldBalance as GoldBalance
+			,	t.AutoSign
+			,	t.AutoBuyout
+			--------,	sum(t.AutoBalance) over(order by t.CurrentDate) + sum(isnull(curSum.AutoBalance, 0))  over(order by curSum.OrderDay) as AutoBalance
+			,	sum(t.AutoBalance) over(order by t.CurrentDate) + cs.AutoBalance as AutoBalance
+			,	t.GoodsSign
+			,	t.GoodsBuyout
+			--------,	sum(t.GoodsBalance + isnull(curSum.GoodsBalance, 0))  over(order by t.CurrentDate) as GoodsBalance
+			,	sum(t.GoodsBalance) over(order by t.CurrentDate) + cs.GoodsBalance as GoodsBalance
+			,	t.MachinerySign
+			,	t.MachineryBuyout
+			--------,	sum(t.MachineryBalance + isnull(curSum.MachineryBalance, 0))  over(order by t.CurrentDate) as MachineryBalance
+			,	sum(t.MachineryBalance) over(order by t.CurrentDate) + cs.MachineryBalance as MachineryBalance
+			,	t.UnsecuredSign
+			,	t.UnsecuredBuyout
+			--------,	sum(t.UnsecuredBalance + isnull(curSum.UnsecuredBalance, 0))  over(order by t.CurrentDate) as UnsecuredBalance
+			,	sum(t.UnsecuredBalance) over(order by t.CurrentDate) + cs.UnsecuredBalance as UnsecuredBalance
+			,	cash.CashInOther
+			,	cash.CashOutOther
+			,	t.GoldProfit
+			,	t.AutoProfit
+			,	t.GoodsProfit
+			,	t.MachineryProfit
+			,	t.UnsecuredProfit
+			,	t.PrepaymentProfit
+			,	cash.CashInTotal
+			,	cash.CashOutTotal
+			,	a.CashEndPeriod
+			from #tmp t
+			left join
+			#currSum cs
+			on cs.OrderDay = t.CurrentDate
+			left join
+			#acc a
+			on a.[date] = t.CurrentDate
+			left join
+			(
+			select
+			d.[date] as OrderDay
+			,	isnull(co.CashInOther, h.CashInOther) as CashInOther
+			,	isnull(co.CashOutOther, h.CashOutOther) as CashOutOther
+			,	isnull(co.CashInTotal, h.CashInTotal) as CashInTotal
+			,	isnull(co.CashOutTotal, h.CashOutTotal) as CashOutTotal
+			from #dates d
+			left join
+			#sumCO co
+			on co.OrderDay = d.[date]
+			outer apply
+			(
+			select top(1)
+			holes.CashInOther
+			,	holes.CashOutOther
+			,	holes.CashInTotal
+			,	holes.CashOutTotal
+			from #sumCO holes
+			where holes.OrderDay &lt; d.[date]
+			order by holes.OrderDay desc
+			) h
+			) cash
+			on cash.OrderDay = t.CurrentDate
+			order by t.CurrentDate;
+		</SqlCommand>
+      </CashReport>
+      <Branch Ref="4" type="Stimulsoft.Report.Dictionary.StiSqlSource" isKey="true">
+        <Alias>Branch</Alias>
+        <Columns isList="true" count="1">
+          <value>BranchName,System.String</value>
+        </Columns>
+        <CommandTimeout>30</CommandTimeout>
+        <Dictionary isRef="1" />
+        <Key>75798da5d0c644d28c8d77af4756aed5</Key>
+        <Name>Branch</Name>
+        <NameInSource>ReportConnection</NameInSource>
+        <Parameters isList="true" count="0" />
+        <SqlCommand>SELECT g.DisplayName as BranchName
+FROM Groups g
+WHERE g.Id = @branchId</SqlCommand>
+      </Branch>
+    </DataSources>
+    <Relations isList="true" count="0" />
+    <Report isRef="0" />
+    <Resources isList="true" count="0" />
+    <Variables isList="true" count="3">
+      <value>,branchId,branchId,,System.Int32,_x0031_51,False,False,False,False,,d729ad00115549d9b9cc176da611ec3c,True</value>
+      <value>,beginDate,beginDate,,System.DateTime,_x0035__x002F_31_x002F_2021_x0020_12:00:00_x0020_AM,False,False,False,False,,_x0030_fc9a056d5b54574bd0b455d5fc9d956,True</value>
+      <value>,endDate,endDate,,System.DateTime,_x0035__x002F_31_x002F_2021_x0020_11:59:59_x0020_PM,False,False,False,False,,da38bb3b08ee47bbbb006db6722a8bd6,True</value>
+    </Variables>
+  </Dictionary>
+  <EngineVersion>EngineV2</EngineVersion>
+  <GlobalizationStrings isList="true" count="0" />
+  <Key>56df59e6039b4c3cb9960f836d9b4784</Key>
+  <MetaTags isList="true" count="0" />
+  <Pages isList="true" count="1">
+    <Page1 Ref="5" type="Page" isKey="true">
+      <Border>None;Black;2;Solid;False;4;Black</Border>
+      <Brush>Transparent</Brush>
+      <Components isList="true" count="4">
+        <ReportTitleBand1 Ref="6" type="ReportTitleBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,0.2,23.04,0.6</ClientRectangle>
+          <Components isList="true" count="3">
+            <Text1 Ref="7" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0,23,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,12,Bold</Font>
+              <Guid>d4a5a36eda2a4dcb890ad6d78f1d1c83</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text1</Name>
+              <Page isRef="5" />
+              <Parent isRef="6" />
+              <Text>КАССОВЫЙ ОТЧЕТ</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text1>
+            <Text2 Ref="8" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0.2,23,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,12</Font>
+              <Guid>292b04e39a29494da442360e15e5c121</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text2</Name>
+              <Page isRef="5" />
+              <Parent isRef="6" />
+              <Text>Касса за {Format("{0:MMMM yyyy}", beginDate).ToLower()} года</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text2>
+            <Text3 Ref="9" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0.4,23,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,12</Font>
+              <Guid>9fcfc97596274ee4854edcaa8967819e</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text3</Name>
+              <Page isRef="5" />
+              <Parent isRef="6" />
+              <Text>Филиал {Branch.BranchName}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text3>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Expressions isList="true" count="0" />
+          <Name>ReportTitleBand1</Name>
+          <Page isRef="5" />
+          <Parent isRef="5" />
+        </ReportTitleBand1>
+        <HeaderBand1 Ref="10" type="HeaderBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,1.2,23.04,0.3</ClientRectangle>
+          <Components isList="true" count="29">
+            <Text4 Ref="11" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0,0.6,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>b6fdd841a4ff48dc943d037f877f0ff1</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text4</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Дата</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text4>
+            <Text5 Ref="12" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0.6,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>47975d1f4f354b85bc09bc8e305a56f1</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text5</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Остаток на начало</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text5>
+            <Text6 Ref="13" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>1.4,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>8e09325ad8034332ad7c74a36a3d50b9</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text6</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Драг. металлы: прием</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text6>
+            <Text7 Ref="14" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>2.2,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>3ad9b287110f433f980af6e14deffbc6</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text7</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Драг. металлы: выкуп</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text7>
+            <Text8 Ref="15" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>3,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>6d46349c0b454eecb33ee88bc5f2b941</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text8</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Драг. металлы: остаток</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text8>
+            <Text10 Ref="16" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>3.8,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>28e3600f2e3845b0b701678d4462a191</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text10</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Товары: прием</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text10>
+            <Text11 Ref="17" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>4.6,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>b2dd1a0120564a17956ee0c92ceecffe</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text11</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Товары: выкуп</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text11>
+            <Text12 Ref="18" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>5.4,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>eb7ac9c5d06f4c7b88133533d1df863d</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text12</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Товары: остаток</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text12>
+            <Text13 Ref="19" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>6.2,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>a19c3926ac8f44828b6be28a926c5ff7</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text13</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Автотранспорт: прием</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text13>
+            <Text14 Ref="20" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>7,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>42ffcf56ca864c78ac1bacfa7dde32cf</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text14</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Автотранспорт: выкуп</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text14>
+            <Text15 Ref="21" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>7.8,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>f8a627fac2984ef496e8a195d1ba4b85</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text15</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Автотранспорт: остаток</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text15>
+            <Text16 Ref="22" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>13.4,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>3a8f8f043936423d8bbafe00b2c852a2</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text16</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Прочее: приход</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text16>
+            <Text17 Ref="23" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>14.2,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>13bc7bb7be17485b8c98c7e96506a8ee</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text17</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Прочее: расход</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text17>
+            <Text18 Ref="24" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>15,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>77690d2da58944ba958c1784591139f6</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text18</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Доход: золото</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text18>
+            <Text19 Ref="25" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>15.8,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>13bb8c304b59426ebce3c5bd30e5467b</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text19</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Доход: товары</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text19>
+            <Text20 Ref="26" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>16.6,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>aa6d7596eadc4cc295d0f45f8ce76477</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text20</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Доход: автотранспорт</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text20>
+            <Text21 Ref="27" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>19.8,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>d185919370c642b0b37d833574a85e8c</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text21</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Доход: итого</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text21>
+            <Text22 Ref="28" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>20.6,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>6438f91f95bd412db400acccf6732197</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text22</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Итого: приход</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text22>
+            <Text23 Ref="29" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>21.4,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>efdb87650c2b4028a4a525ead6398b8a</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text23</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Итого: расход</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text23>
+            <Text24 Ref="30" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>22.2,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>c65d5cf752e04e8abe002d82937c868a</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text24</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Остаток на конец</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text24>
+            <Text30 Ref="31" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>8.6,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>3f5a47ad0edc4adeb612e136fafc06b3</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text30</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Спецтехника: прием</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text30>
+            <Text64 Ref="32" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>9.4,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>3eb357583a544918a337e2e8cf736384</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text64</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Спецтехника: выкуп</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text64>
+            <Text65 Ref="33" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>10.2,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>66ff79038a724f4db021ddf17335c9f6</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text65</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Спецтехника: остаток</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text65>
+            <Text72 Ref="34" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>17.4,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>1ed520178a2a4777b1044568db5d9249</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text72</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Доход: спецтехника</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text72>
+            <Text75 Ref="35" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>19,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>0413104b8d344833bfe4cbff8d034761</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text75</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Полученные авансы</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text75>
+            <Text78 Ref="36" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>11,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>1fd44dc1c7d14c90b2038fb2387b85e9</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text78</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Беззалоговый: прием</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text78>
+            <Text79 Ref="37" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>11.8,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>f1ecfc64429248a097c05b5c3fec39a1</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text79</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Беззалоговый: выкуп</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text79>
+            <Text80 Ref="38" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>12.6,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>06d93920f13948e9a155dc3cf02195ee</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text80</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Беззалоговый: остаток</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text80>
+            <Text87 Ref="39" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>18.2,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>03ae279f651449cd99ad12ae6ad4150d</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text87</Name>
+              <Page isRef="5" />
+              <Parent isRef="10" />
+              <Text>Доход: беззалоговые</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text87>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Expressions isList="true" count="0" />
+          <Name>HeaderBand1</Name>
+          <Page isRef="5" />
+          <Parent isRef="5" />
+          <PrintIfEmpty>True</PrintIfEmpty>
+          <PrintOn>OnlyFirstPage</PrintOn>
+        </HeaderBand1>
+        <DataBand1 Ref="40" type="DataBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <BusinessObjectGuid isNull="true" />
+          <ClientRectangle>0,1.9,23.04,0.2</ClientRectangle>
+          <Components isList="true" count="29">
+            <Text25 Ref="41" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0,0.6,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>cd98c7b09d2d4211b48bf2d39ce6281b</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text25</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{Format("{0:dd.MM yyyy}", CashReport.CurrentDate)}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text25>
+            <Text26 Ref="42" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0.6,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>bdfa5b87ef4f45189f0b55447bafcf1d</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text26</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.CashBeginPeriod}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="43" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text26>
+            <Text27 Ref="44" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>1.4,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>0dc86f78d6d54ec883c3bbe95086cead</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text27</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.GoldSign}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="45" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text27>
+            <Text28 Ref="46" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>2.2,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>17026325f6da4cebbd9729e643b10c5e</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text28</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.GoldBuyout}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="47" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text28>
+            <Text29 Ref="48" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>3,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>507cefba940841c6b3b8dfc48721a15f</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text29</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.GoldBalance}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="49" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text29>
+            <Text31 Ref="50" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>3.8,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>759542c967ba4ce994a7e24248e79d5c</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text31</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.GoodsSign}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="51" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text31>
+            <Text32 Ref="52" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>4.6,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>1dc9a8825fc64374b69e5fe633a7e1b6</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text32</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.GoodsBuyout}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="53" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text32>
+            <Text33 Ref="54" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>5.4,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>0389edd01cfe43cdb34c5275554adf7a</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text33</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.GoodsBalance}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="55" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text33>
+            <Text34 Ref="56" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>6.2,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>0f91ec9e1022412e8d13268b8dc0f2de</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text34</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.AutoSign}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="57" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text34>
+            <Text35 Ref="58" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>7,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>98d14c3731f046a88af029910d9e95e7</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text35</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.AutoBuyout}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="59" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text35>
+            <Text36 Ref="60" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>7.8,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>e5bb2c3074e5408784b468f726e0bedc</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text36</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.AutoBalance}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="61" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text36>
+            <Text37 Ref="62" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>13.4,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>4ad4c39a1d744d6094c75ad94852ae6b</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text37</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.CashInOther}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="63" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text37>
+            <Text38 Ref="64" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>14.2,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>b080b936a933457da21191b4e6f2b6d1</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text38</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.CashOutOther}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="65" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text38>
+            <Text39 Ref="66" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>15,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>1e76fde365b64117980dd21939033870</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text39</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.GoldProfit}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="67" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text39>
+            <Text40 Ref="68" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>15.8,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>0a8f629d08744129b5401d455ec369ba</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text40</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.GoodsProfit}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="69" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text40>
+            <Text41 Ref="70" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>16.6,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>6179c4f77d4f4d419d9ca53299c10910</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text41</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.AutoProfit}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="71" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text41>
+            <Text42 Ref="72" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>19.8,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>1cb960ecba3a4ea09e30575eec989e43</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text42</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{(CashReport.GoldProfit + CashReport.GoodsProfit + CashReport.AutoProfit + CashReport.MachineryProfit)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="73" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text42>
+            <Text43 Ref="74" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>20.6,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>7f0a663615094685a9020fb44041ef01</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text43</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.CashInTotal}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="75" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text43>
+            <Text44 Ref="76" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>21.4,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>1ae9c740909648608ef8827008524095</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text44</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.CashOutTotal}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="77" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text44>
+            <Text45 Ref="78" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>22.2,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>5e92cc0870414b6faf71283470fc7383</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text45</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.CashEndPeriod}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="79" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text45>
+            <Text66 Ref="80" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>8.6,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>0b35ba1e135f4423b016123e7ce00e33</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text66</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.MachinerySign}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="81" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text66>
+            <Text67 Ref="82" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>9.4,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>f9a90bd7c7254dc3884bbe91cf2b6884</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text67</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.MachineryBuyout}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="83" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text67>
+            <Text68 Ref="84" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>10.2,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>33aa0c231c4b4d3aa2fa81d4ba439597</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text68</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.MachineryBalance}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="85" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text68>
+            <Text73 Ref="86" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>17.4,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>b9bb61433cfd40faa66a317f7995f3fa</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text73</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.MachineryProfit}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="87" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text73>
+            <Text76 Ref="88" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>19,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>577bd4881e634ab18f622e8a3fecea4f</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text76</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.PrepaymentProfit}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="89" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text76>
+            <Text81 Ref="90" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>11,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>6520e7a45d4240c185cde3715ef677fd</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text81</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.UnsecuredSign}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="91" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text81>
+            <Text82 Ref="92" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>11.8,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>bccdc717303b413792a0c6c13930d3d1</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text82</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.UnsecuredBuyout}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="93" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text82>
+            <Text83 Ref="94" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>12.6,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>9b271f3567db448f94c13ec6c1305bb6</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text83</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.UnsecuredBalance}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="95" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text83>
+            <Text88 Ref="96" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>18.2,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>0de7ff6561794988a047641e6ca864d5</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text88</Name>
+              <Page isRef="5" />
+              <Parent isRef="40" />
+              <Text>{CashReport.UnsecuredProfit}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="97" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text88>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <DataRelationName isNull="true" />
+          <DataSourceName>CashReport</DataSourceName>
+          <Expressions isList="true" count="0" />
+          <Filters isList="true" count="0" />
+          <Name>DataBand1</Name>
+          <Page isRef="5" />
+          <Parent isRef="5" />
+          <Sort isList="true" count="0" />
+        </DataBand1>
+        <FooterBand1 Ref="98" type="FooterBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,2.5,23.04,0.2</ClientRectangle>
+          <Components isList="true" count="28">
+            <Text9 Ref="99" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0,1.4,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>495ae0548e344561a01a09466e95e31f</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text9</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>Итого</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text9>
+            <Text46 Ref="100" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>1.4,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>e0d0fa3048e64719bc66d258bb32097d</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text46</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.GoldSign)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="101" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text46>
+            <Text47 Ref="102" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>2.2,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>a46fd61de64f4a068cbcf34e438b7de8</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text47</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.GoldBuyout)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="103" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text47>
+            <Text48 Ref="104" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>3,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>e9eb2578edd54edcb872e48266842d3e</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text48</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.GoldBalance)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="105" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text48>
+            <Text49 Ref="106" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>3.8,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>1f3351db005548abb51b21cbfc334787</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text49</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.GoodsSign)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="107" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text49>
+            <Text50 Ref="108" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>4.6,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>a6bf7c8a494e4946b00d84f9bd892d1c</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text50</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.GoodsBuyout)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="109" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text50>
+            <Text51 Ref="110" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>5.4,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>93c48abfbdce411e8e230dff48576ddd</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text51</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.GoodsBalance)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="111" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text51>
+            <Text52 Ref="112" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>6.2,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>1aae7bd1241a4c9386a743c19564d438</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text52</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.AutoSign)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="113" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text52>
+            <Text53 Ref="114" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>7,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>36938c788f53432e98a9ccb51d5b3b66</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text53</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.AutoBuyout)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="115" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text53>
+            <Text54 Ref="116" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>7.8,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>551f3dfb1ef44beb9fefb33a6343d2b8</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text54</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.AutoBalance)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="117" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text54>
+            <Text55 Ref="118" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>13.4,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>1ffa03be555447df8da4cbb1eea395f0</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text55</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.CashInOther)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="119" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text55>
+            <Text56 Ref="120" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>14.2,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>5ffb648f7f824f4fadd731bc1a4a839a</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text56</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.CashOutOther)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="121" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text56>
+            <Text57 Ref="122" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>15,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>4a817efcd02b41ada927032fcf3a9dd2</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text57</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.GoldProfit)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="123" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text57>
+            <Text58 Ref="124" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>15.8,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>654cbb3a1930496ab9aa6452020d48f2</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text58</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.GoodsProfit)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="125" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text58>
+            <Text59 Ref="126" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>16.6,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>9512bf8aa2324a3db2982334fe855092</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text59</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.AutoProfit)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="127" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text59>
+            <Text60 Ref="128" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>19.8,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>39754a22c74d4b5580e8f4d5c5c643bf</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text60</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{(Sum(CashReport.GoldProfit) + Sum(CashReport.GoodsProfit) + Sum(CashReport.AutoProfit) + Sum(CashReport.MachineryProfit))}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="129" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text60>
+            <Text61 Ref="130" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>20.6,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>eef097e7b7d74fc49d43022d1d3ee5cf</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text61</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.CashInTotal)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="131" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text61>
+            <Text62 Ref="132" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>21.4,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>7969333d91274757aef14fee1c39db8d</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text62</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.CashOutTotal)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="133" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text62>
+            <Text63 Ref="134" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>22.2,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>23b1aa4bbea64025b125d88e3ca4eb2e</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text63</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.CashEndPeriod)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="135" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text63>
+            <Text69 Ref="136" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>8.6,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>ec530f171f89448a938b0063fe8dfa9f</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text69</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.MachinerySign)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="137" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text69>
+            <Text70 Ref="138" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>9.4,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>030cb1d95f8e4bf0a7a243ed42cf0176</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text70</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.MachineryBuyout)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="139" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text70>
+            <Text71 Ref="140" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>10.2,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>3e13273437d54e5783a055d9db489dd2</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text71</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.MachineryBalance)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="141" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text71>
+            <Text74 Ref="142" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>17.4,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>5e430cb9bcbb4108a80f6d7b0d448239</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text74</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.MachineryProfit)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="143" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text74>
+            <Text77 Ref="144" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>19,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>4c40d1fec1204334bdd53ff0473f544f</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text77</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.PrepaymentProfit)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="145" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text77>
+            <Text84 Ref="146" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>11,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>6bcd693d761e49e5bb9c5fc993f99b3e</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text84</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.UnsecuredSign)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="147" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text84>
+            <Text85 Ref="148" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>11.8,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>4c3c95c75449417cba38986af14ec22c</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text85</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.UnsecuredBuyout)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="149" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text85>
+            <Text86 Ref="150" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>12.6,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>2afc55ab8d9c472c8ae6d0bbf6a0b369</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text86</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.UnsecuredBalance)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="151" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text86>
+            <Text89 Ref="152" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>18.2,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>9b697f1290f8447aaaea1fc0f7040a30</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text89</Name>
+              <Page isRef="5" />
+              <Parent isRef="98" />
+              <Text>{Sum(CashReport.UnsecuredProfit)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="153" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text89>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Expressions isList="true" count="0" />
+          <Name>FooterBand1</Name>
+          <Page isRef="5" />
+          <Parent isRef="5" />
+        </FooterBand1>
+      </Components>
+      <Conditions isList="true" count="0" />
+      <Expressions isList="true" count="0" />
+      <Guid>f829242d2ffc40a2b0da84b5e6beb840</Guid>
+      <Margins>0.39,0.39,0.39,0.39</Margins>
+      <Name>Page1</Name>
+      <Orientation>Landscape</Orientation>
+      <PageHeight>8.5</PageHeight>
+      <PageWidth>12.3</PageWidth>
+      <PaperSize>Letter</PaperSize>
+      <Report isRef="0" />
+      <SegmentPerWidth>2</SegmentPerWidth>
+    </Page1>
+  </Pages>
+  <ReferencedAssemblies isList="true" count="8">
+    <value>System.Dll</value>
+    <value>System.Drawing.Dll</value>
+    <value>System.Windows.Forms.Dll</value>
+    <value>System.Data.Dll</value>
+    <value>System.Xml.Dll</value>
+    <value>Stimulsoft.Controls.Dll</value>
+    <value>Stimulsoft.Base.Dll</value>
+    <value>Stimulsoft.Report.Dll</value>
+  </ReferencedAssemblies>
+  <ReportAlias>Report</ReportAlias>
+  <ReportChanged>8/6/2021 11:59:37 AM</ReportChanged>
+  <ReportCreated>11/15/2018 8:15:56 AM</ReportCreated>
+  <ReportFile>C:\projects\tascredit\sources\Pawnshop.Web\Reports\CashReport.mrt</ReportFile>
+  <ReportGuid>5b4f1689eeb1477a9d3202ea0231107e</ReportGuid>
+  <ReportName>Report</ReportName>
+  <ReportUnit>Inches</ReportUnit>
+  <ReportVersion>2021.3.5.0</ReportVersion>
+  <Script>using System;
+using System.Drawing;
+using System.Windows.Forms;
+using System.Data;
+using Stimulsoft.Controls;
+using Stimulsoft.Base.Drawing;
+using Stimulsoft.Report;
+using Stimulsoft.Report.Dialogs;
+using Stimulsoft.Report.Components;
+
+namespace Reports
+{
+    public class Report : Stimulsoft.Report.StiReport
+    {
+        public Report()        {
+            this.InitializeComponent();
+        }
+
+        #region StiReport Designer generated code - do not modify
+		#endregion StiReport Designer generated code - do not modify
+    }
+}
+</Script>
+  <ScriptLanguage>CSharp</ScriptLanguage>
+  <Styles isList="true" count="0" />
+</StiSerializer>

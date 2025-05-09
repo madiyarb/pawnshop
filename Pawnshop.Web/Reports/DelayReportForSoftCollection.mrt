@@ -1,0 +1,936 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<StiSerializer version="1.02" type="Net" application="StiReport">
+  <CalculationMode>Interpretation</CalculationMode>
+  <Culture>ru-RU</Culture>
+  <Dictionary Ref="1" type="Dictionary" isKey="true">
+    <BusinessObjects isList="true" count="0" />
+    <Databases isList="true" count="1">
+      <ReportConnection Ref="2" type="Stimulsoft.Report.Dictionary.StiSqlDatabase" isKey="true">
+        <Alias>ReportConnection</Alias>
+        <ConnectionStringEncrypted>9Br3401dSrxsTd2Q6hAlZtFSu4rjXasFaQicnWcU9huees/LWVrD+W9EvZjEbOlGgFplC2dd+1HiRgmlY/x3P4Hum0/GGHptb0zt3E0YZSfWVJ+jTAkTReJEpZhKbOAv01phaEtXkvXgZdmYaiXh68M0y2NNTJOdYQikxGMYIy+DeNlIxgVLUeBbrNxnrCKfxXSBie9Z+plvWNmE6Xh3B8RWkcJhTMLI7FztgOl4pD/TUs3Px2t7gWsZvRjpFeA/1VTViFQM81FxXf30YVwie9PqwSnDUTGdwxol3GlwJXvZantIYQPy3eFchABj3PZe</ConnectionStringEncrypted>
+        <Name>ReportConnection</Name>
+      </ReportConnection>
+    </Databases>
+    <DataSources isList="true" count="2">
+      <DelayReportForSoftCollection Ref="3" type="Stimulsoft.Report.Dictionary.StiSqlSource" isKey="true">
+        <Alias>DelayReportForSoftCollection</Alias>
+        <Columns isList="true" count="36">
+          <value>Id,System.Int32</value>
+          <value>ContractNumber,System.String</value>
+          <value>PercentPaymentType,System.Int32</value>
+          <value>ProductType,System.String</value>
+          <value>ClientName,System.String</value>
+          <value>MobilePhone,System.String</value>
+          <value>IdentityNumber,System.String</value>
+          <value>LoanCost,System.Decimal</value>
+          <value>LoanCostLeft,System.Decimal</value>
+          <value>LoanPercent,System.Decimal</value>
+          <value>ContractDate,System.DateTime</value>
+          <value>MaturityDate,System.DateTime</value>
+          <value>LoanPeriod,System.Int32</value>
+          <value>LoanPercentCost,System.Decimal</value>
+          <value>DelayDayCount,System.Int32</value>
+          <value>PenaltyPercentCost,System.Decimal</value>
+          <value>TotalPercentCost,System.Decimal</value>
+          <value>PositionMark,System.String</value>
+          <value>PositionModel,System.String</value>
+          <value>PositionYear,System.String</value>
+          <value>PositionColor,System.String</value>
+          <value>PositionNumber,System.String</value>
+          <value>ParkingStatus,System.String</value>
+          <value>IsTransferred,System.String</value>
+          <value>QuantityDelayedPaymentCount,System.Int32</value>
+          <value>DisplayName,System.String</value>
+          <value>Prepayment,System.Decimal</value>
+          <value>InscriptionDate,System.DateTime</value>
+          <value>InscriptionCost,System.Decimal</value>
+          <value>InscriptionStatus,System.Int32</value>
+          <value>DelayedDebtCost,System.Decimal</value>
+          <value>IsSocialyVulnerable,System.String</value>
+          <value>ContractNote,System.String</value>
+          <value>ContractDiscount,System.String</value>
+          <value>ContractPostponement,System.String</value>
+          <value>BlackListReason,System.String</value>
+        </Columns>
+        <CommandTimeout>3000</CommandTimeout>
+        <Dictionary isRef="1" />
+        <Key>741f271fcaf14ae6950cd67a3f56728f</Key>
+        <Name>DelayReportForSoftCollection</Name>
+        <NameInSource>ReportConnection</NameInSource>
+        <Parameters isList="true" count="0" />
+        <SqlCommand>DECLARE @currentDate DATE = dbo.GETASTANADATE(),
+@actualAddressType INT
+SELECT @actualAddressType = Id FROM AddressTypes WHERE Code = 'RESIDENCE'
+
+DECLARE @result TABLE(
+Id int,
+DelayDayCount int,
+QuantityDelayedPayments int
+)
+
+DECLARE @tempAnnuity TABLE(
+Id int,
+DelayDayCount int,
+QuantityDelayedPayments int)
+
+--дискрет
+INSERT INTO @result
+SELECT
+	c.Id,
+	DATEDIFF(DAY, IIF(c.locked=1, c.MaturityDate, c.MaturityDate), @currentDate) AS DelayDayCount,
+	null
+FROM Contracts c
+OUTER APPLY (SELECT * FROM Blackouts WHERE IsPersonal=0) AS b
+WHERE c.DeleteDate IS NULL
+    AND c.[Status] IN (30,50)
+    AND c.PercentPaymentType = 20
+	AND DATEDIFF(DAY, c.MaturityDate, @currentDate) &gt; 0
+	AND c.BranchId IN ({branchIds})
+GROUP BY c.Id,c.Locked,c.LoanPercent, c.LoanPeriod, c.MaturityDate
+
+--аннуитет
+INSERT INTO @tempAnnuity
+SELECT 
+	cps.ContractId,
+	MAX(DATEDIFF(DAY,
+	cps.[Date],
+	CAST(@currentDate AS DATE)))
+	AS DelayDayCount,
+	Count(*) AS QuantityDelayedPayments
+FROM ContractPaymentSchedule cps
+JOIN Contracts c ON c.Id=cps.ContractId AND c.PercentPaymentType != 20
+OUTER APPLY (SELECT * FROM Blackouts WHERE IsPersonal = 0) AS blackout
+WHERE CAST(Date AS date) &lt; CAST(@currentDate AS DATE)
+AND cps.ActionId IS NULL 
+	AND cps.Canceled IS NULL
+	AND cps.DeleteDate IS NULL
+    AND c.BranchId IN ({branchIds})
+GROUP BY cps.ContractId
+
+INSERT INTO @result
+SELECT 
+	cps.ContractId,
+	MAX(DATEDIFF(DAY,
+	cps.[Date],
+	CAST(@currentDate AS DATE)))
+	AS DelayDayCount,
+	Count(*) AS QuantityDelayedPayments
+FROM ContractPaymentSchedule cps
+JOIN Contracts c ON c.Id = cps.ContractId AND c.PercentPaymentType != 20
+OUTER APPLY (SELECT * FROM Blackouts WHERE IsPersonal = 0) AS blackout
+OUTER APPLY (
+SELECT SUM(abs(dbo.GetAccountBalanceById (a.Id, @currentDate, DEFAULT, DEFAULT))) AS Cost
+		FROM Accounts a
+		JOIN AccountSettings acs ON acs.Id = a.AccountSettingId
+		WHERE a.ContractId = c.Id
+		AND acs.Code IN ('PENY_ACCOUNT','PENY_PROFIT','PENY_ACCOUNT_OFFBALANCE','PENY_PROFIT_OFFBALANCE')) peny
+OUTER APPLY(SELECT TOP 1 cps2.Id FROM ContractPaymentSchedule cps2
+		WHERE CAST(cps2.[Date] AS date) &lt; CAST(@currentDate AS DATE)
+		AND cps2.Canceled IS NULL
+		AND cps2.ActionId IS NOT NULL
+		AND cps2.DeleteDate IS NULL
+		AND cps2.ContractId = c.Id
+		ORDER BY [Date] DESC) lastPayment
+	WHERE 
+	peny.Cost &gt; 0 
+	AND c.BranchId IN ({branchIds})
+	AND cps.Id = lastPayment.Id
+AND NOT EXISTS (SELECT Id FROM @tempAnnuity WHERE Id = c.Id)
+GROUP BY cps.ContractId
+
+INSERT INTO @result SELECT * FROM @tempAnnuity
+
+SELECT
+
+	c.Id,
+	c.ContractNumber,
+	c.PercentPaymentType,
+	lps.[Name] AS ProductType,
+	cl.Fullname AS ClientName,
+	cc.[Address] AS MobilePhone,
+	cl.IdentityNumber,
+	CEILING(c.LoanCost)AS LoanCost,
+	(SELECT CEILING(SUM(abs(dbo.GetAccountBalanceById (a.Id, @currentDate, DEFAULT, DEFAULT))))
+		FROM Accounts a
+		JOIN AccountSettings acs ON acs.Id = a.AccountSettingId
+		WHERE a.ContractId = c.Id
+		AND acs.Code IN ('ACCOUNT', 'OVERDUE_ACCOUNT')) AS LoanCostLeft,
+    c.LoanPercent,
+    c.ContractDate,
+    c.MaturityDate,
+    c.LoanPeriod,
+(SELECT CEILING(SUM(abs(dbo.GetAccountBalanceById (a.Id, @currentDate, DEFAULT, DEFAULT))))
+		FROM Accounts a
+		JOIN AccountSettings acs ON acs.Id = a.AccountSettingId
+		WHERE a.ContractId = c.Id
+		AND acs.Code IN ('OVERDUE_PROFIT','OVERDUE_PROFIT_OFFBALANCE')) AS LoanPercentCost,
+	MAX(r.DelayDayCount) AS DelayDayCount
+	,
+(SELECT CEILING(SUM(abs(dbo.GetAccountBalanceById (a.Id, @currentDate, DEFAULT, DEFAULT))))
+		FROM Accounts a
+		JOIN AccountSettings acs ON acs.Id = a.AccountSettingId
+		WHERE a.ContractId = c.Id
+		AND acs.Code IN ('PENY_ACCOUNT','PENY_PROFIT','PENY_ACCOUNT_OFFBALANCE','PENY_PROFIT_OFFBALANCE')) AS PenaltyPercentCost,
+(SELECT CEILING(SUM(abs(dbo.GetAccountBalanceById (a.Id, @currentDate, DEFAULT, DEFAULT)))) 	
+		FROM Accounts a
+		JOIN AccountSettings acs ON acs.Id = a.AccountSettingId
+		WHERE a.ContractId = c.Id
+		AND acs.Code IN ('OVERDUE_PROFIT','PENY_ACCOUNT','PENY_PROFIT','OVERDUE_PROFIT_OFFBALANCE', 'PENY_ACCOUNT_OFFBALANCE', 'PENY_PROFIT_OFFBALANCE')) + 
+		(IIF (c.PercentPaymentType &lt;&gt; 20, 
+(SELECT CEILING(SUM(abs(dbo.GetAccountBalanceById (a.Id, @currentDate, DEFAULT, DEFAULT))))
+		FROM Accounts a
+		JOIN AccountSettings acs ON acs.Id = a.AccountSettingId
+		WHERE a.ContractId = c.Id AND acs.Code IN('OVERDUE_ACCOUNT','OVERDUE_ACCOUNT_OFFBALANCE')),0)) AS TotalPercentCost,	
+	IIF(c.CollateralType = 20 OR c.collateralType = 40,CarPositionInfo.Mark,
+ISNULL((SELECT p.Name + ' (' + ISNULL(JSON_VALUE(cp.PositionSpecific, '$.CollateralTotalWeight'), '') + ISNULL(JSON_VALUE(cp.PositionSpecific, '$.CollateralSpecificWeight'), '') + ')'
+	FROM Positions p 
+	JOIN ContractPositions cp ON cp.PositionId=p.Id
+	WHERE cp.ContractId = c.Id AND c.collateralType = 10
+	FOR XML PATH('')),N'')) AS PositionMark,
+	IIF(c.CollateralType = 20 OR c.collateralType = 40,CarPositionInfo.Model,N'') AS PositionModel,
+	IIF(c.CollateralType = 20 OR c.collateralType = 40,CarPositionInfo.ReleaseYear,N'') AS PositionYear,
+	IIF(c.CollateralType = 20 OR c.collateralType = 40,CarPositionInfo.Color,N'') AS PositionColor,
+	IIF(c.CollateralType = 20 OR c.collateralType = 40,CarPositionInfo.TransportNumber,N'') AS PositionNumber,
+	IIF(c.CollateralType = 20 OR c.collateralType = 40,CarPositionInfo.ParkingStatus,N'') AS ParkingStatus,
+    IIF(ct.TransferDate IS NULL, N'Нет', N'Да') AS IsTransferred,
+	SUM(isnull(r.QuantityDelayedPayments,0)) QuantityDelayedPaymentCount,
+	g.DisplayName,
+(SELECT abs(dbo.GetAccountBalanceById (a.Id, @currentDate, DEFAULT, DEFAULT))
+		FROM Accounts a
+		JOIN AccountSettings acs ON acs.Id = a.AccountSettingId
+		WHERE a.ContractId = c.Id
+		AND acs.Code = 'DEPO') AS Prepayment,
+	i.[Date] AS InscriptionDate,
+	CEILING(i.TotalCost) AS InscriptionCost,
+	ISNULL(i.[Status],-1) AS InscriptionStatus,
+(SELECT CEILING(abs(dbo.GetAccountBalanceById (a.Id, @currentDate, DEFAULT, DEFAULT)))
+		FROM Accounts a
+		JOIN AccountSettings acs ON acs.Id = a.AccountSettingId
+		WHERE a.ContractId = c.Id
+		AND acs.Code = 'OVERDUE_ACCOUNT') AS DelayedDebtCost,
+IIF(ISNULL((SELECT COUNT(*) FROM ClientSociallyVulnerableGroups WHERE ClientId = c.ClientId AND DeleteDate IS NULL),0) &gt; 0, N'Да', N'Нет') IsSocialyVulnerable,
+(SELECT CONCAT(u.FullName,N': ', n.Note,CHAR(10))
+	FROM ContractNotes n
+		JOIN Users u ON u.Id = n.AuthorId
+		WHERE ContractId = c.Id
+		ORDER BY n.Id DESC
+		FOR XML PATH('')) AS ContractNote,
+(SELECT CONCAT(N'-', u.FullName, N': ', pd.Note,CHAR(10))
+	FROM ContractDiscounts cd 
+		JOIN Users u ON u.Id = cd.AuthorId
+		JOIN PersonalDiscounts pd ON pd.Id=cd.PersonalDiscountId
+		WHERE cd.ContractId = c.Id AND cd.DeleteDate IS NULL AND @currentDate BETWEEN cd.BeginDate AND cd.EndDate
+		ORDER BY cd.Id DESC
+		FOR XML PATH('')) AS ContractDiscount,
+(SELECT CONCAT(N'-', u.FullName, N': ', p.Name,CHAR(10))
+	FROM ContractPostponements cp 
+		JOIN Users u ON u.Id=cp.AuthorId
+		JOIN Postponements p ON p.Id = cp.PostponementId
+		WHERE cp.ContractId = c.Id AND cp.DeleteDate IS NULL AND @currentDate &lt;= cp.[Date]
+		ORDER BY cp.Id DESC
+		FOR XML PATH('')) AS ContractPostponement,
+        IIF(b.Name=N'Умер' OR b.Name=N'Тяжело болен' OR b.Name=N'Осужден',b.Name,N'') AS BlackListReason
+
+FROM Contracts c 
+LEFT JOIN LoanPercentSettings lps ON lps.Id = c.SettingId
+JOIN @result r ON r.Id = c.Id
+LEFT JOIN Clients cl ON cl.Id = c.ClientId
+LEFT JOIN ClientAddresses ad ON ad.ClientId = cl.Id AND ad.IsActual = 1 AND ad.DeleteDate IS NULL AND ad.AddressTypeId = @actualAddressType
+LEFT JOIN Groups g ON g.Id = c.BranchId
+LEFT JOIN Inscriptions i ON i.ContractId = c.Id AND i.DeleteDate IS NULL
+LEFT JOIN ContractTransfers ct ON ct.ContractId = c.Id
+LEFT JOIN ClientsBlackList cb ON cb.ClientId = cl.id
+LEFT JOIN BlackListReasons b ON cb.ReasonId = b.Id
+LEFT JOIN ClientContacts cc ON cl.Id = cc.ClientId
+CROSS APPLY string_split(cc.Address, ' ')
+OUTER APPLY(
+SELECT
+	IIF(c.CollateralType = 20,ISNULL(UPPER(markCar.[Name]), UPPER(markMach.[Name])),'') AS Mark,
+	IIF(c.CollateralType = 20,ISNULL(UPPER(modelCar.[Name]), UPPER(modelMach.[Name])),'') AS Model,
+	IIF(c.CollateralType = 20,ISNULL(UPPER(car.ReleaseYear), ''),ISNULL(UPPER(mac.ReleaseYear), '')) AS ReleaseYear,
+	IIF(c.CollateralType = 20,ISNULL(UPPER(car.Color), ''), ISNULL(UPPER(mac.Color), '')) AS Color,
+	IIF(c.CollateralType = 20,ISNULL(UPPER(car.TransportNumber), ''), ISNULL(UPPER(mac.TransportNumber), '')) AS TransportNumber,
+	IIF(c.CollateralType = 20,ISNULL(UPPER(carStatus.StatusName), ''), ISNULL(UPPER(macStatus.StatusName), '')) AS ParkingStatus
+
+	FROM Positions p 
+LEFT JOIN Cars car ON p.Id = car.Id
+LEFT JOIN Machineries mac ON p.Id = mac.Id
+
+LEFT JOIN VehicleMarks markCar ON markCar.Id = car.VehicleMarkId
+LEFT JOIN VehicleModels modelCar ON modelCar.Id = car.VehicleModelId
+LEFT JOIN VehicleMarks markMach ON markMach.Id = mac.VehicleMarkId
+LEFT JOIN VehicleModels modelMach ON modelMach.Id = mac.VehicleModelId
+
+LEFT JOIN ParkingStatuses carStatus ON carStatus.Id = car.ParkingStatusId
+LEFT JOIN ParkingStatuses macStatus ON mac.Id = mac.ParkingStatusId
+
+JOIN ContractPositions cp ON cp.PositionId=p.Id
+WHERE cp.ContractId = c.Id AND (c.CollateralType=20 OR c.collateralType = 40)
+) AS CarPositionInfo
+WHERE c.DeleteDate IS NULL
+    AND c.CollateralType = @collateralType
+    AND c.[Status] IN (30,50)
+    AND r.DelayDayCount BETWEEN @beginDelayCount AND @endDelayCount
+	AND cc.IsDefault = 1 AND cc.DeleteDate IS NULL
+GROUP BY 
+c.Id, 
+c.ContractNumber,
+lps.[Name],
+c.PercentPaymentType,
+c.ContractData, 
+c.LoanPercent,
+c.ContractDate, 
+c.ClientId, 
+ad.FullPathRus, 
+cl.id,
+c.MaturityDate,
+c.LoanPeriod,
+c.collateralType,
+g.DisplayName,
+ct.TransferDate,
+c.LoanCost,
+cl.Fullname,
+cl.[Address],
+cl.IdentityNumber,
+CarPositionInfo.Mark,
+CarPositionInfo.Model,
+CarPositionInfo.ReleaseYear,
+CarPositionInfo.Color,
+CarPositionInfo.TransportNumber,
+CarPositionInfo.ParkingStatus,
+i.Date,
+i.TotalCost,
+i.Status,
+b.Name,
+cc.[Address]
+ORDER BY DelayDayCount DESC
+OFFSET (0) ROWS FETCH NEXT 5000 ROWS ONLY</SqlCommand>
+      </DelayReportForSoftCollection>
+      <LoanPortfolio Ref="4" type="Stimulsoft.Report.Dictionary.StiSqlSource" isKey="true">
+        <Alias>LoanPortfolio</Alias>
+        <Columns isList="true" count="1">
+          <value>LoanPortfolio,System.Int64</value>
+        </Columns>
+        <CommandTimeout>300</CommandTimeout>
+        <Dictionary isRef="1" />
+        <Key>7eec3219984246a7b0c47bb91516834a</Key>
+        <Name>LoanPortfolio</Name>
+        <NameInSource>ReportConnection</NameInSource>
+        <Parameters isList="true" count="0" />
+        <SqlCommand>DECLARE
+@beginDate DATE = dbo.GETASTANADATE()+1,
+@endDate DATE = dbo.GETASTANADATE()+1
+
+DECLARE @t TABLE
+(
+    BranchId INT,
+    BranchName NVARCHAR(MAX),
+    CollateralType INT,
+    BeginCount INT,
+    BeginCost BIGINT,
+    SignCount INT,
+    SignCost BIGINT,
+    ProlongCount INT,
+    ProlongCost BIGINT,
+    BuyoutCount INT,
+    BuyoutCost BIGINT,
+    SellingCount INT,
+    SellingCost BIGINT,
+    PercentCost BIGINT,
+    EndCount INT,
+    EndCost BIGINT,
+    CashBeginPeriod BIGINT,
+    CashIn BIGINT,
+    CashOut BIGINT,
+    CashEndPeriod BIGINT
+)
+
+INSERT INTO @t(BranchId, BranchName, CollateralType, BeginCount)
+SELECT
+	g.Id as BranchId,
+	g.DisplayName as BranchName,
+	c.CollateralType, 
+	COUNT(*) as BeginCount
+	FROM Contracts c WITH(NOLOCK)
+JOIN Groups g ON c.BranchId = g.Id
+LEFT JOIN ContractActions ca ON c.Id = ca.ContractId AND ca.ActionType IN (20, 30, 40, 60, 90)
+LEFT JOIN ContractTransfers ct ON ct.ContractId = c.Id
+WHERE c.ContractDate &lt; @beginDate AND (ca.[Date] &gt;= @beginDate OR ca.[Date] IS NULL)
+    AND c.DeleteDate IS NULL
+    AND ca.DeleteDate IS NULL
+    AND c.Status &lt;&gt; 0
+    AND ct.TransferDate IS NULL
+GROUP BY g.Id, g.DisplayName, c.CollateralType
+
+INSERT INTO @t(BranchId, BranchName, CollateralType, EndCount)
+SELECT
+	g.Id as BranchId,
+	g.DisplayName as BranchName,
+	c.CollateralType, 
+	COUNT(*) as EndCount
+	FROM Contracts c WITH(NOLOCK)
+JOIN Groups g ON c.BranchId = g.Id
+LEFT JOIN ContractActions ca ON c.Id = ca.ContractId AND ca.ActionType IN (20, 30, 40, 60, 90)
+LEFT JOIN ContractTransfers ct ON ct.ContractId = c.Id
+WHERE c.ContractDate &lt; @endDate AND (ca.[Date] &gt;= @endDate OR ca.[Date] IS NULL)
+    AND c.DeleteDate IS NULL
+    AND ca.DeleteDate IS NULL
+    AND c.Status &lt;&gt; 0
+    AND ct.TransferDate IS NULL
+GROUP BY g.Id, g.DisplayName, c.CollateralType
+
+INSERT INTO @t (BranchId, BranchName, CollateralType, BeginCost, EndCost)
+SELECT
+	g.Id as BranchId,
+	g.DisplayName as BranchName,
+	10 as CollateralType,
+	SUM(IIF(co.OrderDate &lt; @beginDate AND co.DebitAccountId = @goldAccountId, CAST(co.OrderCost AS BIGINT), 0)) 
+        - SUM(IIF(co.OrderDate &lt; @beginDate AND co.CreditAccountId = @goldAccountId, CAST(co.OrderCost AS BIGINT), 0)) as BeginCost,
+    SUM(IIF(co.OrderDate &lt; @endDate AND co.DebitAccountId = @goldAccountId, CAST(co.OrderCost AS BIGINT), 0)) 
+        - SUM(IIF(co.OrderDate &lt; @endDate AND co.CreditAccountId = @goldAccountId, CAST(co.OrderCost AS BIGINT), 0)) as EndCost
+FROM CashOrders co WITH(NOLOCK)
+JOIN Groups g ON co.BranchId = g.Id
+WHERE co.DeleteDate IS NULL
+	AND co.ApproveStatus = 10
+    AND co.OrderDate &lt; @endDate
+GROUP BY g.Id, g.DisplayName
+
+INSERT INTO @t (BranchId, BranchName, CollateralType, BeginCost, EndCost)
+SELECT
+	g.Id as BranchId,
+	g.DisplayName as BranchName,
+	20 as CollateralType,
+	SUM(IIF(co.OrderDate &lt; @beginDate AND co.DebitAccountId = @autoAccountId, CAST(co.OrderCost AS BIGINT), 0))
+        - SUM(IIF(co.OrderDate &lt; @beginDate AND co.CreditAccountId = @autoAccountId, CAST(co.OrderCost AS BIGINT), 0)) as BeginCost,
+    SUM(IIF(co.OrderDate &lt; @endDate AND co.DebitAccountId = @autoAccountId, CAST(co.OrderCost AS BIGINT), 0))
+        - SUM(IIF(co.OrderDate &lt; @endDate AND co.CreditAccountId = @autoAccountId, CAST(co.OrderCost AS BIGINT), 0)) as EndCost
+FROM CashOrders co WITH(NOLOCK)
+JOIN Groups g ON co.BranchId = g.Id
+WHERE co.DeleteDate IS NULL
+	AND co.ApproveStatus = 10
+    AND co.OrderDate &lt; @endDate
+GROUP BY g.Id, g.DisplayName
+
+INSERT INTO @t (BranchId, BranchName, CollateralType, BeginCost, EndCost)
+SELECT
+	g.Id as BranchId,
+	g.DisplayName as BranchName,
+	30 as CollateralType,
+	SUM(IIF(co.OrderDate &lt; @beginDate AND co.DebitAccountId = @goodsAccountId, CAST(co.OrderCost AS BIGINT), 0))
+        - SUM(IIF(co.OrderDate &lt; @beginDate AND co.CreditAccountId = @goodsAccountId, CAST(co.OrderCost AS BIGINT), 0)) as BeginCost,
+    SUM(IIF(co.OrderDate &lt; @endDate AND co.DebitAccountId = @goodsAccountId, CAST(co.OrderCost AS BIGINT), 0))
+        - SUM(IIF(co.OrderDate &lt; @endDate AND co.CreditAccountId = @goodsAccountId, CAST(co.OrderCost AS BIGINT), 0)) as EndCost
+FROM CashOrders co WITH(NOLOCK)
+JOIN Groups g ON co.BranchId = g.Id
+WHERE co.DeleteDate IS NULL
+	AND co.ApproveStatus = 10
+    AND co.OrderDate &lt; @endDate
+GROUP BY g.Id, g.DisplayName
+
+INSERT INTO @t (BranchId, BranchName, CollateralType, BeginCost, EndCost)
+SELECT
+	g.Id as BranchId,
+	g.DisplayName as BranchName,
+	40 as CollateralType,
+	SUM(IIF(co.OrderDate &lt; @beginDate AND co.DebitAccountId = @machineryAccountId, CAST(co.OrderCost AS BIGINT), 0))
+        - SUM(IIF(co.OrderDate &lt; @beginDate AND co.CreditAccountId = @machineryAccountId, CAST(co.OrderCost AS BIGINT), 0)) as BeginCost,
+    SUM(IIF(co.OrderDate &lt; @endDate AND co.DebitAccountId = @machineryAccountId, CAST(co.OrderCost AS BIGINT), 0))
+        - SUM(IIF(co.OrderDate &lt; @endDate AND co.CreditAccountId = @machineryAccountId, CAST(co.OrderCost AS BIGINT), 0)) as EndCost
+FROM CashOrders co WITH(NOLOCK)
+JOIN Groups g ON co.BranchId = g.Id
+WHERE co.DeleteDate IS NULL
+	AND co.ApproveStatus = 10
+    AND co.OrderDate &lt; @endDate
+GROUP BY g.Id, g.DisplayName
+
+SELECT 
+	SUM(EndCost) AS LoanPortfolio
+	FROM @t
+WHERE BranchId IN ({branchIds})
+AND (@collateralType=0 OR CollateralType=@collateralType)</SqlCommand>
+      </LoanPortfolio>
+    </DataSources>
+    <Relations isList="true" count="0" />
+    <Report isRef="0" />
+    <Resources isList="true" count="0" />
+    <Variables isList="true" count="10">
+      <value>,branchIds,branchIds,,Stimulsoft.Report.IntList,_x0031_12,False,False,True,False,,,True</value>
+      <value>,beginDelayCount,beginDelayCount,,System.Int32,_x0031_,False,False,False,False,_x003C__x003F_xml_x0020_version_x003D__x0022_1.0_x0022__x0020_encoding_x003D__x0022_utf-16_x0022__x0020_standalone_x003D__x0022_yes_x0022__x003F__x003E__x003C_StiSerializer_x0020_version_x003D__x0022_1.02_x0022__x0020_type_x003D__x0022_Net_x0022__x0020_application_x003D__x0022_State_x0022__x003E__x003C_DateTimeType_x003E_DateAndTime_x003C__x002F_DateTimeType_x003E__x003C_BindingVariable_x0020_isNull_x003D__x0022_true_x0022__x0020__x002F__x003E__x003C_Keys_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_Values_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_ValuesBinding_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C__x002F_StiSerializer_x003E_,,True</value>
+      <value>,endDelayCount,endDelayCount,,System.Int32,_x0032_00,False,False,False,False,_x003C__x003F_xml_x0020_version_x003D__x0022_1.0_x0022__x0020_encoding_x003D__x0022_utf-16_x0022__x0020_standalone_x003D__x0022_yes_x0022__x003F__x003E__x003C_StiSerializer_x0020_version_x003D__x0022_1.02_x0022__x0020_type_x003D__x0022_Net_x0022__x0020_application_x003D__x0022_State_x0022__x003E__x003C_DateTimeType_x003E_DateAndTime_x003C__x002F_DateTimeType_x003E__x003C_BindingVariable_x0020_isNull_x003D__x0022_true_x0022__x0020__x002F__x003E__x003C_Keys_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_Values_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_ValuesBinding_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C__x002F_StiSerializer_x003E_,,True</value>
+      <value>,collateralType,collateralType,,System.Int32,_x0032_0,False,False,False,False,_x003C__x003F_xml_x0020_version_x003D__x0022_1.0_x0022__x0020_encoding_x003D__x0022_utf-16_x0022__x0020_standalone_x003D__x0022_yes_x0022__x003F__x003E__x003C_StiSerializer_x0020_version_x003D__x0022_1.02_x0022__x0020_type_x003D__x0022_Net_x0022__x0020_application_x003D__x0022_State_x0022__x003E__x003C_DateTimeType_x003E_DateAndTime_x003C__x002F_DateTimeType_x003E__x003C_BindingVariable_x0020_isNull_x003D__x0022_true_x0022__x0020__x002F__x003E__x003C_Keys_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_Values_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_ValuesBinding_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C__x002F_StiSerializer_x003E_,,True</value>
+      <value>,cashAccountId,cashAccountId,,System.Int32,_x0032_,False,False,False,False,,,True</value>
+      <value>,goldAccountId,goldAccountId,,System.Int32,_x0033_,False,False,False,False,,,True</value>
+      <value>,autoAccountId,autoAccountId,,System.Int32,_x0031_,False,False,False,False,,,True</value>
+      <value>,goodsAccountId,goodsAccountId,,System.Int32,_x0035_,False,False,False,False,,,True</value>
+      <value>,machineryAccountId,machineryAccountId,,System.Int32,_x0031_08,False,False,False,False,,,True</value>
+      <value>,inscriptionVisible,inscriptionVisible,,System.Boolean,true,False,False,False,False</value>
+    </Variables>
+  </Dictionary>
+  <EngineVersion>EngineV2</EngineVersion>
+  <GlobalizationStrings isList="true" count="0" />
+  <Key>c9e191c5ddd0439f88f7ebc98c02b610</Key>
+  <MetaTags isList="true" count="0" />
+  <Pages isList="true" count="1">
+    <Page1 Ref="5" type="Page" isKey="true">
+      <Border>None;Black;2;Solid;False;4;Black</Border>
+      <Brush>Transparent</Brush>
+      <Components isList="true" count="3">
+        <ReportTitleBand1 Ref="6" type="ReportTitleBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,0.2,8.55,0.8</ClientRectangle>
+          <Components isList="true" count="4">
+            <Text1 Ref="7" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0,8.5,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,12,Bold</Font>
+              <Guid>711aec13bdff45e7a9bda4d2ff08485d</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text1</Name>
+              <Page isRef="5" />
+              <Parent isRef="6" />
+              <Text>Отчет Для SC</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text1>
+            <Text2 Ref="8" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0.2,8.5,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,12</Font>
+              <Guid>44c67ce188ea49d98534dca01b97dc4c</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text2</Name>
+              <Page isRef="5" />
+              <Parent isRef="6" />
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text2>
+            <Text3 Ref="9" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0.4,8.5,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,12</Font>
+              <Guid>1c89e24ada13438b9cbe41f532877c8c</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text3</Name>
+              <Page isRef="5" />
+              <Parent isRef="6" />
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text3>
+            <Text73 Ref="10" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0.6,8.5,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,12</Font>
+              <Guid>6cf36371340e42de80fe3d83d3644e90</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text73</Name>
+              <Page isRef="5" />
+              <Parent isRef="6" />
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text73>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Guid>db8fd4826d7848329a86141627d9549c</Guid>
+          <Name>ReportTitleBand1</Name>
+          <Page isRef="5" />
+          <Parent isRef="5" />
+        </ReportTitleBand1>
+        <HeaderBand1 Ref="11" type="HeaderBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,1.4,8.55,0.3</ClientRectangle>
+          <Components isList="true" count="8">
+            <Text13 Ref="12" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>6.2,0,1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>b6bf5f5992a94778b72545b885868ecf</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text13</Name>
+              <Page isRef="5" />
+              <Parent isRef="11" />
+              <Text>Дней просрочки</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text13>
+            <Text15 Ref="13" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>5.2,0,1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>97c5834c42b144408134315ed8f85cc1</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text15</Name>
+              <Page isRef="5" />
+              <Parent isRef="11" />
+              <Text>Общая сумма</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text15>
+            <Text106 Ref="14" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0,1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>1debdb507a2d4dab8d947169a61bfe0b</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text106</Name>
+              <Page isRef="5" />
+              <Parent isRef="11" />
+              <Text>Телефоны</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text106>
+            <Text4 Ref="15" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>1,0,1.2,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>daa28b5b24594cd8a6ee24170b92a2b4</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text4</Name>
+              <Page isRef="5" />
+              <Parent isRef="11" />
+              <Text>Тип скрипта</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text4>
+            <Text6 Ref="16" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>2.2,0,1.1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>28c9a0db699d4e85bb27975afbaad888</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text6</Name>
+              <Page isRef="5" />
+              <Parent isRef="11" />
+              <Text>Пол робота</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text6>
+            <Text18 Ref="17" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>3.3,0,0.9,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>67315a81be5a437ba70bf6cedb09013b</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text18</Name>
+              <Page isRef="5" />
+              <Parent isRef="11" />
+              <Text>Язык общения</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text18>
+            <Text20 Ref="18" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>4.2,0,1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>e53fcc45ca5b48b3a4932ea22aa6f258</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text20</Name>
+              <Page isRef="5" />
+              <Parent isRef="11" />
+              <Text>Резервный номер</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text20>
+            <Text5 Ref="19" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>7.2,0,1.3,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>6274150bc68240daa1a9e0981426bb00</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text5</Name>
+              <Page isRef="5" />
+              <Parent isRef="11" />
+              <Text>Клиент</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text5>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Guid>ac1bd91a6a2c4c52ba9e88ab34c76b05</Guid>
+          <Name>HeaderBand1</Name>
+          <Page isRef="5" />
+          <Parent isRef="5" />
+          <PrintIfEmpty>True</PrintIfEmpty>
+          <PrintOn>OnlyFirstPage</PrintOn>
+        </HeaderBand1>
+        <DataBand1 Ref="20" type="DataBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <BusinessObjectGuid isNull="true" />
+          <ClientRectangle>0,2.1,8.55,0.2</ClientRectangle>
+          <Components isList="true" count="8">
+            <Text27 Ref="21" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanGrow>True</CanGrow>
+              <ClientRectangle>6.2,0,1,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <GrowToHeight>True</GrowToHeight>
+              <Guid>2f1f007dab1a4c01832578bd6e609c8f</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text27</Name>
+              <Page isRef="5" />
+              <Parent isRef="20" />
+              <Text>{DelayReportForSoftCollection.DelayDayCount}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="22" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <DecimalSeparator>,</DecimalSeparator>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <State>DecimalDigits</State>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text27>
+            <Text107 Ref="23" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanGrow>True</CanGrow>
+              <ClientRectangle>0,0,1,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <GrowToHeight>True</GrowToHeight>
+              <Guid>7f495aa509394c7596149c2b927eefe0</Guid>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text107</Name>
+              <Page isRef="5" />
+              <Parent isRef="20" />
+              <Text>{DelayReportForSoftCollection.MobilePhone}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text107>
+            <Text8 Ref="24" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanGrow>True</CanGrow>
+              <ClientRectangle>1,0,1.2,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <GrowToHeight>True</GrowToHeight>
+              <Guid>3742aea0d8ef4e7d96a1676fee05f3b1</Guid>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text8</Name>
+              <Page isRef="5" />
+              <Parent isRef="20" />
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text8>
+            <Text9 Ref="25" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanGrow>True</CanGrow>
+              <ClientRectangle>2.2,0,1.1,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <GrowToHeight>True</GrowToHeight>
+              <Guid>db08cc63ade541798315ef3aede140b0</Guid>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text9</Name>
+              <Page isRef="5" />
+              <Parent isRef="20" />
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text9>
+            <Text10 Ref="26" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanGrow>True</CanGrow>
+              <ClientRectangle>3.3,0,0.9,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <GrowToHeight>True</GrowToHeight>
+              <Guid>2004051e8aad4e2b8ea6426cc77dc3a2</Guid>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text10</Name>
+              <Page isRef="5" />
+              <Parent isRef="20" />
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text10>
+            <Text11 Ref="27" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanGrow>True</CanGrow>
+              <ClientRectangle>4.2,0,1,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <GrowToHeight>True</GrowToHeight>
+              <Guid>44f9892809d74c1c80f80805d1733245</Guid>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text11</Name>
+              <Page isRef="5" />
+              <Parent isRef="20" />
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text11>
+            <Text19 Ref="28" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanGrow>True</CanGrow>
+              <ClientRectangle>7.2,0,1.3,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <GrowToHeight>True</GrowToHeight>
+              <Guid>d4e46bb931b64ca28045ee4c27d9ad90</Guid>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text19</Name>
+              <Page isRef="5" />
+              <Parent isRef="20" />
+              <Text>{DelayReportForSoftCollection.ClientName}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text19>
+            <Text29 Ref="29" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanGrow>True</CanGrow>
+              <ClientRectangle>5.2,0,1,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <GrowToHeight>True</GrowToHeight>
+              <Guid>26a0f57febad4af0a581f1380e7a3fe0</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text29</Name>
+              <Page isRef="5" />
+              <Parent isRef="20" />
+              <Text>{DelayReportForSoftCollection.TotalPercentCost}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="30" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text29>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <DataRelationName isNull="true" />
+          <DataSourceName>DelayReportForSoftCollection</DataSourceName>
+          <Filters isList="true" count="0" />
+          <Guid>f75a7c0fcb824ecd9b84540d827f58bf</Guid>
+          <Name>DataBand1</Name>
+          <Page isRef="5" />
+          <Parent isRef="5" />
+          <Sort isList="true" count="0" />
+        </DataBand1>
+      </Components>
+      <Conditions isList="true" count="0" />
+      <Guid>b547bf67359d4ae4bd35a1662019b760</Guid>
+      <Margins>0.39,0.39,0.39,0.39</Margins>
+      <Name>Page1</Name>
+      <Orientation>Landscape</Orientation>
+      <PageHeight>8.5</PageHeight>
+      <PageWidth>9.33</PageWidth>
+      <PaperSize>Letter</PaperSize>
+      <Report isRef="0" />
+    </Page1>
+  </Pages>
+  <ReferencedAssemblies isList="true" count="8">
+    <value>System.Dll</value>
+    <value>System.Drawing.Dll</value>
+    <value>System.Windows.Forms.Dll</value>
+    <value>System.Data.Dll</value>
+    <value>System.Xml.Dll</value>
+    <value>Stimulsoft.Controls.Dll</value>
+    <value>Stimulsoft.Base.Dll</value>
+    <value>Stimulsoft.Report.Dll</value>
+  </ReferencedAssemblies>
+  <ReportAlias>Report</ReportAlias>
+  <ReportChanged>12/28/2021 9:12:25 PM</ReportChanged>
+  <ReportCreated>11/15/2018 4:32:13 PM</ReportCreated>
+  <ReportFile>C:\projects\NewProject\tascredit\sources\Pawnshop.Web\Reports\DelayReportForSoftCollection.mrt</ReportFile>
+  <ReportGuid>c72c626406df4f4bbc57bc20544ad880</ReportGuid>
+  <ReportName>Report</ReportName>
+  <ReportUnit>Inches</ReportUnit>
+  <ReportVersion>2020.1.1.0</ReportVersion>
+  <Script>using System;
+using System.Drawing;
+using System.Windows.Forms;
+using System.Data;
+using Stimulsoft.Controls;
+using Stimulsoft.Base.Drawing;
+using Stimulsoft.Report;
+using Stimulsoft.Report.Dialogs;
+using Stimulsoft.Report.Components;
+
+namespace Reports
+{
+    public class Report : Stimulsoft.Report.StiReport
+    {
+        public Report()        {
+            this.InitializeComponent();
+        }
+
+        #region StiReport Designer generated code - do not modify
+		#endregion StiReport Designer generated code - do not modify
+    }
+}
+</Script>
+  <ScriptLanguage>CSharp</ScriptLanguage>
+  <Styles isList="true" count="0" />
+</StiSerializer>

@@ -1,0 +1,1144 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<StiSerializer version="1.02" type="Net" application="StiReport">
+  <CalculationMode>Interpretation</CalculationMode>
+  <Culture>ru-RU</Culture>
+  <Dictionary Ref="1" type="Dictionary" isKey="true">
+    <BusinessObjects isList="true" count="0" />
+    <Databases isList="true" count="1">
+      <ReportConnection Ref="2" type="Stimulsoft.Report.Dictionary.StiSqlDatabase" isKey="true">
+        <Alias>ReportConnection</Alias>
+        <ConnectionStringEncrypted>9GD3C0Zd87zsTf2ATVwlKtFSuyvFV3uZaRyc2OsA9hvRes+DVFpxRcNN2VBmJemfnnCVwmZdsoXjRs18w6zgRvVw2+thcXpt7VDt5PBsZD/WVtHCxUzDzcsVTYTFGSU/i3jXK0hcMfVqXKiYagThZ99q0YjJfKmB4nyEfGAEpHvlbmkLS07D4fNBvZhiRCI/4lplAlZMa8jsXKX0ToTkP/Fen+vmUVGBaU3lnGNM4X/R8tkLyEJz7WxM2fzpcOATxWDZScVB+plqe6WV5QWiD9nIwYjJffPVek25FOVsr7PEGmXvQ2tLzeFYvaViTCQ/xFTN</ConnectionStringEncrypted>
+        <Name>ReportConnection</Name>
+      </ReportConnection>
+    </Databases>
+    <DataSources isList="true" count="1">
+      <ParkingCarReportForCARTAS Ref="3" type="Stimulsoft.Report.Dictionary.StiSqlSource" isKey="true">
+        <Alias>ParkingCarReportForCARTAS</Alias>
+        <Columns isList="true" count="19">
+          <value>ContractId,System.Int32</value>
+          <value>Fullname,System.String</value>
+          <value>Mark,System.String</value>
+          <value>Model,System.String</value>
+          <value>TransportNumber,System.String</value>
+          <value>ReleaseYear,System.Int32</value>
+          <value>ParkingStatus,System.String</value>
+          <value>DelayDayCount,System.Int32</value>
+          <value>ParkingDate,System.DateTime</value>
+          <value>DaysAfterParking,System.Int32</value>
+          <value>ContractNumber,System.String</value>
+          <value>DisplayStatus,System.String</value>
+          <value>BranchName,System.String</value>
+          <value>percentPaymentType,System.Int32</value>
+          <value>DebtLeft,System.Decimal</value>
+          <value>OVERDUEPROFIT,System.Decimal</value>
+          <value>PENY,System.Decimal</value>
+          <value>EXPENSE,System.Decimal</value>
+          <value>TotalSum,System.Decimal</value>
+        </Columns>
+        <CommandTimeout>4000</CommandTimeout>
+        <Dictionary isRef="1" />
+        <Key>e3d0fe2877ba4cfca982b0b230a51d79</Key>
+        <Name>ParkingCarReportForCARTAS</Name>
+        <NameInSource>ReportConnection</NameInSource>
+        <Parameters isList="true" count="1">
+          <value>beginDate,beginDate,4,0</value>
+        </Parameters>
+        <SqlCommand>DECLARE
+@AccountSettingId INT, 
+@overdueAccountSettingId INT, 
+@overdueProfitSettingId INT, 
+@PenyAccountSettingId INT, 
+@PenyProfitSettingId INT, 
+@ExpenseSettingId INT,
+@branchId INT
+
+SELECT TOP 1 @AccountSettingId = Id FROM AccountSettings acs WHERE acs.Code = 'ACCOUNT' 
+SELECT TOP 1 @overdueAccountSettingId = Id FROM AccountSettings acs WHERE acs.Code = 'OVERDUE_ACCOUNT'
+SELECT TOP 1 @overdueProfitSettingId = Id FROM AccountSettings acs WHERE acs.Code = 'OVERDUE_PROFIT'
+SELECT TOP 1 @PenyAccountSettingId = Id FROM AccountSettings acs WHERE acs.Code = 'PENY_ACCOUNT';
+SELECT TOP 1 @PenyProfitSettingId = Id FROM AccountSettings acs WHERE acs.Code = 'PENY_PROFIT';
+SELECT TOP 1 @ExpenseSettingId = Id FROM AccountSettings acs WHERE acs.Code = 'EXPENSE';
+
+WITH CarParkingTable(ContractId, ContractNumber, Fullname, ParkingStatusId, ParkingStatus, StatusAfterId, ParkingDate, DaysAfterParking, IdentityNumber, Mark, Model, TransportNumber, ReleaseYear, DelayDayCount, DisplayStatus, BranchId, BranchName, carParkingStatusId, percentPaymentType, LoanPeriod, LoanPercent, LoanPercentCost, LoanCost) AS
+(
+SELECT c.Id AS ContractId,
+	c.ContractNumber AS ContractNumber,
+	cl.FullName AS Fullname,
+	car.ParkingStatusId AS ParkingStatusId,
+	ps.StatusName AS ParkingStatus,
+	ph.StatusAfterId AS StatusAfterId,
+	ph.ParkingDate AS ParkingDate,
+	DATEDIFF(DAY, ph.ParkingDate, CAST(@beginDate AS date)) AS DaysAfterParking,
+    cl.IdentityNumber AS IdentityNumber,
+    car.Mark AS Mark,
+    car.Model AS Model,
+    car.TransportNumber AS TransportNumber,
+    car.ReleaseYear AS ReleaseYear,
+    (CASE
+        WHEN c.LoanPeriod = 30 THEN IIF(DATEDIFF(DAY, c.MaturityDate, @beginDate) &lt; 0, 0, DATEDIFF(DAY, c.MaturityDate, @beginDate))
+		ELSE (
+SELECT MAX(DATEDIFF(DAY, Date, CAST(@beginDate AS date))) AS DelayDayCount
+            FROM ContractPaymentSchedule
+            WHERE CAST(Date AS date) &lt; CAST(@beginDate AS date)
+				AND ActionId IS NULL
+                AND Canceled IS NULL
+                AND DeleteDate IS NULL
+                AND ContractId = c.Id
+			GROUP BY ContractId)
+	END) AS DelayDayCount,
+    CASE
+        WHEN c.DeleteDate IS NOT NULL THEN N'Удален'
+        WHEN c.Status = 0 THEN N'Новый'
+        WHEN c.Status = 30 
+			AND InscriptionId IS NOT NULL 
+			AND (	
+SELECT TOP 1 Status
+				FROM Inscriptions
+				WHERE ContractId = c.Id
+				AND DeleteDate IS NULL 
+				ORDER BY Date) != 20 
+			THEN N'Передан ЧСИ' --25
+		WHEN c.Status = 30 
+			AND (	
+SELECT COUNT(*)
+	FROM ContractPaymentSchedule
+	WHERE ContractId = c.Id
+	AND Canceled IS NULL
+				AND DeleteDate IS NULL
+				AND ActionId IS NULL
+				AND Date &lt; CONVERT(DATE, @beginDate) ) &gt; 0 
+			THEN N'Просрочен' --20
+        WHEN c.Status = 30 AND c.MaturityDate &gt;= CONVERT(DATE, @beginDate) AND c.ProlongDate IS NULL THEN N'Открыт' --10
+        WHEN c.Status = 30 AND c.MaturityDate &lt; CONVERT(DATE, @beginDate) THEN N'Просрочен' --20
+        WHEN c.Status = 30 AND c.MaturityDate &gt;= CONVERT(DATE, @beginDate) AND c.ProlongDate IS NOT NULL THEN N'Продлен' --30
+        WHEN c.Status = 40 THEN N'Выкуплен' --40
+        WHEN c.Status = 50 THEN N'Отправлен на реализацию' --50
+        WHEN c.Status = 60 THEN N'Реализован' --55
+        ELSE N'Новый' /*0*/
+	END AS DisplayStatus,
+	g.Id AS BranchId,
+	g.DisplayName AS BranchName,
+	car.ParkingStatusId AS carParkingStatusId,
+	c.PercentPaymentType,
+	c.LoanPeriod,
+	c.LoanPercent,
+	c.LoanPercentCost,
+	c.LoanCost
+FROM Contracts c 
+LEFT JOIN Dogs.Tranches tr ON tr.Id=c.Id
+LEFT JOIN ContractPositions cp ON cp.ContractId = ISNULL(tr.CreditLineId, c.Id)
+LEFT JOIN Cars car ON cp.PositionId = car.Id
+LEFT JOIN Dogs.ContractAdditionalInfo cai ON cai.Id=c.Id
+LEFT JOIN Categories cat ON cat.Id = cp.CategoryId 
+OUTER APPLY (
+SELECT t.Id, t.ContractId, t.Date AS ParkingDate, t.DelayDays, t.DeleteDate, t.PositionId, t.StatusAfterId
+	FROM ParkingHistories t
+	INNER JOIN (
+SELECT ContractId, max(Date) AS MaxDate
+	FROM ParkingHistories t1
+		GROUP BY ContractId) t1 ON t.ContractId = t1.ContractId AND t.Date = t1.MaxDate
+	WHERE t.ContractId = ISNULL(tr.CreditLineId, c.Id) ) ph
+LEFT JOIN ParkingStatuses ps ON car.ParkingStatusId = ps.Id --ph.StatusAfterId = ps.Id
+LEFT JOIN Clients cl ON cl.Id = c.ClientId
+LEFT JOIN Groups g ON g.Id = ISNULL(cai.SelectedBranchId, c.BranchId)
+WHERE c.DeleteDate IS NULL
+AND ph.DeleteDate IS NULL
+AND ph.Id IS NOT NULL
+AND ph.ParkingDate &lt;= @beginDate
+AND c.Status NOT IN (40, 60)
+AND car.ParkingStatusId IS NOT NULL 	
+)
+
+
+SELECT 
+	ct.ContractId,
+	ct.Fullname,
+	ct.Mark,
+	ct.Model,
+	ct.TransportNumber,
+	ct.ReleaseYear,
+	ct.ParkingStatus,
+	ct.DelayDayCount,
+	Convert(date, ct.ParkingDate) AS ParkingDate,
+	ct.DaysAfterParking,
+	ct.ContractNumber,
+	ct.DisplayStatus,
+	ct.BranchName,
+	ct.percentPaymentType,
+	CEILING(new.ACCOUNT + new.OVERDUEACCOUNT) AS DebtLeft,
+	CASE WHEN ct.LoanPeriod = 30 THEN CEILING(ct.LoanPercentCost * 30)
+	ELSE new.OVERDUEPROFIT END AS OVERDUEPROFIT,
+	CEILING(new.PENYACCOUNT + new.PENYPROFIT) AS PENY,
+	CEILING(new.EXPENSE) AS EXPENSE,
+	CEILING(new.ACCOUNT + new.OVERDUEACCOUNT + new.OVERDUEPROFIT + new.PENYACCOUNT + new.PENYPROFIT + new.EXPENSE) AS TotalSum
+FROM CarParkingTable ct
+LEFT JOIN (
+SELECT
+	co.Id, 
+	co.ContractNumber,
+	ABS(dbo.GetAccountBalanceById (accountId.Id, @beginDate, DEFAULT, DEFAULT)) AS ACCOUNT,
+		ABS(dbo.GetAccountBalanceById (overdueaccountId.Id, @beginDate, DEFAULT, DEFAULT)) AS OVERDUEACCOUNT,
+		ABS(dbo.GetAccountBalanceById (penyaccountId.Id, @beginDate, DEFAULT, DEFAULT)) AS PENYACCOUNT,
+		ABS(dbo.GetAccountBalanceById (penyprofitId.Id, @beginDate, DEFAULT, DEFAULT)) AS PENYPROFIT,
+		ABS(dbo.GetAccountBalanceById (expenseId.Id, @beginDate, DEFAULT, DEFAULT)) AS EXPENSE,
+		CASE 
+			WHEN co.LoanPeriod NOT IN (30) 
+			THEN CAST((
+SELECT CEILING(SUM(t.PercentCost)) 
+	FROM (
+SELECT TOP 2 (cps.PercentCost)
+						FROM ContractPaymentSchedule cps
+						WHERE cps.ActualDate IS NULL
+						AND cps.Canceled IS NULL
+						AND cps.DeleteDate IS NULL
+						AND cps.ContractId = co.Id 
+						ORDER BY cps.Date ASC) t) AS decimal(10, 0))
+			ELSE ABS(dbo.GetAccountBalanceById 
+				(overdueprofitId.Id, (
+SELECT TOP 1 cps.Date
+				FROM ContractPaymentSchedule cps
+				WHERE cps.ContractId = co.Id
+				AND cps.ActualDate IS NULL
+				AND cps.DeleteDate IS NULL
+				ORDER BY cps.Date ASC), DEFAULT, DEFAULT))
+		END AS OVERDUEPROFIT,
+		g.DisplayName
+		FROM Contracts co
+		JOIN Clients cl ON co.ClientId = cl.Id
+		LEFT JOIN Dogs.ContractAdditionalInfo cai2 ON cai2.Id=co.Id
+		JOIN Groups g ON g.Id = ISNULL(cai2.SelectedBranchId, co.BranchId)
+OUTER APPLY (SELECT TOP 1 Id FROM Accounts a WHERE a.AccountSettingId = @AccountSettingId AND a.ContractId = co.Id AND a.DeleteDate IS NULL ) accountId 
+OUTER APPLY (SELECT TOP 1 Id FROM Accounts a WHERE a.AccountSettingId = @overdueAccountSettingId AND a.ContractId = co.Id AND a.DeleteDate IS NULL ) overdueaccountId 
+OUTER APPLY (SELECT TOP 1 Id FROM Accounts a WHERE a.AccountSettingId = @overdueProfitSettingId AND a.ContractId = co.Id AND a.DeleteDate IS NULL ) overdueprofitId 
+OUTER APPLY (SELECT TOP 1 Id FROM Accounts a WHERE a.AccountSettingId = @PenyAccountSettingId AND a.ContractId = co.Id AND a.DeleteDate IS NULL ) penyaccountId 
+OUTER APPLY (SELECT TOP 1 Id FROM Accounts a WHERE a.AccountSettingId = @PenyProfitSettingId AND a.ContractId = co.Id AND a.DeleteDate IS NULL ) penyprofitId 
+OUTER APPLY (SELECT TOP 1 Id FROM Accounts a WHERE a.AccountSettingId = @ExpenseSettingId AND a.ContractId = co.Id AND a.DeleteDate IS NULL ) expenseId
+	WHERE co.DeleteDate IS NULL) NEW ON new.Id = ct.ContractId
+WHERE 
+	ParkingStatusId != 1 
+	AND ct.DelayDayCount &gt; 0 
+	AND ct.BranchId IN ({ branchIds })
+GROUP BY ct.ContractId,
+         ct.Fullname,
+         ct.Mark,
+         ct.Model,
+         ct.TransportNumber,
+         ct.ReleaseYear,
+         ct.BranchName,
+         ct.ParkingStatus,
+         ct.DelayDayCount,
+         ct.ParkingDate,
+         ct.DaysAfterParking,
+         ct.ContractNumber,
+         ct.DisplayStatus,
+         ct.percentPaymentType,
+         ct.LoanPercent,
+         ct.LoanPercentCost,
+		 ct.LoanPeriod,
+         ct.LoanCost,
+         new.ACCOUNT,
+         new.OVERDUEACCOUNT,
+         new.OVERDUEPROFIT,
+		 new.PENYACCOUNT,
+         new.PENYPROFIT,
+         new.EXPENSE
+ORDER BY BranchName,
+         Fullname</SqlCommand>
+      </ParkingCarReportForCARTAS>
+    </DataSources>
+    <Relations isList="true" count="0" />
+    <Report isRef="0" />
+    <Resources isList="true" count="0" />
+    <Variables isList="true" count="2">
+      <value>,branchIds,branchIds,,Stimulsoft.Report.IntList,_x0031_12,False,False,False,False,,,True</value>
+      <value>,beginDate,beginDate,,System.DateTime,_x0031_0_x002F_20_x002F_2020_x0020_12:00:00_x0020_AM,False,False,False,False</value>
+    </Variables>
+  </Dictionary>
+  <EngineVersion>EngineV2</EngineVersion>
+  <GlobalizationStrings isList="true" count="0" />
+  <Key>a5baf6f9ee3f4d90b4ac9bb371d75043</Key>
+  <MetaTags isList="true" count="0" />
+  <Pages isList="true" count="1">
+    <Page1 Ref="4" type="Page" isKey="true">
+      <Border>None;Black;2;Solid;False;4;Black</Border>
+      <Brush>Transparent</Brush>
+      <Components isList="true" count="5">
+        <ReportTitleBand1 Ref="5" type="ReportTitleBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,0.4,54.5,1.2</ClientRectangle>
+          <Components isList="true" count="2">
+            <Text1 Ref="6" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>13.8,0,13.6,0.6</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,12,Bold</Font>
+              <Guid>081d21891a704023b86892d95650eda9</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text1</Name>
+              <Page isRef="4" />
+              <Parent isRef="5" />
+              <Text>Отчет по залоговым машинам на стоянке (CARTAS)</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text1>
+            <Text2 Ref="7" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>13.8,0.6,13.6,0.6</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,12</Font>
+              <Guid>45c0d8fe0f1f45ab9832054f8ac1ea79</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text2</Name>
+              <Page isRef="4" />
+              <Parent isRef="5" />
+              <Text>на {Format("{0:dd.MM.yyyy}", beginDate)}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text2>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Name>ReportTitleBand1</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+        </ReportTitleBand1>
+        <HeaderBand1 Ref="8" type="HeaderBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,2.4,54.5,0.8</ClientRectangle>
+          <Components isList="true" count="18">
+            <Text4 Ref="9" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0,1,1</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>a7c95c7f9d8d47c8bfd36a497d6a7132</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text4</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>№</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text4>
+            <Text8 Ref="10" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>9,0,3.2,1</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>8adf303d12474af5b1a9d51f43eaa19b</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text8</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Марка</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text8>
+            <Text9 Ref="11" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>12.2,0,2.8,1</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>ae5542cc7f084a42b3b3b6293bcd166d</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text9</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Модель</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text9>
+            <Text13 Ref="12" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>17.4,0,1.8,1</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>06cb1d448a5543c7a08bd281f51fa67d</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text13</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Год Выпуска</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text13>
+            <Text14 Ref="13" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>19.2,0,3.4,1</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>6affa87aa5c74c10a8dae8f87e021dc9</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text14</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Статус Стоянки</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text14>
+            <Text6 Ref="14" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>1,0,8,1</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>f9cbc29df92d4e87ba57eaef3b60234a</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,1,0,0</Margins>
+              <Name>Text6</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Клиент</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text6>
+            <Text5 Ref="15" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>15,0,2.4,1</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>814dad65b13d403e813f288006a4a65b</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text5</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Номер авто</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text5>
+            <Text10 Ref="16" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>22.6,0,2.2,1</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>fdbea1d8e67647ce92b8d5b95933bf11</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text10</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Дни просрочки</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text10>
+            <Text15 Ref="17" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>33.4,0,3.4,1</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>4e02af8f009f43129b85ec653a4078df</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text15</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Статус Договора</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text15>
+            <Text17 Ref="18" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>39.8,0,2.6,1</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>bc958e65e6fc4d2c85f12da2832c40bb</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text17</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Остаток ОД</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text17>
+            <Text21 Ref="19" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>30.2,0,3.2,1</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>b982880d1ade4b44a6074bab94845435</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text21</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Номер договора</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text21>
+            <Text12 Ref="20" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>24.8,0,2.6,1</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>a72272b89cab4f03bc96db957de4c3a1</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text12</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Дата постановки на парковку</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text12>
+            <Text3 Ref="21" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>36.8,0,3,1</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>a10e573a9a3040e19832d0fd10959db9</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text3</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Филиал</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text3>
+            <Text32 Ref="22" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>27.4,0,2.8,1</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>3d970f484b9948c2a350eb696fde35c5</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text32</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Дней после постановки на парковку</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text32>
+            <Text34 Ref="23" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>42.4,0,3,1</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>671fa6b07a374d43a3e0830bbafcad00</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text34</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Сумма по вознаграждению</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text34>
+            <Text35 Ref="24" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>51.4,0,3,1</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>687445b1e6c74f1b8c0148505715a2c4</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text35</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Себестоимость авто на продажу</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text35>
+            <Text38 Ref="25" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>45.4,0,3,1</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>a33c957118284f0bb25ff04c21f95f8a</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text38</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Штрафы</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text38>
+            <Text40 Ref="26" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>48.4,0,3,1</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>49a1b68430bc4343bb7c216bd635ae01</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text40</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Доп. расходы</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text40>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Name>HeaderBand1</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+          <PrintIfEmpty>True</PrintIfEmpty>
+          <PrintOn>OnlyFirstPage</PrintOn>
+        </HeaderBand1>
+        <GroupHeaderBand1 Ref="27" type="GroupHeaderBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,4,54.5,0</ClientRectangle>
+          <Components isList="true" count="0" />
+          <Condition>{ParkingCarReportForCARTAS.BranchName}</Condition>
+          <Conditions isList="true" count="0" />
+          <Guid>237525d91f0a47cea6ae8930570a62f2</Guid>
+          <Name>GroupHeaderBand1</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+        </GroupHeaderBand1>
+        <DataBand1 Ref="28" type="DataBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <BusinessObjectGuid isNull="true" />
+          <ClientRectangle>0,4.8,54.5,0.6</ClientRectangle>
+          <Components isList="true" count="18">
+            <Text18 Ref="29" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0,1,0.8</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>57d269f62701402487f153872dae4bc3</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text18</Name>
+              <Page isRef="4" />
+              <Parent isRef="28" />
+              <Text>{Line}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>SystemVariables</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text18>
+            <Text22 Ref="30" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanGrow>True</CanGrow>
+              <ClientRectangle>9,0,3.2,0.8</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>64e81a4b04484ccda45d312b2da12641</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text22</Name>
+              <Page isRef="4" />
+              <Parent isRef="28" />
+              <Text>{ParkingCarReportForCARTAS.Mark}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text22>
+            <Text23 Ref="31" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>12.2,0,2.8,0.8</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>3a7fe174ceae47b594765fe190380131</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text23</Name>
+              <Page isRef="4" />
+              <Parent isRef="28" />
+              <Text>{ParkingCarReportForCARTAS.Model}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text23>
+            <Text26 Ref="32" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanGrow>True</CanGrow>
+              <ClientRectangle>17.4,0,1.8,0.8</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>ffab53929aaf4a51ac33cb136eecf5c0</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text26</Name>
+              <Page isRef="4" />
+              <Parent isRef="28" />
+              <Text>{ParkingCarReportForCARTAS.ReleaseYear}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="33" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text26>
+            <Text27 Ref="34" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>19.2,0,3.4,0.8</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>cd046242f3134953be22673b9c6fe201</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text27</Name>
+              <Page isRef="4" />
+              <Parent isRef="28" />
+              <Text>{ParkingCarReportForCARTAS.ParkingStatus}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text27>
+            <Text20 Ref="35" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanGrow>True</CanGrow>
+              <ClientRectangle>1,0,8,0.8</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>ab8b1cc01ae34806879197050b655841</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,1,0,0</Margins>
+              <Name>Text20</Name>
+              <Page isRef="4" />
+              <Parent isRef="28" />
+              <Text>{ParkingCarReportForCARTAS.Fullname}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text20>
+            <Text7 Ref="36" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>15,0,2.4,0.8</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>1b3db1fbadd047a6a20b346f96175fa8</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text7</Name>
+              <Page isRef="4" />
+              <Parent isRef="28" />
+              <Text>{ParkingCarReportForCARTAS.TransportNumber}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text7>
+            <Text11 Ref="37" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>22.6,0,2.2,0.8</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>c7b383d175d947c1903430c16713654f</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text11</Name>
+              <Page isRef="4" />
+              <Parent isRef="28" />
+              <Text>{ParkingCarReportForCARTAS.DelayDayCount}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text11>
+            <Text16 Ref="38" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>33.4,0,3.4,0.8</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>3d5f8ab1f67848fab7ee48b2d9983e4e</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text16</Name>
+              <Page isRef="4" />
+              <Parent isRef="28" />
+              <Text>{ParkingCarReportForCARTAS.DisplayStatus}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text16>
+            <Text19 Ref="39" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>39.8,0,2.6,0.8</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>8db0bc0cef4043cdab44fd8a4a8521d4</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text19</Name>
+              <Page isRef="4" />
+              <Parent isRef="28" />
+              <Text>{ParkingCarReportForCARTAS.DebtLeft}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="40" type="NumberFormat" isKey="true">
+                <DecimalDigits>2</DecimalDigits>
+                <DecimalSeparator>,</DecimalSeparator>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <State>GroupSize</State>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text19>
+            <Text24 Ref="41" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>30.2,0,3.2,0.8</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>1d9e51a5f9af41bc8e18e2276f05eefb</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text24</Name>
+              <Page isRef="4" />
+              <Parent isRef="28" />
+              <Text>{ParkingCarReportForCARTAS.ContractNumber}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text24>
+            <Text25 Ref="42" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>24.8,0,2.6,0.8</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>3f1af5a2279e4687bf08348e1c8ed86b</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text25</Name>
+              <Page isRef="4" />
+              <Parent isRef="28" />
+              <Text>{Format("{0:dd.MM yyyy}",ParkingCarReportForCARTAS.ParkingDate)}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text25>
+            <Text28 Ref="43" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>36.8,0,3,0.8</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>2383feee3ed5445abed0cb4fb0db6677</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text28</Name>
+              <Page isRef="4" />
+              <Parent isRef="28" />
+              <Text>{ParkingCarReportForCARTAS.BranchName}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text28>
+            <Text33 Ref="44" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>27.4,0,2.8,0.8</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>960af4b5548e4b7aba1075c7c9e6388a</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text33</Name>
+              <Page isRef="4" />
+              <Parent isRef="28" />
+              <Text>{ParkingCarReportForCARTAS.DaysAfterParking}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text33>
+            <Text36 Ref="45" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>42.4,0,3,0.8</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>662009c7fe5b4993add1cd00ca52ce7d</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text36</Name>
+              <Page isRef="4" />
+              <Parent isRef="28" />
+              <Text>{ParkingCarReportForCARTAS.OVERDUEPROFIT}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="46" type="NumberFormat" isKey="true">
+                <DecimalDigits>2</DecimalDigits>
+                <DecimalSeparator>,</DecimalSeparator>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <State>GroupSize</State>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text36>
+            <Text37 Ref="47" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>51.4,0,3,0.8</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>f924916315b740bd88d09ddf0a30d3b5</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text37</Name>
+              <Page isRef="4" />
+              <Parent isRef="28" />
+              <Text>{ParkingCarReportForCARTAS.DebtLeft + ParkingCarReportForCARTAS.OVERDUEPROFIT + ParkingCarReportForCARTAS.PENY + ParkingCarReportForCARTAS.EXPENSE}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="48" type="NumberFormat" isKey="true">
+                <DecimalDigits>2</DecimalDigits>
+                <DecimalSeparator>,</DecimalSeparator>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <State>GroupSize</State>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text37>
+            <Text39 Ref="49" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>45.4,0,3,0.8</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>0e4914d413824b389bb5a1abc53bee73</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text39</Name>
+              <Page isRef="4" />
+              <Parent isRef="28" />
+              <Text>{ParkingCarReportForCARTAS.PENY}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="50" type="NumberFormat" isKey="true">
+                <DecimalDigits>2</DecimalDigits>
+                <DecimalSeparator>,</DecimalSeparator>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <State>GroupSize</State>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text39>
+            <Text41 Ref="51" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>48.4,0,3,0.8</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,9</Font>
+              <Guid>742ce3705c404a3f9bc2a216d651b263</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text41</Name>
+              <Page isRef="4" />
+              <Parent isRef="28" />
+              <Text>{ParkingCarReportForCARTAS.EXPENSE}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="52" type="NumberFormat" isKey="true">
+                <DecimalDigits>2</DecimalDigits>
+                <DecimalSeparator>,</DecimalSeparator>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <State>GroupSize</State>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text41>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <DataRelationName isNull="true" />
+          <DataSourceName>ParkingCarReportForCARTAS</DataSourceName>
+          <Filters isList="true" count="0" />
+          <Name>DataBand1</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+          <Sort isList="true" count="0" />
+        </DataBand1>
+        <GroupFooterBand1 Ref="53" type="GroupFooterBand" isKey="true">
+          <Brush>Gainsboro</Brush>
+          <ClientRectangle>0,6.2,54.5,0.77</ClientRectangle>
+          <Components isList="true" count="2">
+            <Text30 Ref="54" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanGrow>True</CanGrow>
+              <ClientRectangle>0,0,15.05,0.76</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,14,Bold</Font>
+              <GrowToHeight>True</GrowToHeight>
+              <Guid>749922e4c7154485bf05e8798c0ad948</Guid>
+              <HorAlignment>Right</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text30</Name>
+              <Page isRef="4" />
+              <Parent isRef="53" />
+              <Text>Итого в филиале (ОД и %) {ParkingCarReportForCARTAS.BranchName}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text30>
+            <Text42 Ref="55" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanGrow>True</CanGrow>
+              <ClientRectangle>15.05,0,4.19,0.76</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <GrowToHeight>True</GrowToHeight>
+              <Guid>625437981a404b37b5e687c2c0d076e3</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text42</Name>
+              <Page isRef="4" />
+              <Parent isRef="53" />
+              <Text>{Sum(GroupHeaderBand1,(ParkingCarReportForCARTAS.DebtLeft+ParkingCarReportForCARTAS.Payment))}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="56" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <DecimalSeparator>,</DecimalSeparator>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <State>DecimalDigits</State>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text42>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Guid>4f0be55b2a364c638763e9daafd10969</Guid>
+          <Name>GroupFooterBand1</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+        </GroupFooterBand1>
+      </Components>
+      <Conditions isList="true" count="0" />
+      <Guid>1e4302e2e8d7962aaa7987588eb2c373</Guid>
+      <Margins>1,1,1,1</Margins>
+      <Name>Page1</Name>
+      <Orientation>Landscape</Orientation>
+      <PageHeight>21</PageHeight>
+      <PageWidth>56.5</PageWidth>
+      <Report isRef="0" />
+    </Page1>
+  </Pages>
+  <ReferencedAssemblies isList="true" count="8">
+    <value>System.Dll</value>
+    <value>System.Drawing.Dll</value>
+    <value>System.Windows.Forms.Dll</value>
+    <value>System.Data.Dll</value>
+    <value>System.Xml.Dll</value>
+    <value>Stimulsoft.Controls.Dll</value>
+    <value>Stimulsoft.Base.Dll</value>
+    <value>Stimulsoft.Report.Dll</value>
+  </ReferencedAssemblies>
+  <ReportAlias>Report</ReportAlias>
+  <ReportChanged>11/21/2023 1:00:20 PM</ReportChanged>
+  <ReportCreated>11/15/2018 2:47:50 PM</ReportCreated>
+  <ReportFile>C:\Programming\tascredit\tascredit\sources\Pawnshop.Web\Reports\CarParkingStatusReportForCARTAS.mrt</ReportFile>
+  <ReportGuid>8fbbee57c7e846edb16ee647e2c7d98f</ReportGuid>
+  <ReportName>Report</ReportName>
+  <ReportUnit>Centimeters</ReportUnit>
+  <ReportVersion>2020.2.1.0</ReportVersion>
+  <Script>using System;
+using System.Drawing;
+using System.Windows.Forms;
+using System.Data;
+using Stimulsoft.Controls;
+using Stimulsoft.Base.Drawing;
+using Stimulsoft.Report;
+using Stimulsoft.Report.Dialogs;
+using Stimulsoft.Report.Components;
+
+namespace Reports
+{
+    public class Report : Stimulsoft.Report.StiReport
+    {
+        public Report()        {
+            this.InitializeComponent();
+        }
+
+        #region StiReport Designer generated code - do not modify
+		#endregion StiReport Designer generated code - do not modify
+    }
+}
+</Script>
+  <ScriptLanguage>CSharp</ScriptLanguage>
+  <Styles isList="true" count="0" />
+</StiSerializer>

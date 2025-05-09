@@ -1,0 +1,1515 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<StiSerializer version="1.02" type="Net" application="StiReport">
+	<CalculationMode>Interpretation</CalculationMode>
+	<Culture>ru-RU</Culture>
+	<Dictionary Ref="1" type="Dictionary" isKey="true">
+		<BusinessObjects isList="true" count="0" />
+		<Databases isList="true" count="1">
+			<ReportConnection Ref="2" type="Stimulsoft.Report.Dictionary.StiSqlDatabase" isKey="true">
+				<Alias>ReportConnection</Alias>
+				<ConnectionStringEncrypted>9GBp40ZK85nsTf3c6hB3atEw26vjBZOF4gicnWd04GuBcM0CZ1r6RWpN2VDEJXefwD6VCWd7g/lnRg18w6jgP4vuaethGHpt7RXt2O9sZT/ZVtHCxgmLzeIVTZzPhOBn51JhSEgY+vVvXKmYaSXhL8N40QnJW+sV4k2kfGEN4HuEbmkrT1zDrfNLoBxiCSJ/hmDVa1ZM0/nsE7gE6czje8R4/yvFVdOBzVyhnHVYpD/VPs0J1lGr7WhLoQTlcaxzwlr5KV0D84zxTbX48AUlF9Na+QnFTUOZ7W3Z+PkEoEbZbneI50xhvGFJoZjDCOQP31SBaGJq</ConnectionStringEncrypted>
+				<Key>d195e884cf2a49478f43aba124dac912</Key>
+				<Name>ReportConnection</Name>
+			</ReportConnection>
+		</Databases>
+		<DataSources isList="true" count="1">
+			<Portfolio Ref="3" type="Stimulsoft.Report.Dictionary.StiSqlSource" isKey="true">
+				<Alias>Portfolio</Alias>
+				<Columns isList="true" count="28">
+					<value>Заемщик,System.String</value>
+					<value>Адрес,System.String</value>
+					<value>Телефон,System.String</value>
+					<value>ИИН,System.String</value>
+					<value>Дата_x0020_рождения,System.DateTime</value>
+					<value>Пол,System.String</value>
+					<value>Номер_x0020_договора,System.String</value>
+					<value>Продукт,System.String</value>
+					<value>Дата_x0020_начала,System.DateTime</value>
+					<value>Дата_x0020_окончания,System.DateTime</value>
+					<value>Дата_x0020_закрытия,System.DateTime</value>
+					<value>Сумма_x0020_по_x0020_договору,System.Decimal</value>
+					<value>Остаток_x0020_ОД,System.Decimal</value>
+					<value>Марка_x0020_и_x0020_модель_x0020_авто,System.String</value>
+					<value>Год_x0020_выпуска,System.Int32</value>
+					<value>Гос_x0020_номер,System.String</value>
+					<value>Дата_x0020_выдачи_x0020_СРТС,System.DateTime</value>
+					<value>Оценка_x0020_авто,System.Int32</value>
+					<value>Начисл_x0020_проценты,System.Decimal</value>
+					<value>Получ_x0020_проценты,System.Decimal</value>
+					<value>Дней_x0020_на_x0020_просрочке,System.Int32</value>
+					<value>Начисл_x0020_штрафы,System.Decimal</value>
+					<value>Получ_x0020_штрафы,System.Decimal</value>
+					<value>Статус_x0020_договора,System.String</value>
+					<value>Партнер_x0020_наименование,System.String</value>
+					<value>Партнер_x0020_код,System.String</value>
+					<value>Регион,System.String</value>
+					<value>Филиал,System.String</value>
+				</Columns>
+				<CommandTimeout>10000</CommandTimeout>
+				<Dictionary isRef="1" />
+				<Key>4104c461031a4749bb0750acc1c66e1c</Key>
+				<Name>Portfolio</Name>
+				<NameInSource>ReportConnection</NameInSource>
+				<Parameters isList="true" count="0" />
+				<SqlCommand>
+					DECLARE @date DATE = @ReportDate
+
+					DECLARE  @AccountSettings TABLE (SettingId INT)
+					DECLARE  @overdueAccountSettings TABLE (SettingId INT)
+
+					INSERT INTO @AccountSettings (SettingId) SELECT Id FROM AccountSettings WHERE Code = 'ACCOUNT'
+					INSERT INTO @overdueAccountSettings (SettingId) SELECT Id FROM AccountSettings WHERE Code = 'OVERDUE_ACCOUNT'
+
+					if object_id(N'tempdb..#Orders') is not null
+					drop table #Orders
+					select
+					t.ContractId
+					,	sum(case when t.BusinessOperationSettingCode = N'INTEREST_ACCRUAL' then t.OrderCost end) as sumINTEREST_ACCRUAL
+					,	sum(case when t.BusinessOperationSettingCode in (N'PAYMENT_OVERDUE_PROFIT', N'PAYMENT_PROFIT') then t.OrderCost end) as sumPAYMENT_OVERDUE_PROFIT
+					,	sum(case when t.BusinessOperationSettingCode in (N'PENALTYACCRUAL.OVERDUE_ACCOUNT', N'PENALTYACCRUAL.OVERDUE_PROFIT') then t.OrderCost end) as sumPENALTY
+					,	sum(case when t.BusinessOperationSettingCode = N'PAYMENT_PROFIT' then t.OrderCost end) as sumPAYMENT_PROFIT
+					into #Orders
+					from
+					(
+					SELECT
+					IIF(cord.StornoId IS NULL, cord.OrderCost, -1 * cord.OrderCost) AS OrderCost
+					,	cord.ContractId
+					,	BOS.Code AS BusinessOperationSettingCode
+					FROM CashOrders cord
+					LEFT JOIN Contracts c ON c.id = cord.ContractId
+					LEFT JOIN Groups contractBranch ON contractBranch.Id = c.BranchId
+					LEFT JOIN BusinessOperations BO ON BO.Id = cord.BusinessOperationId
+					LEFT JOIN BusinessOperationSettings BOS ON BOS.Id = cord.BusinessOperationSettingId
+					WHERE cord.OrderDate &gt;= '2023-04-01' AND cord.OrderDate &lt;= @date AND
+					cord.ApproveStatus = 10
+					AND contractBranch.Id = 530
+					AND cord.DeleteDate IS NULL
+					AND BOS.Code IN ('INTEREST_ACCRUAL', 'PENALTYACCRUAL.OVERDUE_ACCOUNT', 'PENALTYACCRUAL.OVERDUE_PROFIT', 'PAYMENT_OVERDUE_PROFIT', 'PAYMENT_PROFIT', 'REVENUE_PENY_ACCOUNT')
+					) t
+					group by t.ContractId;
+
+					SELECT DISTINCT
+					cl.FullName AS N'Заемщик'
+					,	cla.FullPathRus AS N'Адрес'
+					,	phone.Address AS N'Телефон'
+					,	cl.IdentityNumber AS N'ИИН'
+					,	cl.BirthDay AS N'Дата рождения'
+					,	CASE WHEN cl.IsMale = 1 THEN N'Мужской' ELSE N'Женский' END AS N'Пол'
+					,	co.ContractNumber AS N'Номер договора'
+					,	lps.Name AS N'Продукт'
+					,	CAST(co.ContractDate AS DATE) AS N'Дата начала'
+					,	CAST(co.MaturityDate AS DATE) AS N'Дата окончания'
+					,	CAST(co.BuyOutDate AS DATE) AS N'Дата закрытия'
+					,	co.LoanCost AS N'Сумма по договору'
+					,	isnull(accountBalance.bal, 0) * (-1) + isnull(overdueAccountBalance.bal, 0) * (-1) AS N'Остаток ОД'
+					,	CONCAT(UPPER(car.Mark),N' ',UPPER(car.Model)) AS N'Марка и модель авто'
+					,	car.ReleaseYear AS N'Год выпуска'
+					,	car.BodyNumber AS N'Гос номер'
+					,	CAST(car.TechPassportDate AS DATE) AS N'Дата выдачи СРТС'
+					,	co.EstimatedCost AS N'Оценка авто'
+					,	ISNULL(o.sumINTEREST_ACCRUAL, 0) AS N'Начисл проценты'
+					,	ISNULL(o.sumPAYMENT_OVERDUE_PROFIT, 0) AS N'Получ проценты'
+					,	ISNULL(overdue.DayCount, 0) AS N'Дней на просрочке'
+					,	ISNULL(o.sumPENALTY, 0) AS N'Начисл штрафы'
+					,	ISNULL(o.sumPAYMENT_PROFIT, 0) AS N'Получ штрафы'
+					,	CASE co.Status WHEN 30 THEN N'Открыт' WHEN 40 THEN N'Закрыт' ELSE N'Закрыт' END AS N'Статус договора'
+					,	N'' AS N'Партнер наименование'
+					,	gcai.PartnerCode AS N'Партнер код'
+					,	N'' AS N'Регион'
+					,	g.DisplayName AS N'Филиал'
+					FROM Contracts co
+					LEFT JOIN
+					Clients cl
+					ON cl.Id = co.ClientId
+					LEFT JOIN
+					dogs.Tranches tr
+					ON tr.Id = co.Id
+					LEFT JOIN
+					ContractPositions cps
+					on cps.ContractId = tr.CreditLineId
+					LEFT JOIN
+					Cars car
+					on car.Id = cps.PositionId
+					and co.CollateralType = 20
+					LEFT JOIN
+					ClientAddresses cla
+					ON cla.ClientId = cl.Id
+					LEFT JOIN
+					LoanPercentSettings lps
+					ON lps.Id = co.SettingId
+					LEFT JOIN
+					Groups g
+					ON g.Id = co.OwnerId
+					LEFT JOIN
+					dogs.ContractAdditionalInfo gcai
+					ON gcai.Id = co.Id
+					OUTER APPLY (SELECT TOP(1) a.Id FROM Accounts a WHERE a.AccountSettingId IN (SELECT SettingId FROM @AccountSettings) AND a.ContractId = co.Id AND a.DeleteDate IS NULL) accountId
+					OUTER APPLY (SELECT TOP(1) a.Id FROM Accounts a WHERE a.AccountSettingId IN (SELECT SettingId FROM @overdueAccountSettings) AND a.ContractId = co.Id AND a.DeleteDate IS NULL) overdueaccountId
+					OUTER APPLY (SELECT TOP(1) a.Id FROM Accounts a JOIN AccountSettings acs ON a.AccountSettingId = acs.Id WHERE acs.Code = 'PENY_ACCOUNT' AND a.ContractId = co.Id) penyAccount
+					OUTER APPLY (SELECT TOP(1) a.Id FROM Accounts a JOIN AccountSettings acs ON a.AccountSettingId = acs.Id WHERE acs.Code = 'PENY_PROFIT' AND a.ContractId = co.Id) penyProfit
+					outer apply
+					(
+					SELECT TOP(1) ar.OutgoingBalance as bal
+					FROM AccountRecords ar
+					WHERE ar.AccountId = penyAccount.Id
+					AND ar.DeleteDate IS NULL
+					AND ar.Date &lt; DATEADD(DAY, 1, @date)
+					ORDER BY ar.Date DESC, ar.Id DESC
+					) penyAccountBalance
+					outer apply
+					(
+					SELECT TOP(1) ar.OutgoingBalance as bal
+					FROM AccountRecords ar
+					WHERE ar.AccountId = penyProfit.Id
+					AND ar.DeleteDate IS NULL
+					AND ar.Date &lt; DATEADD(DAY, 1, @date)
+					ORDER BY ar.Date DESC, ar.Id DESC
+					) penyProfitBalance
+					outer apply
+					(
+					SELECT TOP(1) ar.OutgoingBalance as bal
+					FROM AccountRecords ar
+					WHERE ar.AccountId = accountId.Id
+					AND ar.DeleteDate IS NULL
+					AND ar.Date &lt; DATEADD(DAY, 1, @date)
+					ORDER BY ar.Date DESC, ar.Id DESC
+					) accountBalance
+					outer apply
+					(
+					SELECT TOP(1) ar.OutgoingBalance as bal
+					FROM AccountRecords ar
+					WHERE ar.AccountId = overdueaccountId.Id
+					AND ar.DeleteDate IS NULL
+					AND ar.Date &lt; DATEADD(DAY, 1, @date)
+					ORDER BY ar.Date DESC, ar.Id DESC
+					) overdueAccountBalance
+					OUTER APPLY (SELECT TOP(1) clc.[Address] FROM ClientContacts clc WHERE clc.ClientId = co.ClientId AND clc.DeleteDate IS NULL AND clc.ContactTypeId = 1 ORDER BY Id DESC) Phone
+					left join
+					#Orders o
+					on o.ContractId = co.Id
+					outer apply
+					(
+					SELECT TOP(1)
+					IIF
+					(
+					DATEDIFF(DAY, ISNULL(cpsOverdue.NextWorkingDate, cpsOverdue.Date), dateadd(day, 1, @date)) &lt; 0
+					,	DATEDIFF(DAY, ISNULL(PrevDate.[Date], dateadd(day, 1, @date)), dateadd(day, 1, @date))
+					,	DATEDIFF(DAY, ISNULL(cpsOverdue.NextWorkingDate, cpsOverdue.Date), dateadd(day, 1, @date))
+					) as DayCount
+					FROM ContractPaymentSchedule cpsOverdue
+					OUTER APPLY
+					(
+					SELECT TOP(1) cpsPrev.[Date]
+					FROM ContractPaymentSchedule cpsPrev
+					WHERE cpsPrev.DeleteDate is null
+					AND cpsPrev.Canceled is null
+					AND cpsPrev.ContractId = cpsOverdue.ContractId
+					AND CAST(cpsPrev.[Date] as DATE) &lt;= CAST(@date AS DATE)
+					order by cpsPrev.[Date] desc
+					) PrevDate
+					WHERE cpsOverdue.ContractId = co.Id
+					AND cpsOverdue.DeleteDate IS NULL
+					AND (cpsOverdue.ActualDate IS NULL OR CAST(cpsOverdue.ActualDate AS DATE) &gt; CAST(@date AS DATE)) -- Not paid at the reporting date
+					AND (cpsOverdue.Canceled IS NULL OR CAST(cpsOverdue.Canceled AS DATE) &gt; CAST(@date AS DATE)) -- Not cancelled at the reporting date
+					and (cpsOverdue.NextWorkingDate &lt;= @date or (cpsOverdue.NextWorkingDate is null and cpsOverdue.[Date] &lt;= @date)
+					OR penyAccountBalance.bal &lt; 0
+					OR penyProfitBalance.bal &lt; 0
+					)
+					ORDER BY cpsOverdue.[Date]
+					) AS overdue
+					WHERE co.BranchId = 530
+					AND (co.BuyoutDate IS NULL OR CAST(co.BuyoutDate AS DATE) &lt; @date)
+					AND co.ContractClass = 3
+					AND co.DeleteDate IS NULL AND co.Status &gt;=30 AND (co.Status != 40 AND co.Note = N'Миграция TasOnline')
+				</SqlCommand>
+			</Portfolio>
+		</DataSources>
+		<Relations isList="true" count="0" />
+		<Report isRef="0" />
+		<Resources isList="true" count="0" />
+		<Variables isList="true" count="1">
+			<value>,ReportDate,ReportDate,,System.DateTime,_x0031_1_x002F_14_x002F_2021_x0020_12:00:00_x0020_AM,False,False,False,False,,_x0030_fc9a056d5b54574bd0b455d5fc9d956,True</value>
+		</Variables>
+	</Dictionary>
+	<EngineVersion>EngineV2</EngineVersion>
+	<GlobalizationStrings isList="true" count="0" />
+	<Key>56df59e6039b4c3cb9960f836d9b4784</Key>
+	<MetaTags isList="true" count="0" />
+	<Pages isList="true" count="1">
+		<Page1 Ref="4" type="Page" isKey="true">
+			<Border>None;Black;2;Solid;False;4;Black</Border>
+			<Brush>Transparent</Brush>
+			<Components isList="true" count="3">
+				<ReportTitleBand1 Ref="5" type="ReportTitleBand" isKey="true">
+					<Brush>Transparent</Brush>
+					<ClientRectangle>0,0.2,24.4,0.4</ClientRectangle>
+					<Components isList="true" count="2">
+						<Text1 Ref="6" type="Text" isKey="true">
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0,0,24.4,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,12,Bold</Font>
+							<Guid>d4a5a36eda2a4dcb890ad6d78f1d1c83</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text1</Name>
+							<Page isRef="4" />
+							<Parent isRef="5" />
+							<Text>Кредитный портфель</Text>
+							<TextBrush>Black</TextBrush>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text1>
+						<Text2 Ref="7" type="Text" isKey="true">
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0,0.2,24.4,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,12</Font>
+							<Guid>292b04e39a29494da442360e15e5c121</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text2</Name>
+							<Page isRef="4" />
+							<Parent isRef="5" />
+							<Text>Отчет на конец дня: {Format("{0:dd.MM.yyyy}", ReportDate).ToLower()}</Text>
+							<TextBrush>Black</TextBrush>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text2>
+					</Components>
+					<Conditions isList="true" count="0" />
+					<Expressions isList="true" count="0" />
+					<Name>ReportTitleBand1</Name>
+					<Page isRef="4" />
+					<Parent isRef="4" />
+				</ReportTitleBand1>
+				<HeaderBand1 Ref="8" type="HeaderBand" isKey="true">
+					<Brush>Transparent</Brush>
+					<ClientRectangle>0,1,24.4,0.3</ClientRectangle>
+					<Components isList="true" count="27">
+						<Text5 Ref="9" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>1.6,0,2.2,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>47975d1f4f354b85bc09bc8e305a56f1</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text5</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Адрес</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text5>
+						<Text6 Ref="10" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>6.5,0,0.8,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>8e09325ad8034332ad7c74a36a3d50b9</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text6</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>
+								Номер договора
+							</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text6>
+						<Text7 Ref="11" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>0,0,1.6,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>3ad9b287110f433f980af6e14deffbc6</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text7</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Заемщик</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text7>
+						<Text8 Ref="12" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>4.5,0,0.8,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>6d46349c0b454eecb33ee88bc5f2b941</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text8</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>ИИН</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text8>
+						<Text10 Ref="13" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>3.8,0,0.7,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>28e3600f2e3845b0b701678d4462a191</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text10</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Телефон</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text10>
+						<Text11 Ref="14" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>5.3,0,0.6,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>b2dd1a0120564a17956ee0c92ceecffe</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text11</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Дата рождения</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text11>
+						<Text12 Ref="15" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>8.8,0,0.8,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>eb7ac9c5d06f4c7b88133533d1df863d</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text12</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Дата начала</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text12>
+						<Text13 Ref="16" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>9.6,0,0.8,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>a19c3926ac8f44828b6be28a926c5ff7</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text13</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Дата закрытия</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text13>
+						<Text78 Ref="17" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>10.4,0,0.8,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>1fd44dc1c7d14c90b2038fb2387b85e9</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text78</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Сумма по договору</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text78>
+						<Text79 Ref="18" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>7.3,0,1.5,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>f1ecfc64429248a097c05b5c3fec39a1</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text79</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Продукт</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text79>
+						<Text23 Ref="19" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>5.9,0,0.6,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>d35c5a2ec9234aca89e4b2d757946c7e</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text23</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Пол</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text23>
+						<Text18 Ref="20" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>11.2,0,0.8,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>77690d2da58944ba958c1784591139f6</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text18</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Остаток ОД</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text18>
+						<Text14 Ref="21" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>12,0,1.1,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>42ffcf56ca864c78ac1bacfa7dde32cf</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text14</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Марка модель авто</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text14>
+						<Text15 Ref="22" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>13.1,0,0.5,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>f8a627fac2984ef496e8a195d1ba4b85</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text15</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Год выпуска</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text15>
+						<Text30 Ref="23" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>13.6,0,1.2,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>3f5a47ad0edc4adeb612e136fafc06b3</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text30</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Гос номер</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text30>
+						<Text64 Ref="24" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>23.6,0,0.8,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>3eb357583a544918a337e2e8cf736384</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text64</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Филиал</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text64>
+						<Text65 Ref="25" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>15.6,0,0.8,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>66ff79038a724f4db021ddf17335c9f6</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text65</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Оценка авто</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text65>
+						<Text80 Ref="26" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>18,0,0.8,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>06d93920f13948e9a155dc3cf02195ee</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text80</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Дней на просрочке</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text80>
+						<Text16 Ref="27" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>14.8,0,0.8,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>3a8f8f043936423d8bbafe00b2c852a2</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text16</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Дата выдачи СРТС</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text16>
+						<Text19 Ref="28" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>16.4,0,0.8,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>13bb8c304b59426ebce3c5bd30e5467b</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text19</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Начисл проценты</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text19>
+						<Text17 Ref="29" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>17.2,0,0.8,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>13bc7bb7be17485b8c98c7e96506a8ee</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text17</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Получ проценты</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text17>
+						<Text20 Ref="30" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>18.8,0,0.8,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>aa6d7596eadc4cc295d0f45f8ce76477</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text20</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Начисл штрафы</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text20>
+						<Text72 Ref="31" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>19.6,0,0.8,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>1ed520178a2a4777b1044568db5d9249</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text72</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Получ штрафы</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text72>
+						<Text87 Ref="32" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>20.4,0,0.8,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>03ae279f651449cd99ad12ae6ad4150d</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text87</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Статус договора</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text87>
+						<Text9 Ref="33" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>21.2,0,0.8,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>de918570892d4ff180b4ba514c40685e</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text9</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Партнер наименование</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text9>
+						<Text3 Ref="34" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>22,0,0.8,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>3b7791dcb20940f9b0a8d3f79323fdf5</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text3</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Партнер код</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text3>
+						<Text25 Ref="35" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>[251:213:181]</Brush>
+							<ClientRectangle>22.8,0,0.8,0.3</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>4acedfc09e594a519c5f5a357bba7681</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text25</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Регион</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text25>
+					</Components>
+					<Conditions isList="true" count="0" />
+					<Expressions isList="true" count="0" />
+					<Name>HeaderBand1</Name>
+					<Page isRef="4" />
+					<Parent isRef="4" />
+					<PrintIfEmpty>True</PrintIfEmpty>
+					<PrintOn>OnlyFirstPage</PrintOn>
+				</HeaderBand1>
+				<DataBand1 Ref="36" type="DataBand" isKey="true">
+					<Brush>Transparent</Brush>
+					<BusinessObjectGuid isNull="true" />
+					<ClientRectangle>0,1.7,24.4,0.4</ClientRectangle>
+					<Components isList="true" count="27">
+						<Text26 Ref="37" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1.6,0,2.2,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>bdfa5b87ef4f45189f0b55447bafcf1d</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text26</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Адрес}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text26>
+						<Text27 Ref="38" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>6.5,0,0.8,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>0dc86f78d6d54ec883c3bbe95086cead</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text27</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Номер_договора}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text27>
+						<Text28 Ref="39" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0,0,1.6,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>17026325f6da4cebbd9729e643b10c5e</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text28</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Заемщик}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text28>
+						<Text29 Ref="40" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>4.5,0,0.8,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>507cefba940841c6b3b8dfc48721a15f</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text29</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.ИИН}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="41" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseGroupSeparator>False</UseGroupSeparator>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text29>
+						<Text31 Ref="42" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>3.8,0,0.7,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>759542c967ba4ce994a7e24248e79d5c</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text31</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Телефон}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text31>
+						<Text32 Ref="43" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5.3,0,0.6,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>1dc9a8825fc64374b69e5fe633a7e1b6</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text32</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Дата_рождения}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="44" type="DateFormat" isKey="true" />
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text32>
+						<Text34 Ref="45" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>9.6,0,0.8,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>0f91ec9e1022412e8d13268b8dc0f2de</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text34</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Дата_закрытия}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="46" type="DateFormat" isKey="true" />
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text34>
+						<Text81 Ref="47" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>10.4,0,0.8,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>6520e7a45d4240c185cde3715ef677fd</Guid>
+							<HorAlignment>Right</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text81</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Сумма_по_договору}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="48" type="NumberFormat" isKey="true">
+								<DecimalDigits>2</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text81>
+						<Text82 Ref="49" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>7.3,0,1.5,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>bccdc717303b413792a0c6c13930d3d1</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text82</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Продукт}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text82>
+						<Text24 Ref="50" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5.9,0,0.6,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>853033b19f35487dbb41786ad28b1352</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text24</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Пол}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="51" type="DateFormat" isKey="true" />
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text24>
+						<Text39 Ref="52" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>11.2,0,0.8,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>1e76fde365b64117980dd21939033870</Guid>
+							<HorAlignment>Right</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text39</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Остаток_ОД}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="53" type="NumberFormat" isKey="true">
+								<DecimalDigits>2</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text39>
+						<Text22 Ref="54" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>12,0,1.1,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>a7914fa9ea5c4ccbaead209d1bee7a04</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text22</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Марка_и_модель_авто}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="55" type="NumberFormat" isKey="true">
+								<DecimalDigits>2</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text22>
+						<Text36 Ref="56" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>13.1,0,0.5,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>e5bb2c3074e5408784b468f726e0bedc</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text36</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Год_выпуска}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="57" type="DateFormat" isKey="true" />
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text36>
+						<Text66 Ref="58" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>13.6,0,1.2,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>0b35ba1e135f4423b016123e7ce00e33</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text66</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Гос_номер}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="59" type="DateFormat" isKey="true" />
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text66>
+						<Text67 Ref="60" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>23.6,0,0.8,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>f9a90bd7c7254dc3884bbe91cf2b6884</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text67</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Филиал}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text67>
+						<Text68 Ref="61" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>15.6,0,0.8,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>33aa0c231c4b4d3aa2fa81d4ba439597</Guid>
+							<HorAlignment>Right</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text68</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Оценка_авто}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="62" type="NumberFormat" isKey="true">
+								<DecimalDigits>2</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text68>
+						<Text83 Ref="63" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>18,0,0.8,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>9b271f3567db448f94c13ec6c1305bb6</Guid>
+							<HorAlignment>Right</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text83</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Дней_на_просрочке}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="64" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseGroupSeparator>False</UseGroupSeparator>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text83>
+						<Text37 Ref="65" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>14.8,0,0.8,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>4ad4c39a1d744d6094c75ad94852ae6b</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text37</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Дата_выдачи_СРТС}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="66" type="NumberFormat" isKey="true">
+								<DecimalDigits>2</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text37>
+						<Text40 Ref="67" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>16.4,0,0.8,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>0a8f629d08744129b5401d455ec369ba</Guid>
+							<HorAlignment>Right</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text40</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Начисл_проценты}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="68" type="NumberFormat" isKey="true">
+								<DecimalDigits>2</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text40>
+						<Text38 Ref="69" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>17.2,0,0.8,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>b080b936a933457da21191b4e6f2b6d1</Guid>
+							<HorAlignment>Right</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text38</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Получ_проценты}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="70" type="NumberFormat" isKey="true">
+								<DecimalDigits>2</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text38>
+						<Text41 Ref="71" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>18.8,0,0.8,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>6179c4f77d4f4d419d9ca53299c10910</Guid>
+							<HorAlignment>Right</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text41</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Начисл_штрафы}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="72" type="NumberFormat" isKey="true">
+								<DecimalDigits>2</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text41>
+						<Text73 Ref="73" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>19.6,0,0.8,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>b9bb61433cfd40faa66a317f7995f3fa</Guid>
+							<HorAlignment>Right</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text73</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Получ_штрафы}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="74" type="NumberFormat" isKey="true">
+								<DecimalDigits>2</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text73>
+						<Text88 Ref="75" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>20.4,0,0.8,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>0de7ff6561794988a047641e6ca864d5</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text88</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Статус_договора}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="76" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text88>
+						<Text21 Ref="77" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>21.2,0,0.8,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>57f849162d9e49f6958e9d9a1271e912</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text21</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Партнер_наименование}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="78" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text21>
+						<Text4 Ref="79" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>22,0,0.8,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>f1b9e8a623c34a39998ed2dae09f3cba</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text4</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Партнер_код}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="80" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text4>
+						<Text35 Ref="81" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>22.8,0,0.8,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>80b8af5da8164450827b96b820ddb0c4</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text35</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Регион}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text35>
+						<Text33 Ref="82" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>8.8,0,0.8,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Expressions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>0389edd01cfe43cdb34c5275554adf7a</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text33</Name>
+							<Page isRef="4" />
+							<Parent isRef="36" />
+							<Text>{Portfolio.Дата_начала}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="83" type="DateFormat" isKey="true" />
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text33>
+					</Components>
+					<Conditions isList="true" count="0" />
+					<DataRelationName isNull="true" />
+					<DataSourceName>Portfolio</DataSourceName>
+					<Expressions isList="true" count="0" />
+					<Filters isList="true" count="0" />
+					<Name>DataBand1</Name>
+					<Page isRef="4" />
+					<Parent isRef="4" />
+					<Sort isList="true" count="0" />
+				</DataBand1>
+			</Components>
+			<Conditions isList="true" count="0" />
+			<Expressions isList="true" count="0" />
+			<Guid>f829242d2ffc40a2b0da84b5e6beb840</Guid>
+			<Margins>0.4,0.4,0.4,0.4</Margins>
+			<Name>Page1</Name>
+			<Orientation>Landscape</Orientation>
+			<PageHeight>8.5</PageHeight>
+			<PageWidth>13</PageWidth>
+			<PaperSize>Letter</PaperSize>
+			<Report isRef="0" />
+			<SegmentPerWidth>2</SegmentPerWidth>
+		</Page1>
+	</Pages>
+	<ReferencedAssemblies isList="true" count="8">
+		<value>System.Dll</value>
+		<value>System.Drawing.Dll</value>
+		<value>System.Windows.Forms.Dll</value>
+		<value>System.Data.Dll</value>
+		<value>System.Xml.Dll</value>
+		<value>Stimulsoft.Controls.Dll</value>
+		<value>Stimulsoft.Base.Dll</value>
+		<value>Stimulsoft.Report.Dll</value>
+	</ReferencedAssemblies>
+	<ReportAlias>Report</ReportAlias>
+	<ReportChanged>4/7/2023 5:16:15 PM</ReportChanged>
+	<ReportCreated>11/15/2018 8:15:56 AM</ReportCreated>
+	<ReportGuid>0769130112e84ceba5a40d2500690f39</ReportGuid>
+	<ReportName>Report</ReportName>
+	<ReportUnit>Inches</ReportUnit>
+	<ReportVersion>2021.3.2.0</ReportVersion>
+	<Script>
+		using System;
+		using System.Drawing;
+		using System.Windows.Forms;
+		using System.Data;
+		using Stimulsoft.Controls;
+		using Stimulsoft.Base.Drawing;
+		using Stimulsoft.Report;
+		using Stimulsoft.Report.Dialogs;
+		using Stimulsoft.Report.Components;
+
+		namespace Reports
+		{
+		public class Report : Stimulsoft.Report.StiReport
+		{
+		public Report()        {
+		this.InitializeComponent();
+		}
+
+		#region StiReport Designer generated code - do not modify
+		#endregion StiReport Designer generated code - do not modify
+		}
+		}
+	</Script>
+	<ScriptLanguage>CSharp</ScriptLanguage>
+	<Styles isList="true" count="0" />
+</StiSerializer>

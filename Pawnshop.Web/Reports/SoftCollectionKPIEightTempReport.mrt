@@ -1,0 +1,1362 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<StiSerializer version="1.02" type="Net" application="StiReport">
+  <CalculationMode>Interpretation</CalculationMode>
+  <Culture>ru-RU</Culture>
+  <Dictionary Ref="1" type="Dictionary" isKey="true">
+    <BusinessObjects isList="true" count="0" />
+    <Databases isList="true" count="1">
+      <ReportConnection Ref="2" type="Stimulsoft.Report.Dictionary.StiSqlDatabase" isKey="true">
+        <Alias>ReportConnection</Alias>
+        <ConnectionStringEncrypted>9GD3C0Zd87zsTf2ATVwlKtFSuyvFV3uZaRyc2OsA9hvRes+DVFpxRcNN2VBmJemfnnCVwmZdsoXjRs18w6zgRvVw2+thcXpt7VDt5PBsZD/WVtHCxUzDzcsVTYTFGSU/i3jXK0hcMfVqXKiYagThZ99q0YjJfKmB4nyEfGAEpHvlbmkLS07D4fNBvZhiRCI/4lplAlZMa8jsXKX0ToTkP/Fen+vmUVGBaU3lnGNM4X/R8tkLyEJz7WxM2fzpcOATxWDZScVB+plqe6WV5QWiD9nIwYjJffPVek25FOVsr7PEGmXvQ2tLzeFYvaViTCQ/xFTN</ConnectionStringEncrypted>
+        <Key>368a67f1dd2548a7ba857a3c1271300a</Key>
+        <Name>ReportConnection</Name>
+      </ReportConnection>
+    </Databases>
+    <DataSources isList="true" count="1">
+      <ConsolidateSoftCollectionReport Ref="3" type="Stimulsoft.Report.Dictionary.StiSqlSource" isKey="true">
+        <Alias>ConsolidateSoftCollectionReport</Alias>
+        <Columns isList="true" count="17">
+          <value>Month,System.Int32</value>
+          <value>Year,System.Int32</value>
+          <value>Date,System.DateTime</value>
+          <value>TotalCount,System.Int32</value>
+          <value>TotalCost,System.Int64</value>
+          <value>Count_1_4,System.Int32</value>
+          <value>Cost_1_4,System.Int64</value>
+          <value>Percent_1_4,System.Decimal</value>
+          <value>Count_5_8,System.Int32</value>
+          <value>Cost_5_8,System.Int64</value>
+          <value>Percent_5_8,System.Decimal</value>
+          <value>Count_hard,System.Int32</value>
+          <value>Cost_hard,System.Int64</value>
+          <value>Percent_hard,System.Decimal</value>
+          <value>PercentCost,System.Int64</value>
+          <value>PenaltyCost,System.Int64</value>
+          <value>PercentAndPenaltyCost,System.Int64</value>
+        </Columns>
+        <CommandTimeout>30000</CommandTimeout>
+        <Dictionary isRef="1" />
+        <Key>70f80fdb6bbb4c589da1fbcabae6381e</Key>
+        <Name>ConsolidateSoftCollectionReport</Name>
+        <NameInSource>ReportConnection</NameInSource>
+        <Parameters isList="true" count="0" />
+        <SqlCommand>DECLARE 
+@datetimeNow DATE = CAST(dbo.GETASTANADATE() AS DATE)
+
+IF (@year = 2022 AND @months = 12)
+SELECT 
+	@beginDate = DATEFROMPARTS(2022, 12, 1),
+		@endDate = DATEFROMPARTS(2022, 12, 19)
+ELSE IF (@year &lt; 2022 OR (@year = 2022 AND @months &lt; 12))
+SELECT
+	@beginDate = DATEFROMPARTS(@year, @months, 1),
+		@endDate = EOMONTH(@beginDate)
+		
+	 ELSE
+SELECT
+	@beginDate = DATEFROMPARTS(IIF(@months-1 &lt;=0, @year-1,@year), IIF(@months-1&lt;=0,12,@months-1), 20),
+		@endDate = DATEFROMPARTS(@year, @months, 19)
+
+DECLARE @superresult TABLE(
+[Month] INT,
+[Year] INT,
+[Date] DATE,
+TotalCount INT,
+TotalCost BIGINT,
+Count_1_4 INT,
+Cost_1_4 BIGINT,
+Percent_1_4 DECIMAL(16,4),
+Count_5_8 INT,
+Cost_5_8 BIGINT,
+Percent_5_8 DECIMAL(16,4),
+Count_hard INT,
+Cost_hard BIGINT,
+Percent_hard DECIMAL(16,4),
+PercentCost BIGINT,
+PenaltyCost BIGINT,
+PercentAndPenaltyCost BIGINT
+)
+
+DECLARE @result TABLE(
+Id INT,
+DebtLeft DECIMAL(16,4),
+GotDelayedInThisPeriod BIT,
+SoftDelayDateStartsAt DATE,
+DelayDayCount INT,
+DebtCost DECIMAL(16,4),
+PercentCost DECIMAL(16,4),
+PenaltyCost DECIMAL(16,4),
+HardDelayDateStartsAt DATE,
+DebtLeftToHard DECIMAL(16,4),
+PrepaymentCost DECIMAL(16,4)
+)
+
+DECLARE @DelayPeriods TABLE(
+Id INT,
+ClientId INT,
+DelayStartsAt DATE,
+DelayEndsAt DATE,
+DelayDayCount INT
+)
+
+DECLARE @DelayPeriodsTEMP TABLE(
+Id INT,
+ClientId INT,
+DelayStartsAt DATE,
+DelayEndsAt DATE,
+DelayDayCount INT
+)
+
+DECLARE @DelayTEMP TABLE(
+Id INT,
+ClientId INT,
+DelayStartsAt DATE,
+DelayEndsAt DATE,
+DelayDayCount INT,
+CountPrev INT
+)
+
+DECLARE @DelayActions TABLE(
+Id INT,
+ClientId INT,
+DelayStartsAt DATE,
+DelayEndsAt DATE
+)
+
+------АННУИТЕТ
+INSERT INTO @DelayPeriodsTEMP(Id, ClientId, DelayStartsAt,DelayEndsAt,DelayDayCount)
+SELECT 
+	ContractId,
+	ClientId,
+	DATEADD(Day,1,[Date]) DelayStartsAt,
+	IIF(ActualDate IS NULL, @datetimeNow, IIF(peny.Cost &gt; 0, @datetimeNow, ActualDate)) DelayEndsAt,
+	DATEDIFF(Day,Date,IIF(ActualDate IS NULL, ISNULL(cps.Canceled, @datetimeNow), IIF(peny.Cost &gt; 0, @datetimeNow, ActualDate))) DelayDayCount
+FROM ContractPaymentSchedule cps
+JOIN Contracts c ON c.Id=cps.ContractId
+LEFT JOIN LoanPercentSettings lps ON lps.Id = c.SettingId
+OUTER APPLY (
+SELECT SUM(ABS(dbo.GetAccountBalanceById (a.Id, cps2.ActualDate, DEFAULT, DEFAULT))) AS Cost
+	FROM Accounts a
+		JOIN AccountSettings acs ON acs.Id = a.AccountSettingId
+		JOIN ContractPaymentSchedule cps2 ON cps2.Id = cps.Id
+		WHERE a.ContractId = c.Id
+		AND acs.Code IN ('PENY_ACCOUNT','PENY_PROFIT','PENY_ACCOUNT_OFFBALANCE','PENY_PROFIT_OFFBALANCE')) peny
+WHERE ((cps.ActualDate IS NOT NULL AND DATEADD(Day,1,cps.Date) &gt;= @beginDate AND cps.Date &lt; @endDate) 
+		OR (cps.ActualDate IS NULL AND cps.Date &lt; @endDate))
+AND (cps.Canceled IS NULL OR cps.Canceled &gt;= @beginDate)
+AND cps.DeleteDate IS NULL
+AND c.DeleteDate IS NULL
+AND c.collateralType=20
+AND (c.PercentPaymentType &lt;&gt; 20 OR (c.PercentPaymentType = 40 AND lps.ScheduleType = 0))
+AND c.Status&gt;=30
+AND DATEDIFF(Day,cps.Date,IIF(cps.ActualDate IS NULL, ISNULL(cps.Canceled,@datetimeNow), ActualDate))&gt;0
+AND c.BranchId IN ({branchIds})
+
+INSERT INTO @DelayTEMP(Id, ClientId, DelayStartsAt,DelayEndsAt,DelayDayCount, CountPrev)
+SELECT Id, ClientId ,DelayStartsAt,DelayEndsAt,DelayDayCount,
+	DATEDIFF(DAY, LAG(ISNULL(DelayStartsAt, @datetimeNow)) OVER (PARTITION BY Id ORDER BY DelayStartsAt), LAG(ISNULL(DelayEndsAt, @datetimeNow)) OVER (PARTITION BY Id ORDER BY DelayEndsAt)) AS CountPrev
+FROM @DelayPeriodsTEMP
+
+INSERT INTO @DelayPeriods(Id, ClientId, DelayStartsAt, DelayEndsAt, DelayDayCount)
+SELECT Id, ClientId, DelayStartsAt, DelayEndsAt, DelayDayCount from @DelayTEMP
+WHERE ((CountPrev &gt; 0 AND CountPrev &lt; 30) OR CountPrev IS NULL)
+
+
+--ДИСКРЕТ
+INSERT INTO @DelayActions (Id, ClientId,DelayStartsAt, DelayEndsAt)
+SELECT
+	c.Id,
+	c.ClientId,
+	DATEADD(DAY,IIF(ca.ActionType=50,IIF(Locked=0,LoanPeriod-1,LoanPeriod),IIF(ca.ActionType=150,0, c.LoanPeriod)),IIF(ca.ActionType=50,CAST(c.ContractDate AS DATE),ca.Date)) AS DelayStartsAt,
+	ISNULL(LEAD(ca.[Date]) OVER (PARTITION BY ca.ContractId ORDER BY ca.[Date]),ISNULL(buyout.Date, @datetimeNow)) AS DelayEndsAt
+FROM Contracts c
+OUTER APPLY (
+SELECT Date, ContractId, Data, ActionType, DeleteDate FROM ContractActions ca
+WHERE ca.ContractId = c.Id AND ca.ActionType IN (10,50,60,70,75,80,110,120,150)
+) ca
+OUTER APPLY (
+SELECT Date FROM ContractActions buyout
+WHERE buyout.ContractId = c.Id AND buyout.ActionType IN (20,30,40,90) AND buyout.DeleteDate IS NULL
+) buyout
+WHERE PercentPaymentType = 20
+	AND c.Status&gt;=30
+	AND c.collateralType=20
+	AND c.ContractDate&lt;@enddate
+	AND c.BranchId IN ({branchIds})
+
+	AND ca.DeleteDate IS NULL
+
+
+
+INSERT INTO @DelayPeriods(Id, ClientId, DelayStartsAt, DelayEndsAt, DelayDayCount)
+SELECT 
+	Id,
+	ClientId,
+	DATEADD(DAY,1,DelayStartsAt),
+	DelayEndsAt,
+	DATEDIFF(DAY,DelayStartsAt,DelayEndsAt) AS DelayDayCount
+	FROM @DelayActions
+WHERE 
+DATEDIFF(DAY,DelayStartsAt,DelayEndsAt)&gt;0
+	AND DelayStartsAt&lt;=@enddate
+	AND DelayEndsAt &gt;=@begindate
+
+
+
+INSERT INTO @result
+(Id, DebtLeft, GotDelayedInThisPeriod, SoftDelayDateStartsAt, DelayDayCount, 
+DebtCost, PercentCost, PenaltyCost, HardDelayDateStartsAt, PrepaymentCost)
+SELECT
+	d.Id,
+	IIF(c.BuyOutDate IS NOT NULL AND c.LoanPeriod = 30, c.LoanCost, 
+	IIF(c.LoanCost - carSum = 0, 
+(SELECT SUM(car.Cost)
+	FROM ContractActions ca, ContractActionRows car 
+		WHERE ActionType IN (10,20,30,40,80,90,130)
+		AND car.ActionId=ca.Id
+		AND ca.DeleteDate IS NULL
+		AND ca.ContractId = d.Id
+		AND car.PaymentType=10
+		AND ca.Date &gt;= @beginDate
+		AND ca.Date &lt;= @endDate),
+		c.LoanCost - ISNULL(carSum,0)))
+		AS DebtLeft,
+	IIF(DelayStartsAt BETWEEN @begindate AND @enddate,1,0) AS GotDelayedInThisPeriod,
+	DelayStartsAt AS SoftDelayDateStartsAt,
+	DelayDayCount,
+	t.car10 AS DebtCost,
+	t.car20 AS PercentCost,
+	t.car30 AS PenaltyCost,
+	IIF(DelayDayCount&gt;=9,DATEADD(DAY,9,DelayStartsAt),null) AS HardDelayDateStartsAt,
+(SELECT SUM(TotalCost) FROM ContractActions ca WHERE ca.ContractId = c.Id AND ActionType = 100 AND [Date] BETWEEN DelayStartsAt AND ISNULL(IIF(DelayDayCount&gt;=9,DATEADD(DAY,9,DelayStartsAt),null),DATEADD(DAY,DelayDayCount,DelayStartsAt)))
+FROM @DelayPeriods  d
+JOIN Contracts c ON c.Id = d.Id
+OUTER APPLY (
+SELECT SUM(car.Cost) as carSum
+	FROM ContractActions ca, ContractActionRows car 
+		WHERE ActionType IN (10,20,30,40,80,90,130)
+		AND car.ActionId=ca.Id
+		AND ca.DeleteDate IS NULL
+		AND ca.ContractId = d.Id
+		AND car.PaymentType=10
+		AND [Date] &lt;= @endDate) AS carSum
+OUTER APPLY (
+SELECT
+	ISNULL(SUM(car10.Cost),0) AS car10,
+	ISNULL(SUM(car20.Cost),0) AS car20,
+	ISNULL(SUM(car30.Cost),0) AS car30
+	FROM ContractActions ca
+OUTER APPLY (select SUM(distinct Cost) AS Cost FROM ContractActionRows car WHERE PaymentType IN (10,15) AND car.ActionId = ca.Id) car10
+OUTER APPLY (select SUM(distinct Cost) AS Cost FROM ContractActionRows car WHERE PaymentType IN (20,25) AND car.ActionId = ca.Id) car20
+OUTER APPLY (select SUM(distinct Cost) AS Cost FROM ContractActionRows car WHERE PaymentType IN (30,31,32) AND car.ActionId = ca.Id) car30
+WHERE ActionType IN (10,20,30,40,80,90,130)
+	AND ContractId=d.Id 
+	AND DeleteDate IS NULL
+	AND Date&gt;=DelayStartsAt
+	AND Date&lt;DATEADD(DAY,9,DelayStartsAt)
+	) AS t
+
+WHERE DelayStartsAt&lt;=@enddate
+AND DelayEndsAt &gt;=@begindate
+AND DATEDIFF(DAY,DelayStartsAt,@begindate)&lt;=9
+
+UPDATE @result SET DebtLeftToHard = IIF(HardDelayDateStartsAt IS NOT NULL, DebtLeft, NULL)
+
+BEGIN
+
+INSERT INTO @superresult
+SELECT MONTH(@endDate) AS month,
+YEAR(@endDate) AS year,
+@endDate AS Date,
+COUNT(*) AS TotalCount,
+SUM(DebtLeft) AS TotalCost,
+SUM(IIF(DebtLeftToHard IS NULL AND DelayDayCount BETWEEN 1 AND 4,IIF((DebtCost + PercentCost + PenaltyCost) &gt; 0,1,0),0)) AS Count_1_4,
+SUM(IIF(DebtLeftToHard IS NULL AND DelayDayCount BETWEEN 1 AND 4,IIF((DebtCost + PercentCost + PenaltyCost) &gt; 0,DebtLeft,0),0)) AS Cost_1_4,
+ROUND(SUM(IIF(DebtLeftToHard IS NULL AND DelayDayCount BETWEEN 
+1 AND 4,IIF((DebtCost + PercentCost + PenaltyCost) &gt; 0,DebtLeft,0),0))/(SUM(DebtLeft)/100),2) AS Percent_1_4,
+SUM(IIF(DebtLeftToHard IS NULL AND DelayDayCount BETWEEN 5 AND 8,IIF((DebtCost + PercentCost + PenaltyCost) &gt; 0,1,0),0)) AS Count_5_8,
+SUM(IIF(DebtLeftToHard IS NULL AND DelayDayCount BETWEEN 5 AND 8,IIF((DebtCost + PercentCost + PenaltyCost) &gt; 0,DebtLeft,0),0)) AS Cost_5_8,
+ROUND(SUM(IIF(DebtLeftToHard IS NULL AND DelayDayCount BETWEEN 5 AND 8,IIF((DebtCost + PercentCost + PenaltyCost) &gt; 0,DebtLeft,0),0))/(SUM(DebtLeft)/100),2) AS Percent_5_8,
+SUM(IIF(DebtLeftToHard IS NOT NULL,1,0)) AS Count_hard,
+SUM(IIF(DebtLeftToHard IS NOT NULL,DebtLeft,0)) AS Cost_hard,
+round(SUM(IIF(DebtLeftToHard IS NOT NULL, DebtLeft, 0))/(SUM(DebtLeft)/100),2) AS Percent_hard,
+SUM(IIF(DebtLeftToHard IS NULL,ISNULL(PercentCost,0),0)) AS PercentCost,
+SUM(IIF(DebtLeftToHard IS NULL,ISNULL(PenaltyCost,0),0)) AS PenaltyCost,
+SUM(IIF(DebtLeftToHard IS NULL,ISNULL(PenaltyCost,0)+ISNULL(PercentCost,0),0)) AS PercentAndPenaltyCost
+	FROM @result r
+WHERE SoftDelayDateStartsAt &gt;= @beginDate AND SoftDelayDateStartsAt &lt;= @endDate
+END
+SELECT * FROM @superresult</SqlCommand>
+      </ConsolidateSoftCollectionReport>
+    </DataSources>
+    <Relations isList="true" count="0" />
+    <Report isRef="0" />
+    <Resources isList="true" count="0" />
+    <Variables isList="true" count="7">
+      <value>,branchIds,branchIds,,Stimulsoft.Report.IntList,_x0031_12,False,False,False,False,,,True</value>
+      <value>,beginDate,beginDate,,System.DateTime,_x0036__x002F_1_x002F_2019_x0020_12:00:00_x0020_AM,False,False,False,False,,,True</value>
+      <value>,endDate,endDate,,System.DateTime,_x0036__x002F_30_x002F_2019_x0020_11:59:59_x0020_PM,False,False,False,False,,,True</value>
+      <value>,months,months,,System.Int32,_x0031_0,False,False,False,False,,,True</value>
+      <value>,year,year,,System.Int32,_x0032_019,False,False,False,False,,,True</value>
+      <value>,fromBegining,fromBegining,,System.Boolean,true,False,False,False,False,,,True</value>
+      <value>,i,i,,System.Int32,_x0031_,False,False,False,False,,,True</value>
+    </Variables>
+  </Dictionary>
+  <EngineVersion>EngineV2</EngineVersion>
+  <GlobalizationStrings isList="true" count="0" />
+  <Key>5f7cde33bc0942e1a1ced1bc58c7d409</Key>
+  <MetaTags isList="true" count="0" />
+  <Pages isList="true" count="1">
+    <Page2 Ref="4" type="Page" isKey="true">
+      <Border>None;Black;2;Solid;False;4;Black</Border>
+      <Brush>Transparent</Brush>
+      <Components isList="true" count="4">
+        <ReportTitleBand2 Ref="5" type="ReportTitleBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,0.2,15.22,0.2</ClientRectangle>
+          <Components isList="true" count="1">
+            <Text50 Ref="6" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0,15.2,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,12,Bold</Font>
+              <Guid>6e5824b613924818bc9bb9ce6c016803</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text50</Name>
+              <Page isRef="4" />
+              <Parent isRef="5" />
+              <Text>Система мотивации SOFT (KPI)</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text50>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Guid>b3ec5d2e11f74eb5a6b3d0942cc1b62f</Guid>
+          <Name>ReportTitleBand2</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+        </ReportTitleBand2>
+        <HeaderBand2 Ref="7" type="HeaderBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,0.8,15.22,0.6</ClientRectangle>
+          <Components isList="true" count="22">
+            <Text58 Ref="8" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[221:217:196]</Brush>
+              <ClientRectangle>2,0.4,1,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>172487e982174d06a0b4eda4a06629dd</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text58</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>ОД (тыс.тенге)</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text58>
+            <Text62 Ref="9" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[221:217:196]</Brush>
+              <ClientRectangle>1.3,0.4,0.7,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>5f227e3b4a054112894a64564ced941b</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text62</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>Договоров</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text62>
+            <Text64 Ref="10" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[221:217:196]</Brush>
+              <ClientRectangle>1.3,0,1.7,0.4</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10,Bold</Font>
+              <Guid>89b611496ec24ac5a508f2aa7457906c</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text64</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>Поступило в работу</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text64>
+            <Text53 Ref="11" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[221:217:196]</Brush>
+              <ClientRectangle>0,0,1.3,0.6</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10,Bold</Font>
+              <Guid>8987bbef40664dd19e5ed605ae41a7e0</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text53</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>Дата просрочки</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text53>
+            <Text1 Ref="12" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[221:217:196]</Brush>
+              <ClientRectangle>3.8,0.4,1,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>cadeedcea16b44e6a6d51be6167bf6c5</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text1</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>ОД (тыс.тенге)</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text1>
+            <Text2 Ref="13" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[221:217:196]</Brush>
+              <ClientRectangle>3,0.4,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>5de05f5ff47f49ac94fe8a1462d07616</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text2</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>Договоров</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text2>
+            <Text4 Ref="14" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[221:217:196]</Brush>
+              <ClientRectangle>3,0,6,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10,Bold</Font>
+              <Guid>3aaf149747184fe89ebfeed05116fb1f</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text4</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>Погашения Soft Collection</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text4>
+            <Text5 Ref="15" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[221:217:196]</Brush>
+              <ClientRectangle>3,0.2,3,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10,Bold</Font>
+              <Guid>d66dd786911f455ea432c77f14c31ac4</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text5</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>Погашения с 1 по 4 день просрочки</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text5>
+            <Text6 Ref="16" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[221:217:196]</Brush>
+              <ClientRectangle>6,0.2,3,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10,Bold</Font>
+              <Guid>d8a3a471b090441bb595c41cbb2e55ef</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text6</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>Погашения с 5 по 8 день просрочки</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text6>
+            <Text7 Ref="17" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[221:217:196]</Brush>
+              <ClientRectangle>4.8,0.4,1.2,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>3724b8f9cdcc42bcbd32e2d625f387a7</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text7</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>% от поступивших</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text7>
+            <Text8 Ref="18" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[221:217:196]</Brush>
+              <ClientRectangle>6.8,0.4,1,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>cb86c4342df44461a36b5a153affb712</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text8</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>ОД (тыс.тенге)</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text8>
+            <Text9 Ref="19" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[221:217:196]</Brush>
+              <ClientRectangle>6,0.4,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>6df38df920d94df6abfe6e7c4986784c</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text9</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>Договоров</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text9>
+            <Text10 Ref="20" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[221:217:196]</Brush>
+              <ClientRectangle>7.8,0.4,1.2,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>7ceb036b81044e3aab15b81081bb179c</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text10</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>% от поступивших</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text10>
+            <Text11 Ref="21" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[221:217:196]</Brush>
+              <ClientRectangle>9,0,3,0.4</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10,Bold</Font>
+              <Guid>ea6cf72b2dca4a54927d264d6da61e25</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text11</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>Передано в Hard</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text11>
+            <Text12 Ref="22" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[221:217:196]</Brush>
+              <ClientRectangle>9.8,0.4,1,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>7a27e58d7f35411da890cfc824c9d898</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text12</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>ОД (тыс.тенге)</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text12>
+            <Text13 Ref="23" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[221:217:196]</Brush>
+              <ClientRectangle>9,0.4,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>efa161c0a287405d86aab7767130848f</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text13</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>Договоров</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text13>
+            <Text14 Ref="24" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[221:217:196]</Brush>
+              <ClientRectangle>10.8,0.4,1.2,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>edd8f7f504d847898074f0dec232ffee</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text14</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>% от поступивших</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text14>
+            <Text15 Ref="25" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Yellow</Brush>
+              <ClientRectangle>12,0,3.2,0.4</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10,Bold</Font>
+              <Guid>d80ee20aba2c437f951617523edea6ca</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text15</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>Взысканные суммы (тыс. тенге)</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text15>
+            <Text17 Ref="26" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Yellow</Brush>
+              <ClientRectangle>12,0.4,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>857e818ca2ec416baf3c4a7e94cf2f6f</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text17</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>%</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text17>
+            <Text16 Ref="27" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Yellow</Brush>
+              <ClientRectangle>12.8,0.4,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>c8c5c16e82e74edd91dd987c52e74996</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text16</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>штрафы</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text16>
+            <Text18 Ref="28" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Yellow</Brush>
+              <ClientRectangle>13.6,0.4,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>8a8fe36c90f743fa99a45933924489d4</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text18</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>Итого</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text18>
+            <Text19 Ref="29" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Yellow</Brush>
+              <ClientRectangle>14.4,0.4,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>ba50abb369a7450f8dd085466711557f</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text19</Name>
+              <Page isRef="4" />
+              <Parent isRef="7" />
+              <Text>0.25%</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text19>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Guid>de16b8ed29de45b3ab00a7b25dc75799</Guid>
+          <Name>HeaderBand2</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+          <PrintIfEmpty>True</PrintIfEmpty>
+        </HeaderBand2>
+        <DataBand2 Ref="30" type="DataBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <BusinessObjectGuid isNull="true" />
+          <ClientRectangle>0,1.8,15.22,0.2</ClientRectangle>
+          <Components isList="true" count="16">
+            <Text72 Ref="31" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanGrow>True</CanGrow>
+              <ClientRectangle>0,0,1.3,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10,Bold</Font>
+              <GrowToHeight>True</GrowToHeight>
+              <Guid>b10a6706216e4d718847d3208593b3a5</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text72</Name>
+              <Page isRef="4" />
+              <Parent isRef="30" />
+              <ProcessingDuplicates>GlobalMerge</ProcessingDuplicates>
+              <Text>{ConsolidateSoftCollectionReport.Date}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="32" type="DateFormat" isKey="true">
+                <StringFormat>yyyy, MMMM</StringFormat>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text72>
+            <Text56 Ref="33" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>1.3,0,0.7,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>c2a13e49e26841d2971122e83403befe</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text56</Name>
+              <Page isRef="4" />
+              <Parent isRef="30" />
+              <Text>{ConsolidateSoftCollectionReport.TotalCount}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text56>
+            <Text3 Ref="34" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>2,0,1,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>e5e2659f576247b68314af7aeaabbc5f</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text3</Name>
+              <Page isRef="4" />
+              <Parent isRef="30" />
+              <Text>{ConsolidateSoftCollectionReport.TotalCost/1000}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text3>
+            <Text20 Ref="35" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>3,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>fd110e7cd46e4e7b9b457d4e3b465792</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text20</Name>
+              <Page isRef="4" />
+              <Parent isRef="30" />
+              <Text>{ConsolidateSoftCollectionReport.Count_1_4}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text20>
+            <Text21 Ref="36" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>3.8,0,1,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>617818b4a2514d789e04c50826561bff</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text21</Name>
+              <Page isRef="4" />
+              <Parent isRef="30" />
+              <Text>{ConsolidateSoftCollectionReport.Cost_1_4/1000}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text21>
+            <Text22 Ref="37" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>4.8,0,1.2,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>031904dec05e49c0969e76022a5881df</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text22</Name>
+              <Page isRef="4" />
+              <Parent isRef="30" />
+              <Text>{ConsolidateSoftCollectionReport.Percent_1_4}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text22>
+            <Text23 Ref="38" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>6,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>7a76d363d49b441d9908b9222af33c4c</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text23</Name>
+              <Page isRef="4" />
+              <Parent isRef="30" />
+              <Text>{ConsolidateSoftCollectionReport.Count_5_8}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text23>
+            <Text24 Ref="39" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>6.8,0,1,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>2a03441e04b246f59d49bc4244032c00</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text24</Name>
+              <Page isRef="4" />
+              <Parent isRef="30" />
+              <Text>{ConsolidateSoftCollectionReport.Cost_5_8/1000}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text24>
+            <Text25 Ref="40" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>7.8,0,1.2,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>f022a9136b754e6894fff98e87895545</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text25</Name>
+              <Page isRef="4" />
+              <Parent isRef="30" />
+              <Text>{ConsolidateSoftCollectionReport.Percent_5_8}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text25>
+            <Text26 Ref="41" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>9,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>2a39b34862ce4164a907e2d495f3e5f5</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text26</Name>
+              <Page isRef="4" />
+              <Parent isRef="30" />
+              <Text>{ConsolidateSoftCollectionReport.Count_hard}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text26>
+            <Text27 Ref="42" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>9.8,0,1,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>ffbc6716010d4de2b685c1bc06a7fc50</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text27</Name>
+              <Page isRef="4" />
+              <Parent isRef="30" />
+              <Text>{ConsolidateSoftCollectionReport.Cost_hard/1000}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text27>
+            <Text28 Ref="43" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>10.8,0,1.2,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>95ee2fd19cab4800ba99097314731b68</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text28</Name>
+              <Page isRef="4" />
+              <Parent isRef="30" />
+              <Text>{ConsolidateSoftCollectionReport.Percent_hard}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text28>
+            <Text29 Ref="44" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>12,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>3211e0d203d645cc8d6ddc4f5e9b424d</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text29</Name>
+              <Page isRef="4" />
+              <Parent isRef="30" />
+              <Text>{ConsolidateSoftCollectionReport.PercentCost/1000}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text29>
+            <Text30 Ref="45" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>12.8,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>58935a60c744433a83e3eec05db2b67c</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text30</Name>
+              <Page isRef="4" />
+              <Parent isRef="30" />
+              <Text>{ConsolidateSoftCollectionReport.PenaltyCost/1000}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text30>
+            <Text31 Ref="46" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>13.6,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>3caabe323baa4e74b01c85c07aad13fa</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text31</Name>
+              <Page isRef="4" />
+              <Parent isRef="30" />
+              <Text>{ConsolidateSoftCollectionReport.PercentAndPenaltyCost/1000}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text31>
+            <Text32 Ref="47" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>14.4,0,0.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>40babbf6b0de437ba54ea998da7bd83f</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text32</Name>
+              <Page isRef="4" />
+              <Parent isRef="30" />
+              <Text>{(ConsolidateSoftCollectionReport.PercentAndPenaltyCost/1000)*0.0025}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="48" type="NumberFormat" isKey="true">
+                <DecimalDigits>2</DecimalDigits>
+                <DecimalSeparator>,</DecimalSeparator>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <State>DecimalDigits</State>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text32>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <DataRelationName isNull="true" />
+          <DataSourceName>ConsolidateSoftCollectionReport</DataSourceName>
+          <Filters isList="true" count="0" />
+          <Name>DataBand2</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+          <Sort isList="true" count="0" />
+        </DataBand2>
+        <ReportSummaryBand1 Ref="49" type="ReportSummaryBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,2.4,15.22,3.6</ClientRectangle>
+          <Components isList="true" count="1">
+            <Chart1 Ref="50" type="Stimulsoft.Report.Chart.StiChart" isKey="true">
+              <Area Ref="51" type="Stimulsoft.Report.Chart.StiStackedColumnArea" isKey="true">
+                <BorderColor>171, 172, 173</BorderColor>
+                <Brush>[255:255:255]</Brush>
+                <Chart isRef="50" />
+                <GridLinesHor Ref="52" type="Stimulsoft.Report.Chart.StiGridLinesHor" isKey="true">
+                  <Area isRef="51" />
+                  <Color>50, 105, 105, 105</Color>
+                  <MinorColor>50, 105, 105, 105</MinorColor>
+                </GridLinesHor>
+                <GridLinesHorRight Ref="53" type="Stimulsoft.Report.Chart.StiGridLinesHor" isKey="true">
+                  <Area isRef="51" />
+                  <Color>Silver</Color>
+                  <MinorColor>Gainsboro</MinorColor>
+                  <Visible>False</Visible>
+                </GridLinesHorRight>
+                <GridLinesVert Ref="54" type="Stimulsoft.Report.Chart.StiGridLinesVert" isKey="true">
+                  <Area isRef="51" />
+                  <Color>50, 105, 105, 105</Color>
+                  <MinorColor>50, 105, 105, 105</MinorColor>
+                </GridLinesVert>
+                <InterlacingHor Ref="55" type="Stimulsoft.Report.Chart.StiInterlacingHor" isKey="true">
+                  <Area isRef="51" />
+                  <InterlacedBrush>[10:155:155:155]</InterlacedBrush>
+                </InterlacingHor>
+                <InterlacingVert Ref="56" type="Stimulsoft.Report.Chart.StiInterlacingVert" isKey="true">
+                  <Area isRef="51" />
+                  <InterlacedBrush>[10:155:155:155]</InterlacedBrush>
+                </InterlacingVert>
+                <XAxis Ref="57" type="Stimulsoft.Report.Chart.StiXBottomAxis" isKey="true">
+                  <Area isRef="51" />
+                  <DateTimeStep Ref="58" type="Stimulsoft.Report.Chart.StiAxisDateTimeStep" isKey="true" />
+                  <Interaction Ref="59" type="Stimulsoft.Report.Chart.StiAxisInteraction" isKey="true" />
+                  <Labels Ref="60" type="Stimulsoft.Report.Chart.StiAxisLabels" isKey="true">
+                    <Color>140, 140, 140</Color>
+                    <Font>Tahoma,8</Font>
+                  </Labels>
+                  <LineColor>140, 140, 140</LineColor>
+                  <Range Ref="61" type="Stimulsoft.Report.Chart.StiAxisRange" isKey="true" />
+                  <Ticks Ref="62" type="Stimulsoft.Report.Chart.StiAxisTicks" isKey="true" />
+                  <Title Ref="63" type="Stimulsoft.Report.Chart.StiAxisTitle" isKey="true">
+                    <Color>140, 140, 140</Color>
+                    <Font>Tahoma,12,Bold</Font>
+                  </Title>
+                </XAxis>
+                <XTopAxis Ref="64" type="Stimulsoft.Report.Chart.StiXTopAxis" isKey="true">
+                  <Area isRef="51" />
+                  <Interaction Ref="65" type="Stimulsoft.Report.Chart.StiAxisInteraction" isKey="true" />
+                  <Labels Ref="66" type="Stimulsoft.Report.Chart.StiAxisLabels" isKey="true">
+                    <Color>140, 140, 140</Color>
+                    <Font>Tahoma,8</Font>
+                  </Labels>
+                  <LineColor>140, 140, 140</LineColor>
+                  <Ticks Ref="67" type="Stimulsoft.Report.Chart.StiAxisTicks" isKey="true" />
+                  <Title Ref="68" type="Stimulsoft.Report.Chart.StiAxisTitle" isKey="true">
+                    <Color>140, 140, 140</Color>
+                    <Font>Tahoma,12,Bold</Font>
+                  </Title>
+                </XTopAxis>
+                <YAxis Ref="69" type="Stimulsoft.Report.Chart.StiYLeftAxis" isKey="true">
+                  <Area isRef="51" />
+                  <Interaction Ref="70" type="Stimulsoft.Report.Chart.StiAxisInteraction" isKey="true" />
+                  <Labels Ref="71" type="Stimulsoft.Report.Chart.StiAxisLabels" isKey="true">
+                    <Color>140, 140, 140</Color>
+                    <Font>Tahoma,8</Font>
+                  </Labels>
+                  <LineColor>140, 140, 140</LineColor>
+                  <Range Ref="72" type="Stimulsoft.Report.Chart.StiAxisRange" isKey="true" />
+                  <Ticks Ref="73" type="Stimulsoft.Report.Chart.StiAxisTicks" isKey="true" />
+                  <Title Ref="74" type="Stimulsoft.Report.Chart.StiAxisTitle" isKey="true">
+                    <Color>140, 140, 140</Color>
+                    <Direction>BottomToTop</Direction>
+                    <Font>Tahoma,12,Bold</Font>
+                  </Title>
+                </YAxis>
+                <YRightAxis Ref="75" type="Stimulsoft.Report.Chart.StiYRightAxis" isKey="true">
+                  <Area isRef="51" />
+                  <Interaction Ref="76" type="Stimulsoft.Report.Chart.StiAxisInteraction" isKey="true" />
+                  <Labels Ref="77" type="Stimulsoft.Report.Chart.StiAxisLabels" isKey="true">
+                    <Color>140, 140, 140</Color>
+                    <Font>Tahoma,8</Font>
+                    <TextAlignment>Left</TextAlignment>
+                  </Labels>
+                  <LineColor>140, 140, 140</LineColor>
+                  <Range Ref="78" type="Stimulsoft.Report.Chart.StiAxisRange" isKey="true" />
+                  <Ticks Ref="79" type="Stimulsoft.Report.Chart.StiAxisTicks" isKey="true" />
+                  <Title Ref="80" type="Stimulsoft.Report.Chart.StiAxisTitle" isKey="true">
+                    <Color>140, 140, 140</Color>
+                    <Direction>TopToBottom</Direction>
+                    <Font>Tahoma,12,Bold</Font>
+                  </Title>
+                </YRightAxis>
+              </Area>
+              <Brush>[255:255:255]</Brush>
+              <ClientRectangle>0,0,15.2,3.4</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <ConstantLines isList="true" count="0" />
+              <CustomStyleName />
+              <Filters isList="true" count="0" />
+              <Legend Ref="81" type="Stimulsoft.Report.Chart.StiLegend" isKey="true">
+                <BorderColor>225, 225, 225</BorderColor>
+                <Brush>[255:255:255]</Brush>
+                <Chart isRef="50" />
+                <Font>Arial,8</Font>
+                <LabelsColor>140, 140, 140</LabelsColor>
+                <MarkerSize>10, 10</MarkerSize>
+                <ShowShadow>False</ShowShadow>
+                <TitleColor>105, 105, 105</TitleColor>
+                <TitleFont>Arial,14,Bold</TitleFont>
+              </Legend>
+              <Name>Chart1</Name>
+              <Page isRef="4" />
+              <Parent isRef="49" />
+              <Series isList="true" count="3">
+                <Item48 Ref="82" type="Stimulsoft.Report.Chart.StiStackedSplineAreaSeries" isKey="true">
+                  <Brush>[200:52:152:219]</Brush>
+                  <BrushNegative>Firebrick</BrushNegative>
+                  <Chart isRef="50" />
+                  <Filters isList="true" count="0" />
+                  <Lighting>False</Lighting>
+                  <LineColor>52, 152, 219</LineColor>
+                  <LineColorNegative>Firebrick</LineColorNegative>
+                  <Marker Ref="83" type="Stimulsoft.Report.Chart.StiMarker" isKey="true">
+                    <BorderColor>0, 52, 119</BorderColor>
+                    <Brush>[152:252:255]</Brush>
+                    <Visible>False</Visible>
+                  </Marker>
+                  <SeriesLabels Ref="84" type="Stimulsoft.Report.Chart.StiCenterAxisLabels" isKey="true">
+                    <BorderColor>Transparent</BorderColor>
+                    <Brush>Transparent</Brush>
+                    <Chart isRef="50" />
+                    <Font>Arial,10</Font>
+                    <LabelColor>50, 58, 69</LabelColor>
+                    <MarkerSize>8, 6</MarkerSize>
+                    <ValueTypeSeparator>-</ValueTypeSeparator>
+                    <Width>0</Width>
+                  </SeriesLabels>
+                  <ShowShadow>False</ShowShadow>
+                  <Title>Ряд 1</Title>
+                  <TopN Ref="85" type="Stimulsoft.Report.Chart.StiSeriesTopN" isKey="true" />
+                  <ValueDataColumn>ConsolidateSoftCollectionReport.Percent_1_3</ValueDataColumn>
+                </Item48>
+                <Item49 Ref="86" type="Stimulsoft.Report.Chart.StiStackedSplineAreaSeries" isKey="true">
+                  <Brush>[200:239:113:122]</Brush>
+                  <BrushNegative>Firebrick</BrushNegative>
+                  <Chart isRef="50" />
+                  <Filters isList="true" count="0" />
+                  <Lighting>False</Lighting>
+                  <LineColor>239, 113, 122</LineColor>
+                  <LineColorNegative>Firebrick</LineColorNegative>
+                  <Marker Ref="87" type="Stimulsoft.Report.Chart.StiMarker" isKey="true">
+                    <BorderColor>139, 13, 22</BorderColor>
+                    <Brush>[255:213:222]</Brush>
+                    <Visible>False</Visible>
+                  </Marker>
+                  <SeriesLabels Ref="88" type="Stimulsoft.Report.Chart.StiCenterAxisLabels" isKey="true">
+                    <BorderColor>Transparent</BorderColor>
+                    <Brush>Transparent</Brush>
+                    <Chart isRef="50" />
+                    <Font>Arial,10</Font>
+                    <LabelColor>50, 58, 69</LabelColor>
+                    <MarkerSize>8, 6</MarkerSize>
+                    <ValueTypeSeparator>-</ValueTypeSeparator>
+                    <Width>0</Width>
+                  </SeriesLabels>
+                  <ShowShadow>False</ShowShadow>
+                  <Title>Ряд 2</Title>
+                  <TopN Ref="89" type="Stimulsoft.Report.Chart.StiSeriesTopN" isKey="true" />
+                  <ValueDataColumn>ConsolidateSoftCollectionReport.Percent_4_5</ValueDataColumn>
+                </Item49>
+                <Item50 Ref="90" type="Stimulsoft.Report.Chart.StiStackedSplineAreaSeries" isKey="true">
+                  <Brush>[200:109:203:179]</Brush>
+                  <BrushNegative>Firebrick</BrushNegative>
+                  <Chart isRef="50" />
+                  <Filters isList="true" count="0" />
+                  <Lighting>False</Lighting>
+                  <LineColor>109, 203, 179</LineColor>
+                  <LineColorNegative>Firebrick</LineColorNegative>
+                  <Marker Ref="91" type="Stimulsoft.Report.Chart.StiMarker" isKey="true">
+                    <BorderColor>9, 103, 79</BorderColor>
+                    <Brush>[209:255:255]</Brush>
+                    <Visible>False</Visible>
+                  </Marker>
+                  <SeriesLabels Ref="92" type="Stimulsoft.Report.Chart.StiCenterAxisLabels" isKey="true">
+                    <BorderColor>Transparent</BorderColor>
+                    <Brush>Transparent</Brush>
+                    <Chart isRef="50" />
+                    <Font>Arial,10</Font>
+                    <LabelColor>50, 58, 69</LabelColor>
+                    <MarkerSize>8, 6</MarkerSize>
+                    <ValueTypeSeparator>-</ValueTypeSeparator>
+                    <Width>0</Width>
+                  </SeriesLabels>
+                  <ShowShadow>False</ShowShadow>
+                  <Title>Ряд 3</Title>
+                  <TopN Ref="93" type="Stimulsoft.Report.Chart.StiSeriesTopN" isKey="true" />
+                  <ValueDataColumn>ConsolidateSoftCollectionReport.Percent_hard</ValueDataColumn>
+                </Item50>
+              </Series>
+              <SeriesLabels Ref="94" type="Stimulsoft.Report.Chart.StiCenterAxisLabels" isKey="true">
+                <BorderColor>Transparent</BorderColor>
+                <Brush>Transparent</Brush>
+                <Chart isRef="50" />
+                <Font>Arial,10</Font>
+                <LabelColor>50, 58, 69</LabelColor>
+                <MarkerSize>8, 6</MarkerSize>
+                <ValueTypeSeparator>-</ValueTypeSeparator>
+                <Width>0</Width>
+              </SeriesLabels>
+              <SeriesLabelsConditions isList="true" count="0" />
+              <Sort isList="true" count="0" />
+              <Strips isList="true" count="0" />
+              <Style Ref="95" type="Stimulsoft.Report.Chart.StiStyle29" isKey="true">
+                <Conditions isList="true" count="0" />
+                <Name />
+              </Style>
+              <Table Ref="96" type="Stimulsoft.Report.Chart.StiChartTable" isKey="true">
+                <DataCells Ref="97" type="Stimulsoft.Report.Chart.StiChartTableDataCells" isKey="true">
+                  <Font>Arial,8</Font>
+                  <ShrinkFontToFit>False</ShrinkFontToFit>
+                  <TextColor>140, 140, 140</TextColor>
+                </DataCells>
+                <GridLineColor>225, 225, 225</GridLineColor>
+                <Header Ref="98" type="Stimulsoft.Report.Chart.StiChartTableHeader" isKey="true">
+                  <Brush>White</Brush>
+                  <Font>Arial,8</Font>
+                  <TextColor>DarkGray</TextColor>
+                </Header>
+              </Table>
+              <Title Ref="99" type="Stimulsoft.Report.Chart.StiChartTitle" isKey="true">
+                <Brush>[140:140:140]</Brush>
+                <Font>Tahoma,12,Bold</Font>
+              </Title>
+            </Chart1>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Name>ReportSummaryBand1</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+        </ReportSummaryBand1>
+      </Components>
+      <Conditions isList="true" count="0" />
+      <Guid>3b0ca051318d431fbc6bb477dc6466e4</Guid>
+      <Margins>0.39,0.39,0.39,0.39</Margins>
+      <Name>Page2</Name>
+      <PageHeight>12</PageHeight>
+      <PageWidth>16</PageWidth>
+      <Report isRef="0" />
+    </Page2>
+  </Pages>
+  <ReferencedAssemblies isList="true" count="8">
+    <value>System.Dll</value>
+    <value>System.Drawing.Dll</value>
+    <value>System.Windows.Forms.Dll</value>
+    <value>System.Data.Dll</value>
+    <value>System.Xml.Dll</value>
+    <value>Stimulsoft.Controls.Dll</value>
+    <value>Stimulsoft.Base.Dll</value>
+    <value>Stimulsoft.Report.Dll</value>
+  </ReferencedAssemblies>
+  <ReportAlias>Report</ReportAlias>
+  <ReportChanged>2/16/2023 2:47:17 PM</ReportChanged>
+  <ReportCreated>11/16/2018 4:12:06 PM</ReportCreated>
+  <ReportFile>C:\Programming\tascredit\tascredit\sources\Pawnshop.Web\Reports\SoftCollectionKPIEightTempReport.mrt</ReportFile>
+  <ReportGuid>f2a4a7d72e004f628d7a29874b850498</ReportGuid>
+  <ReportName>Report</ReportName>
+  <ReportUnit>Inches</ReportUnit>
+  <ReportVersion>2020.2.1.0</ReportVersion>
+  <Script>using System;
+using System.Drawing;
+using System.Windows.Forms;
+using System.Data;
+using Stimulsoft.Controls;
+using Stimulsoft.Base.Drawing;
+using Stimulsoft.Report;
+using Stimulsoft.Report.Dialogs;
+using Stimulsoft.Report.Components;
+
+namespace Reports
+{
+    public class Report : Stimulsoft.Report.StiReport
+    {
+        public Report()        {
+            this.InitializeComponent();
+        }
+
+        #region StiReport Designer generated code - do not modify
+		#endregion StiReport Designer generated code - do not modify
+    }
+}
+</Script>
+  <ScriptLanguage>CSharp</ScriptLanguage>
+  <Styles isList="true" count="0" />
+</StiSerializer>

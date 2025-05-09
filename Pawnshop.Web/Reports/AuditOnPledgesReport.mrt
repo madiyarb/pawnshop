@@ -1,0 +1,686 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<StiSerializer version="1.02" type="Net" application="StiReport">
+  <CalculationMode>Interpretation</CalculationMode>
+  <Culture>ru-RU</Culture>
+  <Dictionary Ref="1" type="Dictionary" isKey="true">
+    <BusinessObjects isList="true" count="0" />
+    <Databases isList="true" count="1">
+      <ReportConnection Ref="2" type="Stimulsoft.Report.Dictionary.StiSqlDatabase" isKey="true">
+        <Alias>ReportConnection</Alias>
+        <ConnectionStringEncrypted>9GD540Zd8wHsE/2Q6lzkZtFS96vjV6sF4hmcnet0rA+eHIGhWVb6+WpN2VDEfOmfgMjhwmFd+83iXAl8Y1zgP+fuaethGEudfRXtmOVEZSfWWtHCYQkTReJE/YRKhOCzgWxhK0sYkvV3XKmYaSXh68Nq+2NPUmvxYU2kiWMEpHuDxGVoS1xLXUZBrBxibCJ/1fL5KVZLa4hsR6WY5RTre9x0lQ3mXXqBaU2ERGd4d17R8t0jyV2T3eEZ2dxhGKcPwlr5y19Rc+XhXJzs6RngZ9IW0YjcXNNRQGy5kOkYJRfTdLvryGwxzeEEJaVhROMT1Q==</ConnectionStringEncrypted>
+        <Key>8b654dd6e8f64e4f99b4305ee901d08f</Key>
+        <Name>ReportConnection</Name>
+      </ReportConnection>
+    </Databases>
+    <DataSources isList="true" count="1">
+      <Monitoring Ref="3" type="Stimulsoft.Report.Dictionary.StiSqlSource" isKey="true">
+        <Alias>Monitoring</Alias>
+        <Columns isList="true" count="9">
+          <value>RevisionDate,System.DateTime</value>
+          <value>ContractNumber,System.String</value>
+          <value>DelayDayCount,System.Int32</value>
+          <value>BranchName,System.String</value>
+          <value>DisplayStatus,System.Int32</value>
+          <value>Fullname,System.String</value>
+          <value>GoodsDescription,System.String</value>
+          <value>RevisionStatus,System.String</value>
+          <value>RevisionNote,System.String</value>
+        </Columns>
+        <CommandTimeout>2000</CommandTimeout>
+        <Dictionary isRef="1" />
+        <Key>e3184cec794a45f8bfce6f84294f296a</Key>
+        <Name>Monitoring</Name>
+        <NameInSource>ReportConnection</NameInSource>
+        <Parameters isList="true" count="0" />
+        <SqlCommand>	DECLARE
+	@dateNow DATETIME
+SET @dateNow=dbo.GETASTANADATE();
+
+
+
+SELECT 
+	(SELECT CAST(MAX(RevisionDate) AS DATE) 
+		FROM Revisions rev
+		LEFT JOIN ContractPositions cpp ON cpp.PositionId = rev.PositionId
+		WHERE cpp.ContractId = c.Id)
+		--WHERE rev.ContractId = c.Id) 
+		AS RevisionDate,
+		c.ContractNumber,
+		--Calculating DelayDayCount 
+		IIF((
+				--ANNITY
+			CASE	WHEN c.PercentPaymentType IN(30, 31, 32) THEN DATEDIFF(DAY, DATEADD(MONTH, (
+SELECT COUNT(*)
+	FROM ContractActions ca
+								WHERE ca.ContractId = c.Id
+									AND ca.DeleteDate IS NULL
+									AND ca.ActionType = 80
+									AND ca.Date&lt;=@beginDate
+							) + 1, c.ContractDate), @dateNow)
+								--AS USUAL
+				ELSE DATEDIFF(DAY,
+IIF((SELECT COUNT(*) FROM ContractActions 
+	WHERE ContractId=c.Id 
+	AND DeleteDate IS NULL
+												AND ActionType=10
+												AND Date&lt;=@beginDate)&gt;0,
+DATEADD(DAY,CAST((SELECT TOP 1 JSON_VALUE(Data,'$.ProlongPeriod') FROM ContractActions 
+											WHERE ContractId=c.Id 
+												AND DeleteDate IS NULL
+												AND ActionType=10
+												AND Date&lt;=@beginDate
+										ORDER BY Date DESC) AS INT),
+(SELECT TOP 1 DATE FROM ContractActions 
+																WHERE ContractId=c.Id 
+																	AND DeleteDate IS NULL
+																	AND ActionType=10
+																	AND Date&lt;=@beginDate
+															ORDER BY Date DESC)),c.OriginalMaturityDate),
+															@beginDate
+														)
+				END
+				)&lt;=0,0,(
+		CASE	WHEN c.PercentPaymentType IN(30, 31, 32) THEN DATEDIFF(DAY, DATEADD(MONTH, (
+SELECT COUNT(*)
+	FROM ContractActions ca
+				WHERE ca.ContractId = c.Id
+					AND ca.DeleteDate IS NULL
+					AND ca.ActionType = 80
+					AND ca.Date&lt;=@beginDate
+			) + 1, c.ContractDate), @dateNow)
+				--AS USUAL
+				ELSE DATEDIFF(DAY,
+IIF((SELECT COUNT(*) FROM ContractActions 
+	WHERE ContractId=c.Id 
+	AND DeleteDate IS NULL
+							AND ActionType=10
+							AND Date&lt;=@beginDate)&gt;0,
+DATEADD(DAY,CAST((SELECT TOP 1 JSON_VALUE(Data,'$.ProlongPeriod') FROM ContractActions 
+						WHERE ContractId=c.Id 
+							AND DeleteDate IS NULL
+							AND ActionType=10
+							AND Date&lt;=@beginDate
+					ORDER BY Date DESC) AS INT),
+(SELECT TOP 1 DATE FROM ContractActions 
+						WHERE ContractId=c.Id 
+							AND DeleteDate IS NULL
+							AND ActionType=10
+							AND Date&lt;=@beginDate
+					ORDER BY Date DESC)),c.OriginalMaturityDate),
+					@beginDate
+				)
+				END
+				)) AS DelayDayCount,
+		g.DisplayName AS BranchName,
+	
+		CASE 
+			WHEN c.DeleteDate IS NOT NULL THEN 60
+			WHEN c.Status = 0 THEN 0
+			WHEN c.Status = 30 AND InscriptionId IS NOT NULL THEN 25
+WHEN c.Status = 30 AND InscriptionId IS NOT NULL AND (SELECT Status FROM Inscriptions WHERE ContractId=c.Id AND DeleteDate IS NULL)!=20 THEN 25
+WHEN c.Status = 30 AND (SELECT COUNT(*) FROM ContractPaymentSchedule WHERE ContractId=c.Id AND Canceled IS NULL AND DeleteDate IS NULL AND ActionId IS NULL AND Date&lt; CONVERT(DATE, @dateNow))&gt;0 THEN 20
+			WHEN c.Status = 30 AND c.MaturityDate &gt;= CONVERT(DATE, @dateNow) AND c.ProlongDate IS NULL THEN 10
+			WHEN c.Status = 30 AND c.MaturityDate &lt; CONVERT(DATE, @dateNow) THEN 20
+			WHEN c.Status = 30 AND c.MaturityDate &gt;= CONVERT(DATE, @dateNow) AND c.ProlongDate IS NOT NULL THEN 30
+			--WHEN c.Status = 40 THEN 40
+			WHEN c.Status = 50 THEN 50
+			WHEN c.Status = 60 THEN 55
+			ELSE 0
+		END AS DisplayStatus,
+
+		cl.Fullname AS Fullname,
+		--cat.Name AS Category,
+
+(SELECT CONCAT(' ',IIF(cr.Id IS NOT NULL, CONCAT_WS(' ', ISNULL(vma.Name, cr.Mark),' ', ISNULL(vmo.Name,cr.Model), ' ', cr.TransportNumber), IIF(realty.Id IS NOT NULL,realty.RCA, ' ')),',',CHAR(10))
+	   FROM ContractPositions cpp 
+	   LEFT JOIN Cars cr ON cr.Id = cpp.PositionId
+	   LEFT JOIN Realties realty ON realty.Id = cpp.PositionId
+	   LEFT JOIN VehicleModels vmo ON vmo.Id = cr.VehicleModelId
+	   LEFT JOIN VehicleMarks vma ON vma.Id = cr.VehicleMarkId
+	   WHERE cpp.ContractId = c.Id AND cpp.DeleteDate IS NULL
+	   ORDER BY cpp.Id DESC
+	   FOR XML PATH('')) AS GoodsDescription
+
+	 --  	(SELECT CONCAT(' ', rev.Status,' ', CHAR(10))
+		--FROM Revisions rev
+		--LEFT JOIN ContractPositions cpp ON cpp.PositionId = rev.PositionId
+		--WHERE cpp.ContractId = c.Id
+		--ORDER BY rev.CreateDate
+		--FOR XML PATH(''), TYPE) AS RevisionStatus,
+
+		--(SELECT CONCAT(' ', rev.Note,' ', CHAR(10))
+		--FROM Revisions rev
+		--LEFT JOIN ContractPositions cpp ON cpp.PositionId = rev.PositionId
+		--WHERE cpp.ContractId = c.Id
+		--ORDER BY rev.CreateDate
+		--FOR XML PATH(''), TYPE) AS RevisionNote
+
+
+	FROM Contracts c
+	LEFT JOIN Sellings sell ON sell.ContractId=c.Id AND sell.DeleteDate IS NULL
+	LEFT JOIN ContractActions ca ON ca.ContractId=c.Id AND ca.Date&lt;@beginDate AND ca.ActionType in (20, 30, 40, 90) AND ca.DeleteDate IS NULL
+	LEFT JOIN ContractTransfers ct ON ct.ContractId = c.id
+	JOIN Groups g on g.Id=c.BranchId
+	LEFT JOIN Clients cl ON cl.Id=c.ClientId
+	WHERE	c.DeleteDate IS NULL
+		AND c.ContractDate&lt;=@beginDate
+		AND ca.Id IS NULL
+		AND c.BranchId IN ({branchIds})
+		AND (sell.SellingDate&gt;@beginDate OR sell.SellingDate is NULL)
+		AND c.Status NOT IN (0, 40)
+		AND c.CollateralType != 60
+	ORDER BY BranchName, c.ContractDate</SqlCommand>
+      </Monitoring>
+    </DataSources>
+    <Relations isList="true" count="0" />
+    <Report isRef="0" />
+    <Resources isList="true" count="0" />
+    <Variables isList="true" count="2">
+      <value>,branchIds,branchIds,,Stimulsoft.Report.IntList,_x0031_12,False,False,False,False,,,True</value>
+      <value>,beginDate,beginDate,,System.DateTime,_x0031__x002F_1_x002F_2020_x0020_12:00:00_x0020_AM,False,False,False,False,,,True</value>
+    </Variables>
+  </Dictionary>
+  <EngineVersion>EngineV2</EngineVersion>
+  <GlobalizationStrings isList="true" count="0" />
+  <Key>793e082b3f5148b7970fb24543aa9edc</Key>
+  <MetaTags isList="true" count="0" />
+  <Pages isList="true" count="1">
+    <Page1 Ref="4" type="Page" isKey="true">
+      <Border>None;Black;2;Solid;False;4;Black</Border>
+      <Brush>Transparent</Brush>
+      <Components isList="true" count="4">
+        <ReportTitleBand1 Ref="5" type="ReportTitleBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,0.2,15.22,0.4</ClientRectangle>
+          <Components isList="true" count="2">
+            <Text1 Ref="6" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0,15,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,12,Bold</Font>
+              <Guid>897d2fede43d463c89e0bb4741baf7e9</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text1</Name>
+              <Page isRef="4" />
+              <Parent isRef="5" />
+              <Text>Отчет для ревизии по залогам</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text1>
+            <Text3 Ref="7" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0.2,15,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,12</Font>
+              <Guid>cad9e901e9cb4b6f9d853d9ebb802927</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text3</Name>
+              <Page isRef="4" />
+              <Parent isRef="5" />
+              <Text>{Format("{0:dd.MM.yyyy}", beginDate)} года</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text3>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Name>ReportTitleBand1</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+        </ReportTitleBand1>
+        <HeaderBand1 Ref="8" type="HeaderBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,1,15.22,0.3</ClientRectangle>
+          <Components isList="true" count="10">
+            <Text4 Ref="9" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0,0.6,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>42d0368becdb403fb82b186ead480876</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text4</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>П/н</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>SystemVariables</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text4>
+            <Text5 Ref="10" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>2.4,0,1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>493475485e3846af8fea10347ff5b4ae</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text5</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Номер договора</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text5>
+            <Text31 Ref="11" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>3.4,0,0.7,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>7ba3c4ed3c584b39b8928d1b195e2319</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text31</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Дней просрочки</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text31>
+            <Text37 Ref="12" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>5.5,0,1.2,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>1ec822a3e2b044ea836280c37445f9ca</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text37</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Текущий статус</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text37>
+            <Text2 Ref="13" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>12.9,0,1.2,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>a7975e1865f1415fb15863c46db82d7e</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text2</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Статус ревизии</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text2>
+            <Text9 Ref="14" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>14.1,0,1.1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>b8887663fbcb41cba130c84d55cc17f4</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text9</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Примечание</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text9>
+            <Text10 Ref="15" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0.6,0,1.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>c5bb58d39e8541d5a7997244db9a3582</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text10</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Дата предыдущей ревизии</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text10>
+            <Text11 Ref="16" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>4.1,0,1.4,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>bc6d1e7e81f7422c8b01522dc193af3c</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text11</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Филиал</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text11>
+            <Text6 Ref="17" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>6.7,0,3,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>92134f0ea8d94b16a50763441fad3e37</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text6</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>ФИО</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text6>
+            <Text23 Ref="18" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>9.7,0,3.2,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>1206169e6c034d58b9aa6c268ba675a0</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text23</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Объект залога</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text23>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Name>HeaderBand1</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+          <PrintIfEmpty>True</PrintIfEmpty>
+          <PrintOn>OnlyFirstPage</PrintOn>
+        </HeaderBand1>
+        <DataBand1 Ref="19" type="DataBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <BusinessObjectGuid isNull="true" />
+          <ClientRectangle>0,1.7,15.22,0.2</ClientRectangle>
+          <Components isList="true" count="10">
+            <Text13 Ref="20" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanGrow>True</CanGrow>
+              <ClientRectangle>0,0,0.6,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <GrowToHeight>True</GrowToHeight>
+              <Guid>624da8b6573041e0b751ac4876774d9a</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text13</Name>
+              <Page isRef="4" />
+              <Parent isRef="19" />
+              <Text>{Line}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>SystemVariables</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text13>
+            <Text26 Ref="21" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>2.4,0,1,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>7b588c6791d340908edbf78dd86b3fcd</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text26</Name>
+              <Page isRef="4" />
+              <Parent isRef="19" />
+              <Text>{Monitoring.ContractNumber}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text26>
+            <Text33 Ref="22" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>4.1,0,1.4,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>21407d313aad4d8b95d74b0320048c91</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text33</Name>
+              <Page isRef="4" />
+              <Parent isRef="19" />
+              <Text>{Monitoring.BranchName}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text33>
+            <Text34 Ref="23" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>3.4,0,0.7,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>601cbfb655ab43c288e2d379e88776bf</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text34</Name>
+              <Page isRef="4" />
+              <Parent isRef="19" />
+              <Text>{Monitoring.DelayDayCount}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="24" type="NumberFormat" isKey="true">
+                <DecimalDigits>0</DecimalDigits>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+                <UseLocalSetting>False</UseLocalSetting>
+              </TextFormat>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text34>
+            <Text38 Ref="25" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>5.5,0,1.2,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>c39449a0eaf34059b9f982a5de130126</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text38</Name>
+              <Page isRef="4" />
+              <Parent isRef="19" />
+              <Text>{Switch
+(Monitoring.DisplayStatus == 0, "Новый",
+Monitoring.DisplayStatus == 10, "Открыт", 
+Monitoring.DisplayStatus == 20, "Просрочен",
+Monitoring.DisplayStatus == 25, "Передан в ЧСИ",  
+Monitoring.DisplayStatus == 30, "Продлен", 
+Monitoring.DisplayStatus == 40, "Выкуплен", 
+Monitoring.DisplayStatus == 50, "Отправлен на реализацию", 
+Monitoring.DisplayStatus == 60, "Удален", 
+Monitoring.DisplayStatus == 70, "Действующие", 
+Monitoring.DisplayStatus == 80, "Передано")}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text38>
+            <Text7 Ref="26" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>12.9,0,1.2,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>c574259708ec40e4b8800dd4dd46e428</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text7</Name>
+              <Page isRef="4" />
+              <Parent isRef="19" />
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text7>
+            <Text8 Ref="27" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>14.1,0,1.1,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>f980adcfede943e5b7052c11d068fb7a</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text8</Name>
+              <Page isRef="4" />
+              <Parent isRef="19" />
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text8>
+            <Text12 Ref="28" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0.6,0,1.8,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>76dde58b817244cab5e674da05a1bc16</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text12</Name>
+              <Page isRef="4" />
+              <Parent isRef="19" />
+              <Text>{Monitoring.RevisionDate}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="29" type="DateFormat" isKey="true" />
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text12>
+            <Text27 Ref="30" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>6.7,0,3,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>e31aded3300a4b0193dd7f85c9a262df</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text27</Name>
+              <Page isRef="4" />
+              <Parent isRef="19" />
+              <Text>{Monitoring.Fullname}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text27>
+            <Text24 Ref="31" type="Text" isKey="true">
+              <Border>All;Black;1;Solid;False;4;Black</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>9.7,0,3.2,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Font>Times New Roman,10</Font>
+              <Guid>46c4be2aa85e4d02a538611b69a0f526</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text24</Name>
+              <Page isRef="4" />
+              <Parent isRef="19" />
+              <Text>{Monitoring.GoodsDescription}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text24>
+          </Components>
+          <Conditions isList="true" count="1">
+            <value>PaymentReport.IsAnnuity,EqualTo,true,,Boolean,Black,Gainsboro,Arial_x002C_8,True,False,,,None</value>
+          </Conditions>
+          <DataRelationName isNull="true" />
+          <DataSourceName>Monitoring</DataSourceName>
+          <Filters isList="true" count="0" />
+          <Name>DataBand1</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+          <Sort isList="true" count="0" />
+        </DataBand1>
+        <FooterBand1 Ref="32" type="FooterBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,2.3,15.22,0.3</ClientRectangle>
+          <Components isList="true" count="0" />
+          <Conditions isList="true" count="0" />
+          <Name>FooterBand1</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+        </FooterBand1>
+      </Components>
+      <Conditions isList="true" count="0" />
+      <Guid>65eeb3d2d82d4977b3796880754739cb</Guid>
+      <Margins>0.39,0.39,0.39,0.39</Margins>
+      <Name>Page1</Name>
+      <Orientation>Landscape</Orientation>
+      <PageHeight>11</PageHeight>
+      <PageWidth>16</PageWidth>
+      <PaperSize>Letter</PaperSize>
+      <Report isRef="0" />
+    </Page1>
+  </Pages>
+  <ReferencedAssemblies isList="true" count="8">
+    <value>System.Dll</value>
+    <value>System.Drawing.Dll</value>
+    <value>System.Windows.Forms.Dll</value>
+    <value>System.Data.Dll</value>
+    <value>System.Xml.Dll</value>
+    <value>Stimulsoft.Controls.Dll</value>
+    <value>Stimulsoft.Base.Dll</value>
+    <value>Stimulsoft.Report.Dll</value>
+  </ReferencedAssemblies>
+  <ReportAlias>`</ReportAlias>
+  <ReportChanged>8/8/2022 6:28:19 PM</ReportChanged>
+  <ReportCreated>12/19/2018 4:16:17 PM</ReportCreated>
+  <ReportFile>C:\Projects\tascredit\sources\Pawnshop.Web\Reports\AuditOnPledgesReport.mrt</ReportFile>
+  <ReportGuid>e4a8135ff0ca447a916ce240432e9037</ReportGuid>
+  <ReportName>`</ReportName>
+  <ReportUnit>Inches</ReportUnit>
+  <ReportVersion>2020.1.1.0</ReportVersion>
+  <Script>using System;
+using System.Drawing;
+using System.Windows.Forms;
+using System.Data;
+using Stimulsoft.Controls;
+using Stimulsoft.Base.Drawing;
+using Stimulsoft.Report;
+using Stimulsoft.Report.Dialogs;
+using Stimulsoft.Report.Components;
+
+namespace Reports
+{
+    public class _ : Stimulsoft.Report.StiReport
+    {
+        public _()        {
+            this.InitializeComponent();
+        }
+
+        #region StiReport Designer generated code - do not modify
+		#endregion StiReport Designer generated code - do not modify
+    }
+}
+</Script>
+  <ScriptLanguage>CSharp</ScriptLanguage>
+  <Styles isList="true" count="0" />
+</StiSerializer>

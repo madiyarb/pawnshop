@@ -1,0 +1,4550 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<StiSerializer version="1.02" type="Net" application="StiReport">
+	<CalculationMode>Interpretation</CalculationMode>
+	<Culture>ru-RU</Culture>
+	<Dictionary Ref="1" type="Dictionary" isKey="true">
+		<BusinessObjects isList="true" count="0" />
+		<Databases isList="true" count="1">
+			<ReportConnection Ref="2" type="Stimulsoft.Report.Dictionary.StiSqlDatabase" isKey="true">
+				<Alias>ReportConnection</Alias>
+				<ConnectionStringEncrypted>42BbS09Lw91qR92E5GyoL8ZWgctIXZPN70mAmOrs9kbAePMoRl3T8Wte+fDhCWRj1VT3C0ZI05lpRPUEw3R1P9huT4hhV/vtakG5UGHEdWvgYJnCyUq7RekVJcljACL73j7RjGIDY4HhX2mAZHHgGtlu+6jFWUPd4RX9vWFMsS/VQGVITUvz+eBatYRqeKwz01ZTy01P0oVgS7mNY5hlf8NsZevnXXukYVtlvekcpBfDQM3vx01LzWlEoRxhPWFr1VLPwmFe2YVhXKnsTXCk6/ZawStmTPOkwWXQ+GdwbRPfUrMrzg==</ConnectionStringEncrypted>
+				<Key>208945eff23e49b5a5d4193cf4f129cc</Key>
+				<Name>ReportConnection</Name>
+			</ReportConnection>
+		</Databases>
+		<DataSources isList="true" count="1">
+			<ConsolidateReport Ref="3" type="Stimulsoft.Report.Dictionary.StiSqlSource" isKey="true">
+				<Alias>ConsolidateReport</Alias>
+				<Columns isList="true" count="19">
+					<value>BeginCost,System.Int64</value>
+					<value>BeginCount,System.Int32</value>
+					<value>BranchName,System.String</value>
+					<value>BuyoutCost,System.Int64</value>
+					<value>BuyoutCount,System.Int32</value>
+					<value>CashBeginPeriod,System.Int64</value>
+					<value>CashEndPeriod,System.Int64</value>
+					<value>CashIn,System.Int64</value>
+					<value>CashOut,System.Int64</value>
+					<value>CollateralType,System.Int32</value>
+					<value>EndCost,System.Int64</value>
+					<value>EndCount,System.Int32</value>
+					<value>PercentCost,System.Int64</value>
+					<value>ProlongCost,System.Int64</value>
+					<value>ProlongCount,System.Int32</value>
+					<value>SellingCost,System.Int64</value>
+					<value>SellingCount,System.Int32</value>
+					<value>SignCost,System.Int64</value>
+					<value>SignCount,System.Int32</value>
+				</Columns>
+				<CommandTimeout>1000</CommandTimeout>
+				<Dictionary isRef="1" />
+				<Key>d064e74c44304478bfc83b0b5bc13ede</Key>
+				<Name>ConsolidateReport</Name>
+				<NameInSource>ReportConnection</NameInSource>
+				<Parameters isList="true" count="0" />
+				<SqlCommand>
+					DECLARE
+					@settingCode NVARCHAR(100) = 'ACCOUNT',
+					@overdueSettingCode NVARCHAR(100) = 'OVERDUE_ACCOUNT',
+					@cashPlanId INT,
+					@cashBeginPeriod INT,
+					@cashEndPeriod INT
+
+					SELECT @cashPlanId = dbo.GET_ACCOUNT_PLAN_ID_BY_CODE('CASH', 'CONTRACTS_ALL', 'TERMS_ALL')
+
+
+
+					--CASH BALANCE
+					SELECT @cashBeginPeriod = SUM(abs(dbo.GetAccountBalanceById (Id, @beginDate, default, 0)))
+					FROM Accounts
+					WHERE AccountPlanId = @cashPlanId
+					AND BranchId = @branchId
+
+					SET @cashBeginPeriod = ISNULL(@cashBeginPeriod, 0);
+
+
+					SELECT @cashEndPeriod = SUM(abs(dbo.GetAccountBalanceById (Id, @endDate, default, default)))
+					FROM Accounts
+					WHERE AccountPlanId = @cashPlanId
+					AND BranchId = @branchId
+
+					SET @cashEndPeriod = ISNULL(@cashEndPeriod, 0);
+
+					DECLARE @t TABLE
+					(
+					BranchId INT,
+					BranchName NVARCHAR(MAX),
+					CollateralType INT,
+					BeginCount INT,
+					BeginCost DECIMAL(16,2),
+					SignCount INT,
+					SignCost DECIMAL(16,2),
+					ProlongCount INT,
+					ProlongCost DECIMAL(16,2),
+					BuyoutCount INT,
+					BuyoutCost DECIMAL(16,2),
+					SellingCount INT,
+					SellingCost DECIMAL(16,2),
+					PercentCost DECIMAL(16,2),
+					EndCount INT,
+					EndCost DECIMAL(16,2),
+					CashBeginPeriod DECIMAL(16,2),
+					CashIn DECIMAL(16,2),
+					CashOut DECIMAL(16,2),
+					CashEndPeriod DECIMAL(16,2)
+					)
+
+					INSERT INTO @t(BranchId, BranchName, CollateralType, BeginCount)
+					SELECT
+					g.Id AS BranchId,
+					g.DisplayName AS BranchName,
+					c.CollateralType,
+					COUNT(*) AS BeginCount
+					FROM Contracts c WITH(NOLOCK)
+					JOIN Groups g ON c.BranchId = g.Id
+					WHERE DeleteDate IS NULL
+					AND (BuyoutDate IS NULL OR BuyoutDate &gt;= @beginDate)
+					AND ContractDate &lt;= @beginDate
+					AND (@branchId = 0 OR c.BranchId = @branchId)
+					GROUP BY g.Id, g.DisplayName, c.CollateralType
+
+
+
+					INSERT INTO @t(BranchId, BranchName, CollateralType, EndCount)
+					SELECT
+					g.Id AS BranchId,
+					g.DisplayName AS BranchName,
+					c.CollateralType,
+					COUNT(*) AS EndCount
+					FROM Contracts c WITH(NOLOCK)
+					JOIN Groups g ON c.BranchId = g.Id
+					WHERE DeleteDate IS NULL
+					AND (BuyoutDate IS NULL OR BuyoutDate &gt; @endDate)
+					AND ContractDate &lt;= @endDate
+					AND (@branchId = 0 OR c.BranchId = @branchId)
+					GROUP BY g.Id, g.DisplayName, c.CollateralType
+
+
+					INSERT INTO @t (BranchId, BranchName, CollateralType, BeginCost, EndCost)
+					SELECT
+					g.Id AS BranchId,
+					g.DisplayName AS BranchName,
+					c.CollateralType AS CollateralType,
+					SUM(abs(dbo.GetAccountBalanceById (a.Id, @beginDate, DEFAULT, 0))) AS BeginCost,
+					SUM(abs(dbo.GetAccountBalanceById (a.Id, @endDate, DEFAULT, DEFAULT))) AS EndCost
+					FROM Accounts a
+					JOIN AccountSettings acs ON a.AccountSettingId = acs.Id
+					JOIN Groups g ON a.BranchId = g.Id
+					JOIN Contracts c On c.Id = a.ContractId
+					WHERE acs.Code IN (@settingCode, @overdueSettingCode)
+					AND (@branchId = 0 OR a.BranchId = @branchId)
+					AND c.CollateralType in (10, 20, 30, 40, 50)
+					GROUP BY  g.Id, g.DisplayName, c.CollateralType
+
+
+					if object_id(N'tempdb..#Cons') is not null
+					drop table #Cons;
+					select
+					c.Id
+					,	c.CollateralType
+					,	c.LoanCost
+					,	c.BranchId
+					into #Cons
+					from Contracts c
+					WHERE c.DeleteDate IS NULL
+					AND c.Status &gt;= 30
+					AND (@branchId = 0 OR c.BranchId = @branchId);
+
+					if object_id(N'tempdb..#ca') is not null
+					drop table #ca;
+					SELECT
+					ca.Id
+					,	ca.ContractId
+					,	ca.ActionType
+					,	c.BranchId
+					,	c.CollateralType
+					,	c.LoanCost
+					into #ca
+					FROM ContractActions ca
+					JOIN #Cons c ON ca.ContractId = c.Id
+					WHERE ca.DeleteDate IS NULL
+					AND ca.[Date] BETWEEN @beginDate AND @endDate
+					and ca.ActionType in (10, 20, 30, 40, 50, 60, 80, 90, 110, 130);
+
+					INSERT INTO @t(BranchId, BranchName, CollateralType, SignCount, SignCost, BuyoutCount, BuyoutCost, PercentCost)
+					select
+					g.Id AS BranchId
+					,	g.DisplayName AS BranchName
+					,	t.CollateralType
+					,	t.SignCount
+					,	t.SignCost
+					,	t.BuyoutCount
+					,	t.BuyoutCost
+					,	t.PercentCost
+					from
+					(
+					select
+					ca.CollateralType
+					,	ca.BranchId
+					,	SUM(IIF(ca.ActionType = 50 AND car.PaymentType = 10, 1, 0)) AS SignCount
+					,	SUM(IIF(ca.ActionType = 50 AND car.PaymentType = 10, car.Cost, 0)) AS SignCost
+					,	SUM(IIF(ca.ActionType IN (20, 30, 40, 80, 90, 110, 130) AND car.PaymentType IN (10,15), 1, 0)) AS BuyoutCount
+					,	SUM(IIF(ca.ActionType IN (20, 30, 40, 80, 90, 110, 130) AND car.PaymentType IN (10,15), car.Cost, 0)) AS BuyoutCost
+					,	SUM(IIF(ca.ActionType IN (10, 20, 30, 40, 80, 90, 110, 130)
+					AND (car.PaymentType IN (20,25)
+					or (car.PaymentType IN (30,31,32) and car.DebitAccountId IS NOT NULL)), car.Cost, 0)) AS PercentCost
+					from ContractActionRows car
+					inner join
+					#ca ca
+					on car.ActionId = ca.Id
+					group by ca.CollateralType, ca.BranchId
+					) t
+					inner join
+					Groups g
+					on g.Id = t.BranchId
+					ORDER BY t.CollateralType;
+
+					INSERT INTO @t(BranchId, BranchName, CollateralType, ProlongCount, ProlongCost, SellingCount, SellingCost)
+					SELECT
+					g.Id AS BranchId,
+					g.DisplayName AS BranchName,
+					ca.CollateralType,
+					SUM(IIF(ca.ActionType = 10, 1, 0)) AS ProlongCount,
+					SUM(IIF(ca.ActionType = 10, ca.LoanCost, 0)) AS ProlongCost,
+					SUM(IIF(ca.ActionType = 60, 1, 0)) AS SellingCount,
+					SUM(IIF(ca.ActionType = 60, ca.LoanCost, 0)) AS SellingCost
+					FROM #ca ca
+					--JOIN Contracts c ON ca.ContractId = c.Id
+					JOIN Groups g ON ca.BranchId = g.Id
+					WHERE ca.ActionType IN (10, 60)
+					GROUP BY g.Id, g.DisplayName, ca.CollateralType
+					ORDER BY ca.CollateralType;
+
+					INSERT INTO @t (BranchId, BranchName, CollateralType, CashBeginPeriod, CashIn, CashOut, CashEndPeriod)
+					SELECT
+					g.Id AS BranchId,
+					g.DisplayName AS BranchName,
+					20 AS CollateralType,
+					@cashBeginPeriod AS CashBeginPeriod,
+					SUM(IIF(co.OrderType = 10, co.OrderCost, 0)) AS CashIn,
+					SUM(IIF(co.OrderType = 20, co.OrderCost, 0)) AS CashOut,
+					@cashEndPeriod AS CashEndPeriod
+					FROM CashOrders co WITH(NOLOCK)
+					JOIN Contracts c ON c.Id = co.ContractId
+					JOIN Groups g ON co.BranchId = g.Id
+					JOIN Accounts d ON d.Id = co.DebitAccountId
+					JOIN Accounts ca ON ca.Id = co.CreditAccountId
+					WHERE co.OrderDate &lt; @endDate
+					and co.OrderDate &gt;= @beginDate
+					AND co.DeleteDate IS NULL
+					AND co.ApproveStatus = 10
+					AND (d.AccountPlanId = @cashPlanId OR ca.AccountPlanId = @cashPlanId)
+					AND (@branchId = 0 OR c.BranchId = @branchId)
+					GROUP BY g.Id, g.DisplayName;
+
+
+					SELECT
+					BranchName,
+					CollateralType,
+					SUM(BeginCount) AS BeginCount,
+					SUM(BeginCost) AS BeginCost,
+					SUM(SignCount) AS SignCount,
+					SUM(SignCost) AS SignCost,
+					SUM(ProlongCount) AS ProlongCount,
+					SUM(ProlongCost) AS ProlongCost,
+					SUM(BuyoutCount) AS BuyoutCount,
+					SUM(BuyoutCost) AS BuyoutCost,
+					SUM(SellingCount) AS SellingCount,
+					SUM(SellingCost) AS SellingCost,
+					SUM(PercentCost) AS PercentCost,
+					SUM(EndCount) AS EndCount,
+					SUM(EndCost) AS EndCost,
+					SUM(CashBeginPeriod) AS CashBeginPeriod,
+					SUM(CashIn) AS CashIn,
+					SUM(CashOut) AS CashOut,
+					SUM(CashEndPeriod) AS CashEndPeriod
+					FROM @t
+					WHERE
+					((@branchId = 0 AND
+					BranchId IN (
+					SELECT rightGroup.Id
+					FROM MemberRelations AS relation
+					JOIN Members AS rightMember ON rightMember.Id = relation.RightMemberId
+					LEFT JOIN MemberRelations AS sourceRelation ON sourceRelation.Id = relation.SourceId
+					LEFT JOIN Members AS sourceMember ON sourceMember.Id = sourceRelation.RightMemberId
+					JOIN Groups AS rightGroup ON rightGroup.Id = rightMember.Id
+					WHERE relation.LeftMemberId = @userId
+					AND rightMember.Locked = 'False'
+					AND rightGroup.[Type] = 20
+					AND (sourceMember.Locked = 'False' OR sourceMember.Locked IS NULL)
+					)) OR BranchId = @branchId)
+					GROUP BY BranchName, CollateralType
+					ORDER BY BranchName, CollateralType
+				</SqlCommand>
+			</ConsolidateReport>
+		</DataSources>
+		<Relations isList="true" count="0" />
+		<Report isRef="0" />
+		<Resources isList="true" count="0" />
+		<Variables isList="true" count="10">
+			<value>,branchId,branchId,,System.Int32,_x0031_12,False,False,False,False,_x003C__x003F_xml_x0020_version_x003D__x0022_1.0_x0022__x0020_encoding_x003D__x0022_utf-16_x0022__x0020_standalone_x003D__x0022_yes_x0022__x003F__x003E__x003C_StiSerializer_x0020_version_x003D__x0022_1.02_x0022__x0020_type_x003D__x0022_Net_x0022__x0020_application_x003D__x0022_State_x0022__x003E__x003C_DateTimeType_x003E_DateAndTime_x003C__x002F_DateTimeType_x003E__x003C_BindingVariable_x0020_isNull_x003D__x0022_true_x0022__x0020__x002F__x003E__x003C_Keys_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_Values_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_ValuesBinding_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C__x002F_StiSerializer_x003E_,,True</value>
+			<value>,beginDate,beginDate,,System.DateTime,_x0031_0_x002F_1_x002F_2019_x0020_12:00:00_x0020_AM,False,False,False,False,,,True</value>
+			<value>,endDate,endDate,,System.DateTime,_x0031_0_x002F_4_x002F_2019_x0020_11:59:59_x0020_PM,False,False,False,False,,,True</value>
+			<value>,cashAccountId,cashAccountId,,System.Int32,_x0032_,False,False,False,False,_x003C__x003F_xml_x0020_version_x003D__x0022_1.0_x0022__x0020_encoding_x003D__x0022_utf-16_x0022__x0020_standalone_x003D__x0022_yes_x0022__x003F__x003E__x003C_StiSerializer_x0020_version_x003D__x0022_1.02_x0022__x0020_type_x003D__x0022_Net_x0022__x0020_application_x003D__x0022_State_x0022__x003E__x003C_DateTimeType_x003E_DateAndTime_x003C__x002F_DateTimeType_x003E__x003C_BindingVariable_x0020_isNull_x003D__x0022_true_x0022__x0020__x002F__x003E__x003C_Keys_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_Values_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_ValuesBinding_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C__x002F_StiSerializer_x003E_,,True</value>
+			<value>,goldAccountId,goldAccountId,,System.Int32,_x0033_,False,False,False,False,_x003C__x003F_xml_x0020_version_x003D__x0022_1.0_x0022__x0020_encoding_x003D__x0022_utf-16_x0022__x0020_standalone_x003D__x0022_yes_x0022__x003F__x003E__x003C_StiSerializer_x0020_version_x003D__x0022_1.02_x0022__x0020_type_x003D__x0022_Net_x0022__x0020_application_x003D__x0022_State_x0022__x003E__x003C_DateTimeType_x003E_DateAndTime_x003C__x002F_DateTimeType_x003E__x003C_BindingVariable_x0020_isNull_x003D__x0022_true_x0022__x0020__x002F__x003E__x003C_Keys_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_Values_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_ValuesBinding_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C__x002F_StiSerializer_x003E_,,True</value>
+			<value>,autoAccountId,autoAccountId,,System.Int32,_x0031_,False,False,False,False,_x003C__x003F_xml_x0020_version_x003D__x0022_1.0_x0022__x0020_encoding_x003D__x0022_utf-16_x0022__x0020_standalone_x003D__x0022_yes_x0022__x003F__x003E__x003C_StiSerializer_x0020_version_x003D__x0022_1.02_x0022__x0020_type_x003D__x0022_Net_x0022__x0020_application_x003D__x0022_State_x0022__x003E__x003C_DateTimeType_x003E_DateAndTime_x003C__x002F_DateTimeType_x003E__x003C_BindingVariable_x0020_isNull_x003D__x0022_true_x0022__x0020__x002F__x003E__x003C_Keys_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_Values_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_ValuesBinding_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C__x002F_StiSerializer_x003E_,,True</value>
+			<value>,goodsAccountId,goodsAccountId,,System.Int32,_x0035_,False,False,False,False,_x003C__x003F_xml_x0020_version_x003D__x0022_1.0_x0022__x0020_encoding_x003D__x0022_utf-16_x0022__x0020_standalone_x003D__x0022_yes_x0022__x003F__x003E__x003C_StiSerializer_x0020_version_x003D__x0022_1.02_x0022__x0020_type_x003D__x0022_Net_x0022__x0020_application_x003D__x0022_State_x0022__x003E__x003C_DateTimeType_x003E_DateAndTime_x003C__x002F_DateTimeType_x003E__x003C_BindingVariable_x0020_isNull_x003D__x0022_true_x0022__x0020__x002F__x003E__x003C_Keys_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_Values_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_ValuesBinding_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C__x002F_StiSerializer_x003E_,,True</value>
+			<value>,userId,userId,,System.Int32,_x0031_,False,False,False,False,_x003C__x003F_xml_x0020_version_x003D__x0022_1.0_x0022__x0020_encoding_x003D__x0022_utf-16_x0022__x0020_standalone_x003D__x0022_yes_x0022__x003F__x003E__x003C_StiSerializer_x0020_version_x003D__x0022_1.02_x0022__x0020_type_x003D__x0022_Net_x0022__x0020_application_x003D__x0022_State_x0022__x003E__x003C_DateTimeType_x003E_DateAndTime_x003C__x002F_DateTimeType_x003E__x003C_BindingVariable_x0020_isNull_x003D__x0022_true_x0022__x0020__x002F__x003E__x003C_Keys_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_Values_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_ValuesBinding_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C__x002F_StiSerializer_x003E_,,True</value>
+			<value>,machineryAccountId,machineryAccountId,,System.Int32,_x0031_08,False,False,False,False,_x003C__x003F_xml_x0020_version_x003D__x0022_1.0_x0022__x0020_encoding_x003D__x0022_utf-16_x0022__x0020_standalone_x003D__x0022_yes_x0022__x003F__x003E__x003C_StiSerializer_x0020_version_x003D__x0022_1.02_x0022__x0020_type_x003D__x0022_Net_x0022__x0020_application_x003D__x0022_State_x0022__x003E__x003C_DateTimeType_x003E_DateAndTime_x003C__x002F_DateTimeType_x003E__x003C_BindingVariable_x0020_isNull_x003D__x0022_true_x0022__x0020__x002F__x003E__x003C_Keys_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_Values_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_ValuesBinding_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C__x002F_StiSerializer_x003E_,,True</value>
+			<value>,unsecuredAccountId,unsecuredAccountId,,System.Int32,_x0031_19,False,False,False,False,,,True</value>
+		</Variables>
+	</Dictionary>
+	<EngineVersion>EngineV2</EngineVersion>
+	<GlobalizationStrings isList="true" count="0" />
+	<Key>309bff3f95fd46e29067effc52389a4f</Key>
+	<MetaTags isList="true" count="0" />
+	<Pages isList="true" count="1">
+		<Page1 Ref="4" type="Page" isKey="true">
+			<Border>None;Black;2;Solid;False;4;Black</Border>
+			<Brush>Transparent</Brush>
+			<Components isList="true" count="4">
+				<ReportTitleBand1 Ref="5" type="ReportTitleBand" isKey="true">
+					<Brush>Transparent</Brush>
+					<ClientRectangle>0,0.2,10.22,0.5</ClientRectangle>
+					<Components isList="true" count="2">
+						<Text1 Ref="6" type="Text" isKey="true">
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0,0,10.2,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,12,Bold</Font>
+							<Guid>e9e1812aa1e44298a1b3ea14c5c17e01</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text1</Name>
+							<Page isRef="4" />
+							<Parent isRef="5" />
+							<Text>СВОДНЫЙ ОТЧЕТ</Text>
+							<TextBrush>Black</TextBrush>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text1>
+						<Text2 Ref="7" type="Text" isKey="true">
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0,0.2,10.2,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,12</Font>
+							<Guid>58948e4754904da2b7a936810c9446a5</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text2</Name>
+							<Page isRef="4" />
+							<Parent isRef="5" />
+							<Text>Дата с {Format("{0:dd.MM.yyyy}", beginDate)} по {Format("{0:dd.MM.yyyy}", endDate)}</Text>
+							<TextBrush>Black</TextBrush>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text2>
+					</Components>
+					<Conditions isList="true" count="0" />
+					<Name>ReportTitleBand1</Name>
+					<Page isRef="4" />
+					<Parent isRef="4" />
+				</ReportTitleBand1>
+				<HeaderBand1 Ref="8" type="HeaderBand" isKey="true">
+					<Brush>Transparent</Brush>
+					<ClientRectangle>0,1.1,10.22,0.4</ClientRectangle>
+					<Components isList="true" count="28">
+						<Text3 Ref="9" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0,0,0.3,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>de36a16f517e46f6a6e8f338c86acfa9</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text3</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>№</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text3>
+						<Text4 Ref="10" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0.3,0,0.7,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>0cfb106b5c944618b2381fbb87b7c21f</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text4</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Филиал</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text4>
+						<Text5 Ref="11" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1,0,0.4,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>c0d58140697f4b788925cbbf55ee9f4c</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text5</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Т.М.</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text5>
+						<Text6 Ref="12" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1.4,0,0.9,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>5d7d8045295f48af8d9a4c674f315b41</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text6</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Остаток на {Format("{0:dd.MM.yyyy}", beginDate)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text6>
+						<Text7 Ref="13" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1.4,0.2,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>30ca1f443da5447faabee6146b4463f8</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text7</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>к-во</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text7>
+						<Text8 Ref="14" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1.7,0.2,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>c2ef312ec7b447869a709b52663f49c2</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text8</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>ссуда</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text8>
+						<Text9 Ref="15" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>2.3,0,0.9,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>0f9baede808247c0bb9ba15bd397e43a</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text9</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Прием</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text9>
+						<Text10 Ref="16" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>2.3,0.2,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>dd7aed3adc2940dd8dea5a50bff29631</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text10</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>к-во</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text10>
+						<Text11 Ref="17" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>2.6,0.2,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>8608f59736bc4668ac2c91daecf840fb</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text11</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>ссуда</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text11>
+						<Text12 Ref="18" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>3.2,0,0.9,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>2f8a831c5dab4a76b316bc3826e191ac</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text12</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Продление</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text12>
+						<Text13 Ref="19" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>3.2,0.2,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>09074180077d406aaad8343fdc2c5cc4</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text13</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>к-во</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text13>
+						<Text14 Ref="20" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>3.5,0.2,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>1d77c791ff1a4bceb2c2826fd037d3ba</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text14</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>ссуда</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text14>
+						<Text15 Ref="21" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>4.1,0,0.9,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>02e6b785eda344fcb65e825c2d4016cd</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text15</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Прием+Продл</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text15>
+						<Text16 Ref="22" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>4.1,0.2,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>62c5f18592674fa59b5ec05d9b9bc81d</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text16</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>к-во</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text16>
+						<Text17 Ref="23" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>4.4,0.2,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>0844c52e90bc44da9dd261aabeb9135f</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text17</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>ссуда</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text17>
+						<Text18 Ref="24" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5,0,0.9,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>15fd65dfee7046f4833e2ec5c36e6d68</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text18</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Выкуп</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text18>
+						<Text19 Ref="25" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5,0.2,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>101a1eab9f414ccfbaa058ffb37e4284</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text19</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>к-во</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text19>
+						<Text20 Ref="26" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5.3,0.2,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>5ff3192099d940a7ac68b59c39d04314</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text20</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>ссуда</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text20>
+						<Text21 Ref="27" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5.9,0,0.6,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>1f4ceca2ce2c4639824392db3bcd4897</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text21</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>% и штраф</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text21>
+						<Text22 Ref="28" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>6.5,0,0.6,0.4</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>3a566e3d3063464494fe026cc1ae24c0</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text22</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Итого</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text22>
+						<Text23 Ref="29" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>7.1,0,0.9,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>894ab20ccb2644b982971555f80331fe</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text23</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Остаток на {Format("{0:dd.MM.yyyy}", endDate)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text23>
+						<Text24 Ref="30" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>7.1,0.2,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>b3594e68dfba40d085be3e22332f2e87</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text24</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>к-во</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text24>
+						<Text25 Ref="31" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>7.4,0.2,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>0bad410f7321423ba9011a5a4d0e86e9</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text25</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>ссуда</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text25>
+						<Text26 Ref="32" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>8,0,2.2,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>38dc3cbe12134a4896be558834fea20e</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text26</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>Касса</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text26>
+						<Text27 Ref="33" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>8,0.2,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>6fdf5e1705c64db4bee1f23e2e8ebf04</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text27</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>на начало</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text27>
+						<Text28 Ref="34" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>8.6,0.2,0.5,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>52933347e3aa4c51bb4ae38afde15509</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text28</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>приход</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text28>
+						<Text29 Ref="35" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>9.1,0.2,0.5,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>5bfd1407bae748439e5bd0d894d551b4</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text29</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>расход</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text29>
+						<Text30 Ref="36" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>9.6,0.2,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>590127a052924998a985f97f59ebe507</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text30</Name>
+							<Page isRef="4" />
+							<Parent isRef="8" />
+							<Text>на конец</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text30>
+					</Components>
+					<Conditions isList="true" count="0" />
+					<Name>HeaderBand1</Name>
+					<Page isRef="4" />
+					<Parent isRef="4" />
+					<PrintIfEmpty>True</PrintIfEmpty>
+					<PrintOn>OnlyFirstPage</PrintOn>
+				</HeaderBand1>
+				<DataBand1 Ref="37" type="DataBand" isKey="true">
+					<Brush>Transparent</Brush>
+					<BusinessObjectGuid isNull="true" />
+					<ClientRectangle>0,1.9,10.22,0.2</ClientRectangle>
+					<Components isList="true" count="21">
+						<Text31 Ref="38" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>0,0,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>1fc4e35a9b8f4f93bb04de6d92774ff8</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text31</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{Line}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>SystemVariables</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text31>
+						<Text32 Ref="39" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>0.3,0,0.7,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>d780f7e726264f059b2669454a33a2b7</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text32</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.BranchName}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text32>
+						<Text33 Ref="40" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>1,0,0.4,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>98fdbfb974f24c81b28ee7e0c9cf9d6b</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text33</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{Switch(ConsolidateReport.CollateralType == 10, "Золото", ConsolidateReport.CollateralType == 20, "Авто", ConsolidateReport.CollateralType == 30, "Товар", ConsolidateReport.CollateralType == 40, "Спец", ConsolidateReport.CollateralType == 50, "Беззал")}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text33>
+						<Text34 Ref="41" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>1.4,0,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>5238b81fb14a48449c546018e359d916</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text34</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.BeginCount}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="42" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text34>
+						<Text35 Ref="43" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>1.7,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>1bff6fc4979048218222734a83a18a16</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text35</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.BeginCost}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="44" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text35>
+						<Text36 Ref="45" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>2.3,0,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>91f39ab9e556443dac853c78f4e3451f</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text36</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.SignCount}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="46" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text36>
+						<Text37 Ref="47" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>2.6,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>d3bb6bef2d5e47aebf2890a8d8cfa22c</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text37</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.SignCost}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="48" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text37>
+						<Text38 Ref="49" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>3.2,0,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>dd846010f25442a98bbb52d1352fabb6</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text38</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.ProlongCount}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="50" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text38>
+						<Text39 Ref="51" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>3.5,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>a3cbad77766d4d22b76af027bc67c9e2</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text39</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.ProlongCost}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="52" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text39>
+						<Text40 Ref="53" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>4.1,0,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>7327455b34684123b28f098bfd76246c</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text40</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.SignCount + ConsolidateReport.ProlongCount}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="54" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text40>
+						<Text41 Ref="55" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>4.4,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>41d949482aef479783c9528cc3fedad7</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text41</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.SignCost + ConsolidateReport.ProlongCost}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="56" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text41>
+						<Text42 Ref="57" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>5,0,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>342551ebf078443f8b15c1381aa56a43</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text42</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.BuyoutCount}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="58" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text42>
+						<Text43 Ref="59" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>5.3,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>9514374e5e76480cbeafca5c4b69dfd2</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text43</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.BuyoutCost}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="60" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text43>
+						<Text44 Ref="61" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>5.9,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>16a54e1a03f244aabf841c6d9b8ab2cd</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text44</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.PercentCost}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="62" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text44>
+						<Text45 Ref="63" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>6.5,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>4414f823e0654e0281ac69b1a479f20f</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text45</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.BuyoutCost + ConsolidateReport.PercentCost}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="64" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text45>
+						<Text46 Ref="65" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>7.1,0,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>77a245e305df48cd8d76a2570968f4be</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text46</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.EndCount}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="66" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>DataColumn</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text46>
+						<Text47 Ref="67" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>7.4,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>8e8604209c9e4337b237f9f8dd4e3b1a</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text47</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.EndCost}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="68" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text47>
+						<Text48 Ref="69" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>8,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>e002d45ab21844e5af00f5a803fab88d</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text48</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.CashBeginPeriod}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="70" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text48>
+						<Text49 Ref="71" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>8.6,0,0.5,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>7a5d209e147245d68f71330c938a154b</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text49</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.CashIn}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="72" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text49>
+						<Text50 Ref="73" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>9.1,0,0.5,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>52131febf6d84ecca58e4537b630d51f</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text50</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.CashOut}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="74" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text50>
+						<Text51 Ref="75" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<CanGrow>True</CanGrow>
+							<ClientRectangle>9.6,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<GrowToHeight>True</GrowToHeight>
+							<Guid>c6b5d7ddcc664d3fbc09873ef9959620</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text51</Name>
+							<Page isRef="4" />
+							<Parent isRef="37" />
+							<Text>{ConsolidateReport.CashEndPeriod}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="76" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text51>
+					</Components>
+					<Conditions isList="true" count="0" />
+					<DataRelationName isNull="true" />
+					<DataSourceName>ConsolidateReport</DataSourceName>
+					<Filters isList="true" count="0" />
+					<Name>DataBand1</Name>
+					<Page isRef="4" />
+					<Parent isRef="4" />
+					<Sort isList="true" count="0" />
+				</DataBand1>
+				<FooterBand1 Ref="77" type="FooterBand" isKey="true">
+					<Brush>Transparent</Brush>
+					<ClientRectangle>0,2.5,10.22,1.2</ClientRectangle>
+					<Components isList="true" count="126">
+						<Text52 Ref="78" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0,0,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>088b99b5aa6646f89bf4388092747f29</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text52</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text52>
+						<Text53 Ref="79" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0.3,0,0.7,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>1433e87a531b41f280df74110617dce1</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text53</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text53>
+						<Text54 Ref="80" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1,0,0.4,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>2af78ff6756a4c1fbc3d0ad9babba349</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text54</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>Золото</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text54>
+						<Text55 Ref="81" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1.4,0,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>54b5ab74eab4414c9873589cf77d2dba</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text55</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BeginCount, ConsolidateReport.CollateralType == 10)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="82" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text55>
+						<Text56 Ref="83" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1.7,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>ef742dec72ae473586bc9801a0744414</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text56</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BeginCost, ConsolidateReport.CollateralType == 10)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="84" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text56>
+						<Text57 Ref="85" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>2.3,0,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>9e183ab3a2af4fc69ede482603a95ed1</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text57</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCount, ConsolidateReport.CollateralType == 10)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="86" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text57>
+						<Text58 Ref="87" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>2.6,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>f2d0a9991ec34cee96d288a2a13247ed</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text58</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCost, ConsolidateReport.CollateralType == 10)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="88" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text58>
+						<Text59 Ref="89" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>3.2,0,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>073dbd8b6d1f4702a40d00fcee53fe1b</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text59</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.ProlongCount, ConsolidateReport.CollateralType == 10)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="90" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text59>
+						<Text60 Ref="91" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>3.5,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>a7dc4bf2c2d24a49856b6e46c44b5d16</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text60</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.ProlongCost, ConsolidateReport.CollateralType == 10)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="92" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text60>
+						<Text61 Ref="93" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>4.1,0,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>379805222c8048e196c0a772d79ec88d</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text61</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCount, ConsolidateReport.CollateralType == 10) + SumIf(ConsolidateReport.ProlongCount, ConsolidateReport.CollateralType == 10)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="94" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text61>
+						<Text62 Ref="95" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>4.4,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>f91d571c1057414bbfbcb34b674f202b</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text62</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCost, ConsolidateReport.CollateralType == 10) + SumIf(ConsolidateReport.ProlongCost, ConsolidateReport.CollateralType == 10)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="96" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text62>
+						<Text63 Ref="97" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5,0,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>be4e0cbffc8b4060a253f8ab430b785f</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text63</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BuyoutCount, ConsolidateReport.CollateralType == 10)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="98" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text63>
+						<Text64 Ref="99" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5.3,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>17e10fcbad7c4c849258b7b235bd4e04</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text64</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BuyoutCost, ConsolidateReport.CollateralType == 10)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="100" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text64>
+						<Text65 Ref="101" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5.9,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>1a7e5d2b984d448ebf326ec7734c2c52</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text65</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.PercentCost, ConsolidateReport.CollateralType == 10)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="102" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text65>
+						<Text66 Ref="103" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>6.5,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>92bd9a9b056d4381aa087efebbfca798</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text66</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BuyoutCost, ConsolidateReport.CollateralType == 10) + SumIf(ConsolidateReport.PercentCost, ConsolidateReport.CollateralType == 10)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="104" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text66>
+						<Text67 Ref="105" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>7.1,0,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>f03af3e9d69748fb9e03fba6b7a81ca7</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text67</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.EndCount, ConsolidateReport.CollateralType == 10)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="106" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text67>
+						<Text68 Ref="107" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>7.4,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>4e1f3f87850e4fce9c1ec3d4264eebd5</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text68</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.EndCost, ConsolidateReport.CollateralType == 10)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="108" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text68>
+						<Text69 Ref="109" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>8,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>142ed4e8ca294585ba28386e28fc1a69</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text69</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashBeginPeriod, ConsolidateReport.CollateralType == 10)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="110" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text69>
+						<Text70 Ref="111" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>8.6,0,0.5,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>003585e2dacc480ab4a3a794946ceb64</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text70</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashIn, ConsolidateReport.CollateralType == 10)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="112" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text70>
+						<Text71 Ref="113" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>9.1,0,0.5,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>85a9bdf6ded0487f802a986521dbec19</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text71</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashOut, ConsolidateReport.CollateralType == 10)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="114" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text71>
+						<Text72 Ref="115" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>9.6,0,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>5810af620caf47249d9756da95115c6d</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text72</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashEndPeriod, ConsolidateReport.CollateralType == 10)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="116" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text72>
+						<Text73 Ref="117" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0,0.2,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>35dab10c3df84401b7e21109ade821d8</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text73</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text73>
+						<Text74 Ref="118" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0.3,0.2,0.7,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>ebb7eda0d8cd4a83a669b9a224cb0acf</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text74</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text74>
+						<Text75 Ref="119" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1,0.2,0.4,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>5c071cb889ad44eba7c3de38d16e0e25</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text75</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>Авто</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text75>
+						<Text76 Ref="120" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1.4,0.2,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>1070895a334947feb67b793b2497070b</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text76</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BeginCount, ConsolidateReport.CollateralType == 20)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="121" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text76>
+						<Text77 Ref="122" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1.7,0.2,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>cdf51888a11d4e70b0598eb509f0873a</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text77</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BeginCost, ConsolidateReport.CollateralType == 20)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="123" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text77>
+						<Text78 Ref="124" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>2.3,0.2,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>a3a9f97eb6c54e11a49fe0e21d4bb61f</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text78</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCount, ConsolidateReport.CollateralType == 20)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="125" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text78>
+						<Text79 Ref="126" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>2.6,0.2,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>68ffccfe1e5c40ae8123102049e42ff0</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text79</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCost, ConsolidateReport.CollateralType == 20)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="127" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text79>
+						<Text80 Ref="128" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>3.2,0.2,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>0dea64fe9c514076a642187d8b4f7bbb</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text80</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.ProlongCount, ConsolidateReport.CollateralType == 20)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="129" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text80>
+						<Text81 Ref="130" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>3.5,0.2,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>677faafb62fc4ad4a6d6d8cc63dbe688</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text81</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.ProlongCost, ConsolidateReport.CollateralType == 20)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="131" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text81>
+						<Text82 Ref="132" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>4.1,0.2,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>adf989df90b74244876270d6ea14a3fa</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text82</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCount, ConsolidateReport.CollateralType == 20) + SumIf(ConsolidateReport.ProlongCount, ConsolidateReport.CollateralType == 20)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="133" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text82>
+						<Text83 Ref="134" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>4.4,0.2,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>ff64c81e28e246fbaaf4a4b764633bcc</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text83</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCost, ConsolidateReport.CollateralType == 20) + SumIf(ConsolidateReport.ProlongCost, ConsolidateReport.CollateralType == 20)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="135" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text83>
+						<Text84 Ref="136" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5,0.2,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>3b7a2bdfcd5e40f2ab998f613473d742</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text84</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BuyoutCount, ConsolidateReport.CollateralType == 20)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="137" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text84>
+						<Text85 Ref="138" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5.3,0.2,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>c8d3c644d559482496d8d42a6d982bd6</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text85</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BuyoutCost, ConsolidateReport.CollateralType == 20)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="139" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text85>
+						<Text86 Ref="140" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5.9,0.2,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>ea4baeb793bd44e4b05a8efed98b02e1</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text86</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.PercentCost, ConsolidateReport.CollateralType == 20)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="141" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text86>
+						<Text87 Ref="142" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>6.5,0.2,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>30ba13b0c4c948369ab888bfa7780ea1</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text87</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BuyoutCost, ConsolidateReport.CollateralType == 20) + SumIf(ConsolidateReport.PercentCost, ConsolidateReport.CollateralType == 20)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="143" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text87>
+						<Text88 Ref="144" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>7.1,0.2,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>a8923398118741a293c5f30257689cc4</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text88</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.EndCount, ConsolidateReport.CollateralType == 20)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="145" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text88>
+						<Text89 Ref="146" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>7.4,0.2,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>51bf998b2e554174a5fa0fe78f7e3ec8</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text89</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.EndCost, ConsolidateReport.CollateralType == 20)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="147" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text89>
+						<Text90 Ref="148" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>8,0.2,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>b6448b017f17475ba1cb6156d8784ccd</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text90</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashBeginPeriod, ConsolidateReport.CollateralType == 20)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="149" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text90>
+						<Text91 Ref="150" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>8.6,0.2,0.5,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>a1bf0f29aa054572b7a5ed0dfefd70aa</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text91</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashIn, ConsolidateReport.CollateralType == 20)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="151" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text91>
+						<Text92 Ref="152" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>9.1,0.2,0.5,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>4957ae31fd3f48a58b3dc4c20f77b84b</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text92</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashOut, ConsolidateReport.CollateralType == 20)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="153" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text92>
+						<Text93 Ref="154" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>9.6,0.2,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>3c4a837a00e74db99e340ed5f320439d</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text93</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashEndPeriod, ConsolidateReport.CollateralType == 20)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="155" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text93>
+						<Text94 Ref="156" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0,0.4,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>4522edd840c547dd8f50ae3d3e058fd9</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text94</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text94>
+						<Text95 Ref="157" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0.3,0.4,0.7,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>24f675eb217f43238c54c2b19b16314f</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text95</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text95>
+						<Text96 Ref="158" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1,0.4,0.4,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>3928224205514f399efe9eaabbdc0d4e</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text96</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>Товар</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text96>
+						<Text97 Ref="159" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1.4,0.4,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>f1c31bf76897456aa139104d28c84e71</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text97</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BeginCount, ConsolidateReport.CollateralType == 30)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="160" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text97>
+						<Text98 Ref="161" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1.7,0.4,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>a293cf4c6be74af2925e33f151dd675e</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text98</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BeginCost, ConsolidateReport.CollateralType == 30)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="162" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text98>
+						<Text99 Ref="163" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>2.3,0.4,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>a45f4163ab214fb2a96fc05475fd8d38</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text99</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCount, ConsolidateReport.CollateralType == 30)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="164" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text99>
+						<Text100 Ref="165" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>2.6,0.4,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>de576e9e3cff4a2ea3e3b55e6551f904</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text100</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCost, ConsolidateReport.CollateralType == 30)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="166" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text100>
+						<Text101 Ref="167" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>3.2,0.4,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>7ca7c1c212fb40c58d6eb095a4296cb9</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text101</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.ProlongCount, ConsolidateReport.CollateralType == 30)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="168" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text101>
+						<Text102 Ref="169" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>3.5,0.4,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>c8ffee1227f1445f85bda6c6a154d105</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text102</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.ProlongCost, ConsolidateReport.CollateralType == 30)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="170" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text102>
+						<Text103 Ref="171" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>4.1,0.4,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>16584d86dd3545e7ac9db645c1c785a5</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text103</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCount, ConsolidateReport.CollateralType == 30) + SumIf(ConsolidateReport.ProlongCount, ConsolidateReport.CollateralType == 30)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="172" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text103>
+						<Text104 Ref="173" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>4.4,0.4,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>08922184467b41b58558b1fecb160af9</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text104</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCost, ConsolidateReport.CollateralType == 30) + SumIf(ConsolidateReport.ProlongCost, ConsolidateReport.CollateralType == 30)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="174" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text104>
+						<Text105 Ref="175" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5,0.4,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>b3ecad62b72c48e18e5a260e8d35d608</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text105</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BuyoutCount, ConsolidateReport.CollateralType == 30)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="176" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text105>
+						<Text106 Ref="177" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5.3,0.4,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>4a73235d672349e2aabf79624f3ca832</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text106</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BuyoutCost, ConsolidateReport.CollateralType == 30)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="178" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text106>
+						<Text107 Ref="179" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5.9,0.4,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>11fca4b8df304c93b11b132f0a9b48bf</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text107</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.PercentCost, ConsolidateReport.CollateralType == 30)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="180" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text107>
+						<Text108 Ref="181" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>6.5,0.4,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>39de40d077814e53a34e04616b5b7adb</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text108</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BuyoutCost, ConsolidateReport.CollateralType == 30) + SumIf(ConsolidateReport.PercentCost, ConsolidateReport.CollateralType == 30)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="182" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text108>
+						<Text109 Ref="183" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>7.1,0.4,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>8b17ee3e373244a5b3696e2fafc7e871</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text109</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.EndCount, ConsolidateReport.CollateralType == 30)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="184" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text109>
+						<Text110 Ref="185" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>7.4,0.4,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>a3092966e2c84d009dee84c8fe15cb41</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text110</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.EndCost, ConsolidateReport.CollateralType == 30)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="186" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text110>
+						<Text111 Ref="187" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>8,0.4,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>f993c533daa142dfac57d6898c53ef05</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text111</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashBeginPeriod, ConsolidateReport.CollateralType == 30)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="188" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text111>
+						<Text112 Ref="189" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>8.6,0.4,0.5,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>67e2bb3dfa164c819a039c2b368cdc9a</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text112</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashIn, ConsolidateReport.CollateralType == 30)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="190" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text112>
+						<Text113 Ref="191" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>9.1,0.4,0.5,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>630e0f86347c4b1d8165193c25fd5b4d</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text113</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashOut, ConsolidateReport.CollateralType == 30)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="192" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text113>
+						<Text114 Ref="193" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>9.6,0.4,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>a4ea928a9969451f90bbd5b539973255</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text114</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashEndPeriod, ConsolidateReport.CollateralType == 30)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="194" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text114>
+						<Text115 Ref="195" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0,1,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>75e031e4afd44c88915d02687cb72ded</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text115</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text115>
+						<Text116 Ref="196" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0.3,1,0.7,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>c2186bfefeb54f909af357eae0a97749</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text116</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text116>
+						<Text117 Ref="197" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1,1,0.4,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>ee6967ce13784129af66ad5afc633aaf</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text117</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>Итого</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text117>
+						<Text118 Ref="198" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1.4,1,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>2e96428fa39e4020bca6623dabb0009d</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text118</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{Sum(ConsolidateReport.BeginCount)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="199" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text118>
+						<Text119 Ref="200" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1.7,1,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>3c7ecebeb87e4807b3058e8790d65205</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text119</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{Sum(ConsolidateReport.BeginCost)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="201" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text119>
+						<Text120 Ref="202" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>2.3,1,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>dc5b96b23f6c43628fc03331f019d394</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text120</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{Sum(ConsolidateReport.SignCount)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="203" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text120>
+						<Text121 Ref="204" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>2.6,1,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>3b49ff4b24ac47a49580f9cb0861db90</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text121</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{Sum(ConsolidateReport.SignCost)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="205" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text121>
+						<Text122 Ref="206" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>3.2,1,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>9dd3e02e2b214e0daaadb1d4d138769d</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text122</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{Sum(ConsolidateReport.ProlongCount)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="207" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text122>
+						<Text123 Ref="208" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>3.5,1,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>9176fe907ac74eaea56561d415377432</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text123</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{Sum(ConsolidateReport.ProlongCost)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="209" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text123>
+						<Text124 Ref="210" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>4.1,1,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>ad3adc53c06e4485aa64e33028813c10</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text124</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{Sum(ConsolidateReport.SignCount) + Sum(ConsolidateReport.ProlongCount)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="211" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text124>
+						<Text125 Ref="212" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>4.4,1,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>209f1270c60f42bfac5035189a073385</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text125</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{Sum(ConsolidateReport.SignCost) + Sum(ConsolidateReport.ProlongCost)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="213" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text125>
+						<Text126 Ref="214" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5,1,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>e06a1f82bad04bf188a8523b188462c3</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text126</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{Sum(ConsolidateReport.BuyoutCount)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="215" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text126>
+						<Text127 Ref="216" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5.3,1,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>ed5efe5519284f14bf8d683864da60f5</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text127</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{Sum(ConsolidateReport.BuyoutCost)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="217" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text127>
+						<Text128 Ref="218" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5.9,1,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>ccea9bb1fe354ee49a1cdceff9799117</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text128</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{Sum(ConsolidateReport.PercentCost)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="219" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text128>
+						<Text129 Ref="220" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>6.5,1,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>68989887e02d44a3ba1d8735522f85c0</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text129</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{Sum(ConsolidateReport.BuyoutCost) + Sum(ConsolidateReport.PercentCost)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="221" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text129>
+						<Text130 Ref="222" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>7.1,1,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>bf1659578aca4f96b85d9d9087baa7b3</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text130</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{Sum(ConsolidateReport.EndCount)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="223" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text130>
+						<Text131 Ref="224" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>7.4,1,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>6ea18664fe7346c68696a6654f9139ad</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text131</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{Sum(ConsolidateReport.EndCost)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="225" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text131>
+						<Text132 Ref="226" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>8,1,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>a1dd096ae7e44fd992b49fa9ae3fd52c</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text132</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{Sum(ConsolidateReport.CashBeginPeriod)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="227" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text132>
+						<Text133 Ref="228" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>8.6,1,0.5,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>4f561ed9617648e9814659f49b731518</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text133</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{Sum(ConsolidateReport.CashIn)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="229" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text133>
+						<Text134 Ref="230" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>9.1,1,0.5,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>c955c21c27a14a0c964e22dfa011957f</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text134</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{Sum(ConsolidateReport.CashOut)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="231" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text134>
+						<Text135 Ref="232" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>9.6,1,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>94130850d6fe4341be669dac26f22a72</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text135</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{Sum(ConsolidateReport.CashEndPeriod)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="233" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text135>
+						<Text136 Ref="234" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0,0.8,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>377ad134714b4869b5ebd12b0d071c79</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text136</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text136>
+						<Text137 Ref="235" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0.3,0.8,0.7,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>dcfdcceb26464a8c8b53805f699a92ac</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text137</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text137>
+						<Text138 Ref="236" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1,0.8,0.4,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>90ef7070ca5f408dad4679c7261f9ef9</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text138</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>Беззал</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text138>
+						<Text139 Ref="237" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1.4,0.8,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>080dd952a03442ec82304696515afce4</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text139</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BeginCount, ConsolidateReport.CollateralType == 50)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="238" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text139>
+						<Text140 Ref="239" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1.7,0.8,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>254a4c0d803048f3b65aa3c90990f9bb</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text140</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BeginCost, ConsolidateReport.CollateralType == 50)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="240" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text140>
+						<Text141 Ref="241" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>2.3,0.8,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>c9cce6be07644d48a53cf88aaace31f0</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text141</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCount, ConsolidateReport.CollateralType == 50)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="242" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text141>
+						<Text142 Ref="243" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>2.6,0.8,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>90ccc46b245f4f4a8ca5a45ea3874387</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text142</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCost, ConsolidateReport.CollateralType == 50)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="244" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text142>
+						<Text143 Ref="245" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>3.2,0.8,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>7a3526d3a45f4bad9054507df0182f39</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text143</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.ProlongCount, ConsolidateReport.CollateralType == 50)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="246" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text143>
+						<Text144 Ref="247" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>3.5,0.8,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>55bba60da6e74823b0f3c9026bc2e3fb</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text144</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.ProlongCost, ConsolidateReport.CollateralType == 50)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="248" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text144>
+						<Text145 Ref="249" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>4.1,0.8,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>04f1ffa67f604b23ad498599928bc9b3</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text145</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf( ConsolidateReport.CollateralType == 50) + SumIf(ConsolidateReport.ProlongCount, ConsolidateReport.CollateralType == 50)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="250" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text145>
+						<Text146 Ref="251" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>4.4,0.8,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>7518ea9dab1b43439a83ed5ae2b94916</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text146</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCost, ConsolidateReport.CollateralType == 50) + SumIf(ConsolidateReport.ProlongCost, ConsolidateReport.CollateralType == 50)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="252" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text146>
+						<Text147 Ref="253" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5,0.8,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>95374181bf544b0f8203dea8d5211960</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text147</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BuyoutCount, ConsolidateReport.CollateralType == 50)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="254" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text147>
+						<Text148 Ref="255" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5.3,0.8,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>45d825ee593549a181db9c514fd56bda</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text148</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BuyoutCost, ConsolidateReport.CollateralType == 50)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="256" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text148>
+						<Text149 Ref="257" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5.9,0.8,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>61606f51adc64dfaa65bfa34913426d2</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text149</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.PercentCost, ConsolidateReport.CollateralType == 50)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="258" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text149>
+						<Text150 Ref="259" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>6.5,0.8,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>ebc4fa53a1d246c7939e4ab195b8ee7c</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text150</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BuyoutCost, ConsolidateReport.CollateralType == 50) + SumIf(ConsolidateReport.PercentCost, ConsolidateReport.CollateralType == 50)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="260" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text150>
+						<Text151 Ref="261" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>7.1,0.8,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>7a9977202c4c44c0a7293888f38abe3b</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text151</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.EndCount, ConsolidateReport.CollateralType == 50)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="262" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text151>
+						<Text152 Ref="263" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>7.4,0.8,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>f02b0485708e467780ff4dc27b8ae9ca</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text152</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.EndCost, ConsolidateReport.CollateralType == 50)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="264" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text152>
+						<Text153 Ref="265" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>8,0.8,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>18a1b01ed9784126a139f6e7e9552129</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text153</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashBeginPeriod, ConsolidateReport.CollateralType == 50)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="266" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text153>
+						<Text154 Ref="267" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>8.6,0.8,0.5,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>f3e182e18f5946548c83c30d0bfcd889</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text154</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashIn, ConsolidateReport.CollateralType == 50)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="268" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text154>
+						<Text155 Ref="269" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>9.1,0.8,0.5,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>2fef20cabf3f44cdaf91e73fda91e8df</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text155</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashOut, ConsolidateReport.CollateralType == 50)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="270" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text155>
+						<Text156 Ref="271" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>9.6,0.8,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>43fc53e5496745a6a68ea636861c7781</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text156</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashEndPeriod, ConsolidateReport.CollateralType == 50)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="272" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text156>
+						<Text157 Ref="273" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0,0.6,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>4702914e3549494d95ce45c7fddf5089</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text157</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text157>
+						<Text158 Ref="274" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>0.3,0.6,0.7,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>a56e867ce2774b14a0d363e4e8616672</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text158</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text158>
+						<Text159 Ref="275" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1,0.6,0.4,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>fcc72ed94a1248c5936f3615816085bb</Guid>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text159</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>Спец</Text>
+							<TextBrush>Black</TextBrush>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text159>
+						<Text160 Ref="276" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1.4,0.6,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>44eb9e9385e6457081c42e11ac39ae93</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text160</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BeginCount, ConsolidateReport.CollateralType == 40)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="277" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text160>
+						<Text161 Ref="278" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>1.7,0.6,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>42ac3c50e9494ce49bb6c34c4cc14247</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text161</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BeginCost, ConsolidateReport.CollateralType == 40)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="279" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text161>
+						<Text162 Ref="280" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>2.3,0.6,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>bbea27f7d71040ff82a8e9d87a02d658</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text162</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCount, ConsolidateReport.CollateralType == 40)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="281" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text162>
+						<Text163 Ref="282" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>2.6,0.6,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>a63e18c801264c85865146d25417d9de</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text163</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCost, ConsolidateReport.CollateralType == 40)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="283" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text163>
+						<Text164 Ref="284" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>3.2,0.6,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>84e672c706c94348a2377f11c880a355</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text164</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.ProlongCount, ConsolidateReport.CollateralType == 40)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="285" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text164>
+						<Text165 Ref="286" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>3.5,0.6,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>350137d76ba443e7b8692683ae95229d</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text165</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.ProlongCost, ConsolidateReport.CollateralType == 40)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="287" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text165>
+						<Text166 Ref="288" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>4.1,0.6,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>0d81ef8e49ee4180a1f9be94396b4a63</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text166</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCount, ConsolidateReport.CollateralType == 40) + SumIf(ConsolidateReport.ProlongCount, ConsolidateReport.CollateralType == 40)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="289" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text166>
+						<Text167 Ref="290" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>4.4,0.6,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>a6e4c1c74b224df499bd8de4c570ec1b</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text167</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.SignCost, ConsolidateReport.CollateralType == 40) + SumIf(ConsolidateReport.ProlongCost, ConsolidateReport.CollateralType == 40)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="291" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text167>
+						<Text168 Ref="292" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5,0.6,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>90d0fa508dad43b5855fcfc082fa1722</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text168</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BuyoutCount, ConsolidateReport.CollateralType == 40)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="293" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text168>
+						<Text169 Ref="294" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5.3,0.6,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>2a807ff3151846269790ebe972904873</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text169</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BuyoutCost, ConsolidateReport.CollateralType == 40)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="295" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text169>
+						<Text170 Ref="296" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>5.9,0.6,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>cebf9455153e486f958246b7455dcd58</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text170</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.PercentCost, ConsolidateReport.CollateralType == 40)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="297" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text170>
+						<Text171 Ref="298" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>6.5,0.6,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>29ca1f4b91c94ec5b401384ee375d411</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text171</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.BuyoutCost, ConsolidateReport.CollateralType == 40) + SumIf(ConsolidateReport.PercentCost, ConsolidateReport.CollateralType == 40)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="299" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Expression</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text171>
+						<Text172 Ref="300" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>7.1,0.6,0.3,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>99f2e1ebdfe44ad184c80d8b75e09b13</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text172</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.EndCount, ConsolidateReport.CollateralType == 40)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="301" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<DecimalSeparator>,</DecimalSeparator>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<State>DecimalDigits</State>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text172>
+						<Text173 Ref="302" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>7.4,0.6,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>8479ae1ae78743308556e3c237cdcd1b</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text173</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.EndCost, ConsolidateReport.CollateralType == 40)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="303" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text173>
+						<Text174 Ref="304" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>8,0.6,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>488695bd43fb422795a0d76cb46a22f8</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text174</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashBeginPeriod, ConsolidateReport.CollateralType == 40)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="305" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text174>
+						<Text175 Ref="306" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>8.6,0.6,0.5,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>d29de9664731415fad44d3b61bf106ec</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text175</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashIn, ConsolidateReport.CollateralType == 40)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="307" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text175>
+						<Text176 Ref="308" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>9.1,0.6,0.5,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>73a9350c472340c7acd21ccd68f7df47</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text176</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashOut, ConsolidateReport.CollateralType == 40)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="309" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text176>
+						<Text177 Ref="310" type="Text" isKey="true">
+							<Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+							<Brush>Transparent</Brush>
+							<ClientRectangle>9.6,0.6,0.6,0.2</ClientRectangle>
+							<Conditions isList="true" count="0" />
+							<Font>Times New Roman,8</Font>
+							<Guid>80d6e65921574f41b55dcd6eadfd7d5d</Guid>
+							<HideZeros>True</HideZeros>
+							<HorAlignment>Center</HorAlignment>
+							<Margins>0,0,0,0</Margins>
+							<Name>Text177</Name>
+							<Page isRef="4" />
+							<Parent isRef="77" />
+							<Text>{SumIf(ConsolidateReport.CashEndPeriod, ConsolidateReport.CollateralType == 40)}</Text>
+							<TextBrush>Black</TextBrush>
+							<TextFormat Ref="311" type="NumberFormat" isKey="true">
+								<DecimalDigits>0</DecimalDigits>
+								<GroupSeparator> </GroupSeparator>
+								<NegativePattern>1</NegativePattern>
+								<UseLocalSetting>False</UseLocalSetting>
+							</TextFormat>
+							<TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+							<Type>Totals</Type>
+							<VertAlignment>Center</VertAlignment>
+						</Text177>
+					</Components>
+					<Conditions isList="true" count="0" />
+					<Name>FooterBand1</Name>
+					<Page isRef="4" />
+					<Parent isRef="4" />
+				</FooterBand1>
+			</Components>
+			<Conditions isList="true" count="0" />
+			<Guid>4fd74673e0754beca27ed985bd7a136f</Guid>
+			<Margins>0.39,0.39,0.39,0.39</Margins>
+			<Name>Page1</Name>
+			<Orientation>Landscape</Orientation>
+			<PageHeight>8.5</PageHeight>
+			<PageWidth>11</PageWidth>
+			<PaperSize>Letter</PaperSize>
+			<Report isRef="0" />
+		</Page1>
+	</Pages>
+	<ReferencedAssemblies isList="true" count="8">
+		<value>System.Dll</value>
+		<value>System.Drawing.Dll</value>
+		<value>System.Windows.Forms.Dll</value>
+		<value>System.Data.Dll</value>
+		<value>System.Xml.Dll</value>
+		<value>Stimulsoft.Controls.Dll</value>
+		<value>Stimulsoft.Base.Dll</value>
+		<value>Stimulsoft.Report.Dll</value>
+	</ReferencedAssemblies>
+	<ReportAlias>Report</ReportAlias>
+	<ReportChanged>6/16/2021 12:12:33 PM</ReportChanged>
+	<ReportCreated>11/16/2018 5:16:44 PM</ReportCreated>
+	<ReportFile>C:\Users\User\source\repos\tascredit\sources\Pawnshop.Web\Reports\ConsolidateReport.mrt</ReportFile>
+	<ReportGuid>6415f823e0584817a0f5b1ff4e2c91da</ReportGuid>
+	<ReportName>Report</ReportName>
+	<ReportUnit>Inches</ReportUnit>
+	<ReportVersion>2020.2.1.0</ReportVersion>
+	<Script>
+		using System;
+		using System.Drawing;
+		using System.Windows.Forms;
+		using System.Data;
+		using Stimulsoft.Controls;
+		using Stimulsoft.Base.Drawing;
+		using Stimulsoft.Report;
+		using Stimulsoft.Report.Dialogs;
+		using Stimulsoft.Report.Components;
+
+		namespace Reports
+		{
+		public class Report : Stimulsoft.Report.StiReport
+		{
+		public Report()        {
+		this.InitializeComponent();
+		}
+
+		#region StiReport Designer generated code - do not modify
+		#endregion StiReport Designer generated code - do not modify
+		}
+		}
+	</Script>
+	<ScriptLanguage>CSharp</ScriptLanguage>
+	<Styles isList="true" count="0" />
+</StiSerializer>

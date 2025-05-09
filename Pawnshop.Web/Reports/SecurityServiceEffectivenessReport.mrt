@@ -1,0 +1,921 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<StiSerializer version="1.02" type="Net" application="StiReport">
+  <CalculationMode>Interpretation</CalculationMode>
+  <Culture>ru-RU</Culture>
+  <Dictionary Ref="1" type="Dictionary" isKey="true">
+    <BusinessObjects isList="true" count="0" />
+    <Databases isList="true" count="1">
+      <ReportConnection Ref="2" type="Stimulsoft.Report.Dictionary.StiSqlDatabase" isKey="true">
+        <Alias>ReportConnection</Alias>
+        <ConnectionStringEncrypted>9GBp40ZK85nsTf3c6hB3atEw26vjBZOF4gicnWd04GuBcM0CZ1r6RWpN2VDEJXefwD6VCWd7g/lnRg18w6jgP4vuaethGHpt7RXt2O9sZT/ZVtHCxgmLzeIVTZzPhOBn51JhSEgY+vVvXKmYaSXhL8N40QnJW+sV4k2kfGEN4HuEbmkrT1zDrfNLoBxiCSJ/hmDVa1ZM0/nsE7gE6czje8R4/yvFVdOBzVyhnHVYpD/VPs0J1lGr7WhLoQTlcaxzwlr5KV0D84zxTbX48AUlF9Na+QnFTUOZ7W3Z+PkEoEbZbneI50xhvGFJoZjDCOQP31SBaGJq</ConnectionStringEncrypted>
+        <Key>d195e884cf2a49478f43aba124dac912</Key>
+        <Name>ReportConnection</Name>
+      </ReportConnection>
+    </Databases>
+    <DataSources isList="true" count="1">
+      <Report Ref="3" type="Stimulsoft.Report.Dictionary.StiSqlSource" isKey="true">
+        <Alias>Report</Alias>
+        <Columns isList="true" count="14">
+          <value>ФИО,System.String</value>
+          <value>ИИН,System.String</value>
+          <value>Номер,System.String</value>
+          <value>Адрес,System.String</value>
+          <value>Коллектор,System.String</value>
+          <value>Остаток_x0020_ОД,System.Decimal</value>
+          <value>Обеспечение,System.String</value>
+          <value>MAX_x0020_глубина_x0020_просрочки_x0020_в_x0020_заданный_x0020_период,System.Int32</value>
+          <value>Дата_x0020_погашения,System.DateTime</value>
+          <value>Погашено_x0020_ОД,System.Decimal</value>
+          <value>Погашено_x0020_пени,System.Decimal</value>
+          <value>Погашено_x0020_проценты,System.Decimal</value>
+          <value>Погашено_x0020_гос_x0020_пошлины,System.Decimal</value>
+          <value>Погашено_x0020_всего,System.Decimal</value>
+        </Columns>
+        <CommandTimeout>10000</CommandTimeout>
+        <Dictionary isRef="1" />
+        <Key>4104c461031a4749bb0750acc1c66e1c</Key>
+        <Name>Report</Name>
+        <NameInSource>ReportConnection</NameInSource>
+        <Parameters isList="true" count="0" />
+        <SqlCommand>DECLARE  @AccountSettings TABLE (SettingId INT)
+DECLARE  @overdueAccountSettings TABLE (SettingId INT)
+
+DECLARE @payments TABLE (
+ ContractId INT,
+ BranchId INT,
+ ActionType INT,
+ PlanDate DATE,
+ FactDate DATE,
+ TotalCost DECIMAL (16,2),
+ PrincipalCost DECIMAL (16,2),
+ InterestCost DECIMAL (16,2), 
+ PenaltyCost DECIMAL (16,2),
+ DutyCost DECIMAL (16,2),
+ OverdueDaysCount INT
+ )
+
+
+INSERT INTO @AccountSettings (SettingId) SELECT Id FROM AccountSettings WHERE Code = 'ACCOUNT'
+INSERT INTO @overdueAccountSettings (SettingId) SELECT Id FROM AccountSettings WHERE Code = 'OVERDUE_ACCOUNT'
+
+INSERT INTO @payments (ContractId, BranchId, ActionType, PlanDate, FactDate, TotalCost, PrincipalCost, InterestCost, PenaltyCost, DutyCost, OverdueDaysCount)
+
+ SELECT     
+       ca.ContractId
+   ,c.BranchId
+   ,ca.ActionType
+    ,(SELECT TOP 1 cpsOverdue.Date FROM ContractPaymentSchedule cpsOverdue WHERE cpsOverdue.ContractId = c.Id AND cpsOverdue.DeleteDate IS NULL AND ((cpsOverdue.ActualDate  IS NULL OR CAST(cpsOverdue.ActualDate AS DATE) &gt;= CAST(ca.Date AS DATE)) AND (cpsOverdue.Canceled IS NULL OR CAST(cpsOverdue.Canceled AS DATE) &gt;= CAST(ca.Date AS DATE))) ORDER BY cpsOverdue.Date) AS PlanDate
+      ,CAST(ca.Date AS DATE) AS FactDate
+      ,ca.TotalCost
+   ,principal.Cost AS PrincipalCost
+   ,interest.Cost AS InterestCost
+   ,penalty.Cost AS PenaltyCost
+   ,duty.Cost AS DutyCost
+   ,IIF(
+  (DATEDIFF(
+   day, 
+   (SELECT TOP 1 cpsOverdue.Date FROM ContractPaymentSchedule cpsOverdue WHERE cpsOverdue.ContractId = c.Id AND cpsOverdue.DeleteDate IS NULL AND ((cpsOverdue.ActualDate  IS NULL OR CAST(cpsOverdue.ActualDate AS DATE) &gt;= CAST(ca.Date AS DATE)) AND (cpsOverdue.Canceled IS NULL OR CAST(cpsOverdue.Canceled AS DATE) &gt;= CAST(ca.Date AS DATE))) ORDER BY cpsOverdue.Date),
+   CAST (ca.Date AS DATE)
+   ) - 1 ) &lt; 0,
+  0,
+   
+  DATEDIFF(
+   day, 
+   (SELECT TOP 1 cpsOverdue.Date FROM ContractPaymentSchedule cpsOverdue WHERE cpsOverdue.ContractId = c.Id AND cpsOverdue.DeleteDate IS NULL AND ((cpsOverdue.ActualDate  IS NULL OR CAST(cpsOverdue.ActualDate AS DATE) &gt;= CAST(ca.Date AS DATE)) AND (cpsOverdue.Canceled IS NULL OR CAST(cpsOverdue.Canceled AS DATE) &gt;= CAST(ca.Date AS DATE))) ORDER BY cpsOverdue.Date),
+   CAST (ca.Date AS DATE)
+   )
+  ) AS OverdueDaysCount
+      
+ FROM [dbo].[ContractActions] ca
+ JOIN Contracts c ON c.Id = ca.ContractId
+ JOIN Groups g ON c.BranchId = g.Id
+    
+    OUTER APPLY (
+ SELECT SUM(Cost) AS Cost
+ FROM ContractActionRows 
+ LEFT JOIN Accounts ON ContractActionRows.DebitAccountId = Accounts.Id
+ LEFT JOIN AccountSettings ON AccountSettings.Id = Accounts.AccountSettingId
+ WHERE ActionId = ca.Id
+ AND PaymentType IN (10,15)
+ AND DebitAccountId IS NOT NULL
+ AND AccountSettings.Code != 'ACCOUNT'
+ ) principal
+
+ OUTER APPLY (
+ SELECT SUM(Cost) AS Cost,
+ SUM(ISNULL(Period,0)) AS Period
+ FROM ContractActionRows 
+ WHERE ActionId = ca.Id
+ AND PaymentType IN (20,25) 
+ AND DebitAccountId IS NOT NULL
+ ) interest 
+
+ OUTER APPLY (
+ SELECT SUM(Cost) AS Cost,
+ SUM(ISNULL(Period,0)) AS Period
+ FROM ContractActionRows 
+ WHERE ActionId = ca.Id
+ AND PaymentType IN (30, 31, 32) 
+ AND DebitAccountId IS NOT NULL
+ ) penalty 
+ 
+ OUTER APPLY (
+ SELECT SUM(Cost) AS Cost,
+ SUM(ISNULL(Period,0)) AS Period
+ FROM ContractActionRows 
+ WHERE ActionId = ca.Id
+ AND PaymentType = 40 
+ AND DebitAccountId IS NOT NULL
+ ) duty 
+  
+  
+ WHERE 
+  ca.DeleteDate IS NULL 
+  AND ca.ActionType IN (10, 20, 30, 40, 80, 90, 110, 130)
+  AND CAST(ca.Date AS DATE) &gt;= @beginDate
+  AND CAST(ca.Date AS DATE) &lt;= @endDate
+  AND c.BranchId = 530
+  AND 
+  DATEDIFF(
+   day, 
+   (SELECT TOP 1 cpsOverdue.Date FROM ContractPaymentSchedule cpsOverdue WHERE cpsOverdue.ContractId = c.Id AND cpsOverdue.DeleteDate IS NULL AND ((cpsOverdue.ActualDate  IS NULL OR CAST(cpsOverdue.ActualDate AS DATE) &gt;= CAST(ca.Date AS DATE)) AND (cpsOverdue.Canceled IS NULL OR CAST(cpsOverdue.Canceled AS DATE) &gt;= CAST(ca.Date AS DATE))) ORDER BY cpsOverdue.Date),
+   CAST (ca.Date AS DATE)
+   ) &gt; 0
+  
+
+ ORDER BY ca.Date DESC
+
+
+
+ SELECT DISTINCT
+  cl.FullName AS N'ФИО',
+  cl.IdentityNumber AS N'ИИН',
+  co.ContractNumber AS N'Номер',
+  cla.FullPathKaz AS N'Адрес',
+  '' AS N'Коллектор',
+  ((dbo.GetAccountBalanceById (accountId.Id, @endDate, default, default) * (-1)) + (dbo.GetAccountBalanceById (overdueaccountId.Id, @endDate, default, default) * (-1))) AS N'Остаток ОД',
+  CONCAT(UPPER(car.Mark),N' ',UPPER(car.Model)) AS N'Обеспечение',
+  pays.OverdueDaysCount AS N'MAX глубина просрочки в заданный период',
+  pays.FactDate AS N'Дата погашения',
+  ISNULL(pays.PrincipalCost,0) AS N'Погашено ОД',
+  ISNULL(pays.PenaltyCost,0) AS N'Погашено пени',
+  ISNULL(pays.InterestCost,0) AS N'Погашено проценты',
+  ISNULL(pays.DutyCost,0) AS N'Погашено гос пошлины',
+  ISNULL(pays.TotalCost,0) AS N'Погашено всего'
+ FROM @payments pays
+  LEFT JOIN Contracts co ON co.Id = pays.ContractId
+  LEFT JOIN Clients cl ON cl.Id = co.ClientId
+  LEFT JOIN ClientAddresses cla ON cla.ClientId = co.ClientId
+  LEFT JOIN dogs.Tranches tr ON tr.Id = co.Id
+  LEFT JOIN ContractPositions cps on cps.ContractId = tr.CreditLineId
+  LEFT JOIN Cars car on car.Id = cps.PositionId and co.CollateralType = 20
+
+
+  OUTER APPLY (SELECT TOP 1 Id FROM Accounts a WHERE a.AccountSettingId IN (SELECT SettingId FROM @AccountSettings) AND a.ContractId = co.Id AND a.DeleteDate IS NULL) accountId
+  OUTER APPLY (SELECT TOP 1 Id FROM Accounts a WHERE a.AccountSettingId IN (SELECT SettingId FROM @overdueAccountSettings) AND a.ContractId = co.Id AND a.DeleteDate IS NULL) overdueaccountId</SqlCommand>
+      </Report>
+    </DataSources>
+    <Relations isList="true" count="0" />
+    <Report isRef="0" />
+    <Resources isList="true" count="0" />
+    <Variables isList="true" count="2">
+      <value>,beginDate,beginDate,,System.DateTime,_x0034__x002F_1_x002F_2023_x0020_12:00:00_x0020_AM,False,False,False,False,,_x0030_fc9a056d5b54574bd0b455d5fc9d956,True</value>
+      <value>,endDate,endDate,,System.DateTime,_x0034__x002F_7_x002F_2023_x0020_12:00:00_x0020_AM,False,False,False,False,,,True</value>
+    </Variables>
+  </Dictionary>
+  <EngineVersion>EngineV2</EngineVersion>
+  <GlobalizationStrings isList="true" count="0" />
+  <Key>56df59e6039b4c3cb9960f836d9b4784</Key>
+  <MetaTags isList="true" count="0" />
+  <Pages isList="true" count="1">
+    <Page1 Ref="4" type="Page" isKey="true">
+      <Border>None;Black;2;Solid;False;4;Black</Border>
+      <Brush>Transparent</Brush>
+      <Components isList="true" count="3">
+        <ReportTitleBand1 Ref="5" type="ReportTitleBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,0.2,18.4,0.4</ClientRectangle>
+          <Components isList="true" count="2">
+            <Text1 Ref="6" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0,18.4,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,12,Bold</Font>
+              <Guid>d4a5a36eda2a4dcb890ad6d78f1d1c83</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text1</Name>
+              <Page isRef="4" />
+              <Parent isRef="5" />
+              <Text>Эффективность СБ</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text1>
+            <Text2 Ref="7" type="Text" isKey="true">
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0.2,18.4,0.2</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,12</Font>
+              <Guid>292b04e39a29494da442360e15e5c121</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text2</Name>
+              <Page isRef="4" />
+              <Parent isRef="5" />
+              <Text>Дата с {Format("{0:dd.MM.yyyy}", beginDate)} по {Format("{0:dd.MM.yyyy}", endDate)}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text2>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Expressions isList="true" count="0" />
+          <Name>ReportTitleBand1</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+        </ReportTitleBand1>
+        <HeaderBand1 Ref="8" type="HeaderBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,1,18.4,0.3</ClientRectangle>
+          <Components isList="true" count="13">
+            <Text6 Ref="9" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[250:192:143]</Brush>
+              <ClientRectangle>3.7,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>8e09325ad8034332ad7c74a36a3d50b9</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text6</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Номер</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text6>
+            <Text7 Ref="10" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[250:192:143]</Brush>
+              <ClientRectangle>0,0,2.6,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>3ad9b287110f433f980af6e14deffbc6</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text7</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>ФИО</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text7>
+            <Text11 Ref="11" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[250:192:143]</Brush>
+              <ClientRectangle>2.6,0,1.1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>92c01bfaa89c45c7bb7c0472ca74b9f3</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text11</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>ИИН</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text11>
+            <Text13 Ref="12" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[250:192:143]</Brush>
+              <ClientRectangle>4.5,0,2.6,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>ae14daadc64f4d0e8c3fb3b0e13928cd</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text13</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Адрес</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text13>
+            <Text3 Ref="13" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[250:192:143]</Brush>
+              <ClientRectangle>7.1,0,1.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>ead2b73aa530493096384dcb665ada6f</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text3</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Коллектор</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text3>
+            <Text5 Ref="14" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[250:192:143]</Brush>
+              <ClientRectangle>8.9,0,1.1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>b7e4691dc5884abcb3b58982df3a9f4d</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text5</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Остаток ОД</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="15" type="NumberFormat" isKey="true">
+                <DecimalDigits>2</DecimalDigits>
+                <DecimalSeparator>,</DecimalSeparator>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text5>
+            <Text9 Ref="16" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[250:192:143]</Brush>
+              <ClientRectangle>10,0,1.6,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>9dab636a5c6f4787b19b9ffc0c6effe4</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text9</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Обеспечение</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text9>
+            <Text15 Ref="17" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[250:192:143]</Brush>
+              <ClientRectangle>11.6,0,1.2,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>76ba88da553543019d2b8adb92980e9d</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text15</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>MAX глубина просрочки в заданный период</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text15>
+            <Text17 Ref="18" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[250:192:143]</Brush>
+              <ClientRectangle>12.8,0,1.2,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>66026cdd34eb4809bc3e0a2b961288d6</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text17</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Дата погашения</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text17>
+            <Text19 Ref="19" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[250:192:143]</Brush>
+              <ClientRectangle>14,0,1.1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>2dda3072ca324674950f84753e9443e1</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text19</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Погашено ОД</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="20" type="NumberFormat" isKey="true">
+                <DecimalDigits>2</DecimalDigits>
+                <DecimalSeparator>,</DecimalSeparator>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text19>
+            <Text21 Ref="21" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[250:192:143]</Brush>
+              <ClientRectangle>15.1,0,1.1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>fac4d98794d34fb78c505a6b350151bc</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text21</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Погашено пени</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="22" type="NumberFormat" isKey="true">
+                <DecimalDigits>2</DecimalDigits>
+                <DecimalSeparator>,</DecimalSeparator>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text21>
+            <Text23 Ref="23" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[250:192:143]</Brush>
+              <ClientRectangle>16.2,0,1.1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>ecab50d7023a4cbd8f31856f8fe7f893</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text23</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Погашено проценты</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="24" type="NumberFormat" isKey="true">
+                <DecimalDigits>2</DecimalDigits>
+                <DecimalSeparator>,</DecimalSeparator>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text23>
+            <Text25 Ref="25" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[250:192:143]</Brush>
+              <ClientRectangle>17.3,0,1.1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>4f5ddcdb167048e4aba807a537b70bc9</Guid>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text25</Name>
+              <Page isRef="4" />
+              <Parent isRef="8" />
+              <Text>Погашено всего</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="26" type="NumberFormat" isKey="true">
+                <DecimalDigits>2</DecimalDigits>
+                <DecimalSeparator>,</DecimalSeparator>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text25>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Expressions isList="true" count="0" />
+          <Name>HeaderBand1</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+          <PrintIfEmpty>True</PrintIfEmpty>
+          <PrintOn>OnlyFirstPage</PrintOn>
+        </HeaderBand1>
+        <DataBand1 Ref="27" type="DataBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <BusinessObjectGuid isNull="true" />
+          <CanShrink>True</CanShrink>
+          <ClientRectangle>0,1.7,18.4,0.3</ClientRectangle>
+          <Components isList="true" count="13">
+            <Text27 Ref="28" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanBreak>True</CanBreak>
+              <ClientRectangle>3.7,0,0.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>0dc86f78d6d54ec883c3bbe95086cead</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text27</Name>
+              <Page isRef="4" />
+              <Parent isRef="27" />
+              <Text>{Report.Номер}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text27>
+            <Text28 Ref="29" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[0:0:0:0]</Brush>
+              <ClientRectangle>0,0,2.6,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>17026325f6da4cebbd9729e643b10c5e</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Interaction Ref="30" type="Stimulsoft.Report.Components.StiInteraction" isKey="true">
+                <SortingEnabled>False</SortingEnabled>
+              </Interaction>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text28</Name>
+              <Page isRef="4" />
+              <Parent isRef="27" />
+              <Text>{Report.ФИО}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text28>
+            <Text12 Ref="31" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[0:0:0:0]</Brush>
+              <ClientRectangle>2.6,0,1.1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>ce133fccd1274a0c8495d50614f9fd9d</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Interaction Ref="32" type="Stimulsoft.Report.Components.StiInteraction" isKey="true">
+                <SortingEnabled>False</SortingEnabled>
+              </Interaction>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text12</Name>
+              <Page isRef="4" />
+              <Parent isRef="27" />
+              <Text>{Report.ИИН}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text12>
+            <Text14 Ref="33" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[0:0:0:0]</Brush>
+              <ClientRectangle>4.5,0,2.6,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>1a6d6dc360ff4db1b971dfeb9fdfa42a</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Interaction Ref="34" type="Stimulsoft.Report.Components.StiInteraction" isKey="true">
+                <SortingEnabled>False</SortingEnabled>
+              </Interaction>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text14</Name>
+              <Page isRef="4" />
+              <Parent isRef="27" />
+              <Text>{Report.Адрес}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text14>
+            <Text4 Ref="35" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[0:0:0:0]</Brush>
+              <ClientRectangle>7.1,0,1.8,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>55ea476b42014f1c914b41020842662f</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Interaction Ref="36" type="Stimulsoft.Report.Components.StiInteraction" isKey="true">
+                <SortingEnabled>False</SortingEnabled>
+              </Interaction>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text4</Name>
+              <Page isRef="4" />
+              <Parent isRef="27" />
+              <Text>{Report.Коллектор}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text4>
+            <Text8 Ref="37" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanBreak>True</CanBreak>
+              <ClientRectangle>8.9,0,1.1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>5e8ab22a958c40a5b6acafef833dc39e</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Right</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text8</Name>
+              <Page isRef="4" />
+              <Parent isRef="27" />
+              <Text>{Report.Остаток_ОД}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="38" type="NumberFormat" isKey="true">
+                <DecimalDigits>2</DecimalDigits>
+                <DecimalSeparator>,</DecimalSeparator>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text8>
+            <Text10 Ref="39" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[0:0:0:0]</Brush>
+              <ClientRectangle>10,0,1.6,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>72d185352947448caff6bc77fe9ad6d5</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Interaction Ref="40" type="Stimulsoft.Report.Components.StiInteraction" isKey="true">
+                <SortingEnabled>False</SortingEnabled>
+              </Interaction>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text10</Name>
+              <Page isRef="4" />
+              <Parent isRef="27" />
+              <Text>{Report.Обеспечение}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text10>
+            <Text16 Ref="41" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[0:0:0:0]</Brush>
+              <ClientRectangle>11.6,0,1.2,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>fa89a01a05124e288cc9cb2e6ad6e0ae</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Interaction Ref="42" type="Stimulsoft.Report.Components.StiInteraction" isKey="true">
+                <SortingEnabled>False</SortingEnabled>
+              </Interaction>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text16</Name>
+              <Page isRef="4" />
+              <Parent isRef="27" />
+              <Text>{Report.MAX_глубина_просрочки_в_заданный_период}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text16>
+            <Text18 Ref="43" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>[0:0:0:0]</Brush>
+              <ClientRectangle>12.8,0,1.2,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>fb1b0b4376e44546bd30beeb9a711580</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Center</HorAlignment>
+              <Interaction Ref="44" type="Stimulsoft.Report.Components.StiInteraction" isKey="true">
+                <SortingEnabled>False</SortingEnabled>
+              </Interaction>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text18</Name>
+              <Page isRef="4" />
+              <Parent isRef="27" />
+              <Text>{Report.Дата_погашения}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="45" type="DateFormat" isKey="true" />
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text18>
+            <Text20 Ref="46" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanBreak>True</CanBreak>
+              <ClientRectangle>14,0,1.1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>72aba1583acc48579e6617d927d94b8a</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Right</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text20</Name>
+              <Page isRef="4" />
+              <Parent isRef="27" />
+              <Text>{Report.Погашено_ОД}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="47" type="NumberFormat" isKey="true">
+                <DecimalDigits>2</DecimalDigits>
+                <DecimalSeparator>,</DecimalSeparator>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text20>
+            <Text22 Ref="48" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanBreak>True</CanBreak>
+              <ClientRectangle>15.1,0,1.1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>c75f2416380f4a9c90d1522d48a8482a</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Right</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text22</Name>
+              <Page isRef="4" />
+              <Parent isRef="27" />
+              <Text>{Report.Погашено_пени}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="49" type="NumberFormat" isKey="true">
+                <DecimalDigits>2</DecimalDigits>
+                <DecimalSeparator>,</DecimalSeparator>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text22>
+            <Text24 Ref="50" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanBreak>True</CanBreak>
+              <ClientRectangle>16.2,0,1.1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>651d82732fd4484085dcf36294d859f2</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Right</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text24</Name>
+              <Page isRef="4" />
+              <Parent isRef="27" />
+              <Text>{Report.Погашено_проценты}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="51" type="NumberFormat" isKey="true">
+                <DecimalDigits>2</DecimalDigits>
+                <DecimalSeparator>,</DecimalSeparator>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text24>
+            <Text26 Ref="52" type="Text" isKey="true">
+              <Border>All;[0:0:0];1;Solid;False;4;[0:0:0]</Border>
+              <Brush>Transparent</Brush>
+              <CanBreak>True</CanBreak>
+              <ClientRectangle>17.3,0,1.1,0.3</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>Times New Roman,8</Font>
+              <Guid>a419f8c74a134aff998dcae986788c5b</Guid>
+              <HideZeros>True</HideZeros>
+              <HorAlignment>Right</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text26</Name>
+              <Page isRef="4" />
+              <Parent isRef="27" />
+              <Text>{Report.Погашено_всего}</Text>
+              <TextBrush>Black</TextBrush>
+              <TextFormat Ref="53" type="NumberFormat" isKey="true">
+                <DecimalDigits>2</DecimalDigits>
+                <DecimalSeparator>,</DecimalSeparator>
+                <GroupSeparator> </GroupSeparator>
+                <NegativePattern>1</NegativePattern>
+              </TextFormat>
+              <TextOptions>,,,,WordWrap=True,A=0</TextOptions>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text26>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <DataRelationName isNull="true" />
+          <DataSourceName>Report</DataSourceName>
+          <Expressions isList="true" count="0" />
+          <Filters isList="true" count="0" />
+          <Name>DataBand1</Name>
+          <Page isRef="4" />
+          <Parent isRef="4" />
+          <Sort isList="true" count="0" />
+        </DataBand1>
+      </Components>
+      <Conditions isList="true" count="0" />
+      <Expressions isList="true" count="0" />
+      <Guid>f829242d2ffc40a2b0da84b5e6beb840</Guid>
+      <Margins>0.4,0.4,0.4,0.4</Margins>
+      <Name>Page1</Name>
+      <Orientation>Landscape</Orientation>
+      <PageHeight>8.5</PageHeight>
+      <PageWidth>10</PageWidth>
+      <PaperSize>Letter</PaperSize>
+      <Report isRef="0" />
+      <SegmentPerWidth>2</SegmentPerWidth>
+    </Page1>
+  </Pages>
+  <ReferencedAssemblies isList="true" count="8">
+    <value>System.Dll</value>
+    <value>System.Drawing.Dll</value>
+    <value>System.Windows.Forms.Dll</value>
+    <value>System.Data.Dll</value>
+    <value>System.Xml.Dll</value>
+    <value>Stimulsoft.Controls.Dll</value>
+    <value>Stimulsoft.Base.Dll</value>
+    <value>Stimulsoft.Report.Dll</value>
+  </ReferencedAssemblies>
+  <ReportAlias>Report</ReportAlias>
+  <ReportChanged>4/7/2023 6:03:03 PM</ReportChanged>
+  <ReportCreated>11/15/2018 8:15:56 AM</ReportCreated>
+  <ReportGuid>6e4046c6b76247bfbb9f31cea3b0d31d</ReportGuid>
+  <ReportName>Report</ReportName>
+  <ReportUnit>Inches</ReportUnit>
+  <ReportVersion>2021.3.2.0</ReportVersion>
+  <Script>using System;
+using System.Drawing;
+using System.Windows.Forms;
+using System.Data;
+using Stimulsoft.Controls;
+using Stimulsoft.Base.Drawing;
+using Stimulsoft.Report;
+using Stimulsoft.Report.Dialogs;
+using Stimulsoft.Report.Components;
+
+namespace Reports
+{
+    public class Report : Stimulsoft.Report.StiReport
+    {
+        public Report()        {
+            this.InitializeComponent();
+        }
+
+        #region StiReport Designer generated code - do not modify
+		#endregion StiReport Designer generated code - do not modify
+    }
+}
+</Script>
+  <ScriptLanguage>CSharp</ScriptLanguage>
+  <Styles isList="true" count="0" />
+</StiSerializer>
